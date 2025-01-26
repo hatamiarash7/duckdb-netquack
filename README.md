@@ -47,6 +47,18 @@ D SELECT extract_domain('https://b.a.domain.com/path') as domain;
 └────────────┘
 ```
 
+You can use the `update_suffixes` function to update the public suffix list manually.
+
+```sql
+D SELECT update_suffixes();
+┌───────────────────┐
+│ update_suffixes() │
+│      varchar      │
+├───────────────────┤
+│ updated           │
+└───────────────────┘
+```
+
 ## Contributing 🤝
 
 Don't be shy and reach out to us if you want to contribute 😉

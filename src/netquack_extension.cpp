@@ -47,13 +47,13 @@ namespace duckdb
 	}
 
 	// Function to parse the public suffix list and store it in a table
-	static void LoadPublicSuffixList(DatabaseInstance &db)
+	static void LoadPublicSuffixList(DatabaseInstance &db, bool force = false)
 	{
 		// Check if the table already exists
 		Connection con(db);
 		auto table_exists = con.Query("SELECT 1 FROM information_schema.tables WHERE table_name = 'public_suffix_list'");
 
-		if (table_exists->RowCount() == 0)
+		if (table_exists->RowCount() == 0 || force)
 		{
 			// Download the list
 			auto list_data = DownloadPublicSuffixList();
@@ -61,7 +61,7 @@ namespace duckdb
 			// Parse the list and insert into a table
 			std::istringstream stream(list_data);
 			std::string line;
-			con.Query("CREATE TABLE public_suffix_list (suffix VARCHAR)");
+			con.Query("CREATE OR REPLACE TABLE public_suffix_list (suffix VARCHAR)");
 
 			while (std::getline(stream, line))
 			{
@@ -80,6 +80,15 @@ namespace duckdb
 				con.Query("INSERT INTO public_suffix_list (suffix) VALUES ('" + line + "')");
 			}
 		}
+	}
+
+	static void UpdateSuffixesFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Load the public suffix list if not already loaded
+		auto &db = *state.GetContext().db;
+		LoadPublicSuffixList(db, true);
+
+		result.SetValue(0, Value("updated"));
 	}
 
 	// Function to extract the main domain from a URL
@@ -162,9 +171,19 @@ namespace duckdb
 
 	static void LoadInternal(DatabaseInstance &instance)
 	{
-		auto netquack_extract_domain_function = ScalarFunction("extract_domain", {LogicalType::VARCHAR},
-															   LogicalType::VARCHAR, ExtractDomainFunction);
+		auto netquack_extract_domain_function = ScalarFunction(
+			"extract_domain",
+			{LogicalType::VARCHAR},
+			LogicalType::VARCHAR,
+			ExtractDomainFunction);
 		ExtensionUtil::RegisterFunction(instance, netquack_extract_domain_function);
+
+		auto netquack_update_suffixes_function = ScalarFunction(
+			"update_suffixes",
+			{},
+			LogicalType::VARCHAR,
+			UpdateSuffixesFunction);
+		ExtensionUtil::RegisterFunction(instance, netquack_update_suffixes_function);
 	}
 
 	void NetquackExtension::Load(DuckDB &db)
