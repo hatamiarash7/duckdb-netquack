@@ -1,0 +1,67 @@
+# name: test/sql/extract_subdomain.test
+# description: test netquack extension extract_subdomain function
+# group: [netquack]
+
+# Before we load the extension, this will fail
+statement error
+SELECT netquack('domain.com');
+----
+Catalog Error: Scalar Function with name netquack does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require netquack
+
+query I
+SELECT extract_subdomain('a.domain.com');
+----
+a
+
+query I
+SELECT extract_subdomain('a.domain.com.ac');
+----
+a
+
+query I
+SELECT extract_subdomain('b.a.domain.com');
+----
+b.a
+
+query I
+SELECT extract_subdomain('b.a.domain.com.ac');
+----
+b.a
+
+query I
+SELECT extract_subdomain('http://b.a.domain.com');
+----
+b.a
+
+query I
+SELECT extract_subdomain('https://b.a.domain.com.ac');
+----
+b.a
+
+query I
+SELECT extract_subdomain('https://b.a.domain.com.ac/path');
+----
+b.a
+
+query I
+SELECT extract_subdomain('com.ac');
+----
+(empty)
+
+query I
+SELECT extract_subdomain('com');
+----
+(empty)
+
+query I
+SELECT extract_subdomain('c');
+----
+(empty)
+
+query I
+SELECT extract_subdomain('http:/domain.com.ac/path');
+----
+(empty)
