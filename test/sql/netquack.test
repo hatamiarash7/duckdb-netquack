@@ -1,0 +1,23 @@
+# name: test/sql/netquack.test
+# description: test netquack extension
+# group: [netquack]
+
+# Before we load the extension, this will fail
+statement error
+SELECT netquack('Sam');
+----
+Catalog Error: Scalar Function with name netquack does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require netquack
+
+# Confirm the extension works
+query I
+SELECT netquack('Sam');
+----
+Netquack Sam 🐥
+
+query I
+SELECT netquack_openssl_version('Michael') ILIKE 'Netquack Michael, my linked OpenSSL version is OpenSSL%';
+----
+true
