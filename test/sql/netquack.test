@@ -4,20 +4,91 @@
 
 # Before we load the extension, this will fail
 statement error
-SELECT netquack('Sam');
+SELECT netquack('domain.com');
 ----
 Catalog Error: Scalar Function with name netquack does not exist!
 
 # Require statement will ensure this test is run with this extension loaded
 require netquack
 
-# Confirm the extension works
+# -------------------------------- Extract Domain --------------------------------
 query I
-SELECT netquack('Sam');
+SELECT extract_domain('domain.com');
 ----
-Netquack Sam 🐥
+domain.com
 
 query I
-SELECT netquack_openssl_version('Michael') ILIKE 'Netquack Michael, my linked OpenSSL version is OpenSSL%';
+SELECT extract_domain('a.domain.com');
 ----
-true
+domain.com
+
+query I
+SELECT extract_domain('domain.com.ac');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('a.domain.com.ac');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('domain.com.ac/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('domain.com.ac/');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('https://domain.com.ac');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('http://domain.com.ac');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('https://domain.com.ac/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('http://domain.com.ac/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('https://domain.com.ac/');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('https://domain.com.ac/path/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('com.ac');
+----
+com.ac
+
+query I
+SELECT extract_domain('com');
+----
+com
+
+query I
+SELECT extract_domain('c');
+----
+(empty)
+
+query I
+SELECT extract_domain('http:/domain.com.ac/path');
+----
+(empty)
+
