@@ -90,7 +90,7 @@ namespace duckdb
 	std::string ExtractPath(const std::string &input)
 	{
 		// Regex to match the path component
-		std::regex path_regex(R"((?:https?:\/\/)?[^\/\?:]+(\/[^\?#]*)?)");
+		std::regex path_regex(R"(^(?:(?:https?:\/\/)?(?:[^\/\s]+))(\/[^?#]*))");
 		std::smatch path_match;
 
 		if (std::regex_match(input, path_match, path_regex))
