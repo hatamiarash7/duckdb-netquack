@@ -1,5 +1,5 @@
-# name: test/sql/netquack.test
-# description: test netquack extension
+# name: test/sql/extract_domain.test
+# description: test netquack extension extract_domain function
 # group: [netquack]
 
 # Before we load the extension, this will fail
@@ -11,7 +11,6 @@ Catalog Error: Scalar Function with name netquack does not exist!
 # Require statement will ensure this test is run with this extension loaded
 require netquack
 
-# -------------------------------- Extract Domain --------------------------------
 query I
 SELECT extract_domain('domain.com');
 ----
@@ -91,4 +90,3 @@ query I
 SELECT extract_domain('http:/domain.com.ac/path');
 ----
 (empty)
-

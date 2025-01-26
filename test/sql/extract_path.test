@@ -1,0 +1,37 @@
+# name: test/sql/extract_path.test
+# description: test netquack extension extract_path function
+# group: [netquack]
+
+# Before we load the extension, this will fail
+statement error
+SELECT netquack('domain.com');
+----
+Catalog Error: Scalar Function with name netquack does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require netquack
+
+query I
+SELECT extract_path('http://domain.com.ac/path');
+----
+/path
+
+query I
+SELECT extract_path('https://domain.com.ac/path/path');
+----
+/path/path
+
+query I
+SELECT extract_path('http://a.b.domain.com.ac/path');
+----
+/path
+
+query I
+SELECT extract_path('a.b.domain.com.ac/path');
+----
+/path
+
+query I
+SELECT extract_path('domain.com.ac/path/path');
+----
+/path/path
