@@ -10,7 +10,17 @@ SELECT extract_domain('domain.com');
 domain.com
 
 query I
+SELECT extract_domain('domain.com:443');
+----
+domain.com
+
+query I
 SELECT extract_domain('a.domain.com');
+----
+domain.com
+
+query I
+SELECT extract_domain('a.domain.com:443');
 ----
 domain.com
 
@@ -20,7 +30,17 @@ SELECT extract_domain('domain.com.ac');
 domain.com.ac
 
 query I
+SELECT extract_domain('domain.com.ac:443');
+----
+domain.com.ac
+
+query I
 SELECT extract_domain('a.domain.com.ac');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('a.domain.com.ac:443');
 ----
 domain.com.ac
 
@@ -30,7 +50,17 @@ SELECT extract_domain('domain.com.ac/path');
 domain.com.ac
 
 query I
+SELECT extract_domain('domain.com.ac:443/path');
+----
+domain.com.ac
+
+query I
 SELECT extract_domain('domain.com.ac/');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('domain.com.ac:443/');
 ----
 domain.com.ac
 
@@ -40,7 +70,17 @@ SELECT extract_domain('https://domain.com.ac');
 domain.com.ac
 
 query I
+SELECT extract_domain('https://domain.com.ac:443');
+----
+domain.com.ac
+
+query I
 SELECT extract_domain('http://domain.com.ac');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('http://domain.com.ac:443');
 ----
 domain.com.ac
 
@@ -50,7 +90,17 @@ SELECT extract_domain('https://domain.com.ac/path');
 domain.com.ac
 
 query I
+SELECT extract_domain('https://domain.com.ac:443/path');
+----
+domain.com.ac
+
+query I
 SELECT extract_domain('http://domain.com.ac/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('http://domain.com.ac:443/path');
 ----
 domain.com.ac
 
@@ -60,7 +110,17 @@ SELECT extract_domain('https://domain.com.ac/');
 domain.com.ac
 
 query I
+SELECT extract_domain('https://domain.com.ac:443/');
+----
+domain.com.ac
+
+query I
 SELECT extract_domain('https://domain.com.ac/path/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_domain('https://domain.com.ac:443/path/path');
 ----
 domain.com.ac
 
@@ -70,7 +130,17 @@ SELECT extract_domain('com.ac');
 com.ac
 
 query I
+SELECT extract_domain('com.ac:443');
+----
+com.ac
+
+query I
 SELECT extract_domain('com');
+----
+com
+
+query I
+SELECT extract_domain('com:443');
 ----
 com
 
@@ -80,6 +150,16 @@ SELECT extract_domain('c');
 (empty)
 
 query I
+SELECT extract_domain('c:443');
+----
+(empty)
+
+query I
 SELECT extract_domain('http:/domain.com.ac/path');
+----
+(empty)
+
+query I
+SELECT extract_domain('http:/domain.com.ac:443/path');
 ----
 (empty)

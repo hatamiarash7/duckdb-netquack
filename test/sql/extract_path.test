@@ -10,7 +10,17 @@ SELECT extract_path('http://domain.com.ac/path');
 /path
 
 query I
+SELECT extract_path('http://domain.com.ac:443/path');
+----
+/path
+
+query I
 SELECT extract_path('https://domain.com.ac/path/path');
+----
+/path/path
+
+query I
+SELECT extract_path('https://domain.com.ac:443/path/path');
 ----
 /path/path
 
@@ -20,11 +30,26 @@ SELECT extract_path('http://a.b.domain.com.ac/path');
 /path
 
 query I
+SELECT extract_path('http://a.b.domain.com.ac:443/path');
+----
+/path
+
+query I
 SELECT extract_path('a.b.domain.com.ac/path');
 ----
 /path
 
 query I
+SELECT extract_path('a.b.domain.com.ac:443/path');
+----
+/path
+
+query I
 SELECT extract_path('domain.com.ac/path/path');
+----
+/path/path
+
+query I
+SELECT extract_path('domain.com.ac:443/path/path');
 ----
 /path/path

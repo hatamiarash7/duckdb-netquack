@@ -10,7 +10,17 @@ SELECT extract_tld('domain.com');
 com
 
 query I
+SELECT extract_tld('domain.com:443');
+----
+com
+
+query I
 SELECT extract_tld('a.domain.com');
+----
+com
+
+query I
+SELECT extract_tld('a.domain.com:443');
 ----
 com
 
@@ -20,7 +30,17 @@ SELECT extract_tld('domain.com.ac');
 com.ac
 
 query I
+SELECT extract_tld('domain.com.ac:443');
+----
+com.ac
+
+query I
 SELECT extract_tld('a.domain.com.ac');
+----
+com.ac
+
+query I
+SELECT extract_tld('a.domain.com.ac:443');
 ----
 com.ac
 
@@ -30,7 +50,17 @@ SELECT extract_tld('domain.com.ac/path');
 com.ac
 
 query I
+SELECT extract_tld('domain.com.ac/path:443');
+----
+com.ac
+
+query I
 SELECT extract_tld('domain.com.ac/');
+----
+com.ac
+
+query I
+SELECT extract_tld('domain.com.ac:443/');
 ----
 com.ac
 
@@ -40,7 +70,17 @@ SELECT extract_tld('https://domain.com.ac');
 com.ac
 
 query I
+SELECT extract_tld('https://domain.com.ac:443');
+----
+com.ac
+
+query I
 SELECT extract_tld('http://domain.com.ac');
+----
+com.ac
+
+query I
+SELECT extract_tld('http://domain.com.ac:443');
 ----
 com.ac
 
@@ -50,7 +90,17 @@ SELECT extract_tld('https://domain.com.ac/path');
 com.ac
 
 query I
+SELECT extract_tld('https://domain.com.ac:443/path');
+----
+com.ac
+
+query I
 SELECT extract_tld('http://domain.com.ac/path');
+----
+com.ac
+
+query I
+SELECT extract_tld('http://domain.com.ac:443/path');
 ----
 com.ac
 
@@ -60,12 +110,28 @@ SELECT extract_tld('https://domain.com.ac/');
 com.ac
 
 query I
+SELECT extract_tld('https://domain.com.ac:443/');
+----
+com.ac
+
+query I
 SELECT extract_tld('https://domain.com.ac/path/path');
 ----
 com.ac
 
 query I
+SELECT extract_tld('https://domain.com.ac:443/path/path');
+----
+com.ac
+
+
+query I
 SELECT extract_tld('com.ac');
+----
+com.ac
+
+query I
+SELECT extract_tld('com.ac:443');
 ----
 com.ac
 
@@ -75,11 +141,26 @@ SELECT extract_tld('com');
 com
 
 query I
+SELECT extract_tld('com:443');
+----
+com
+
+query I
 SELECT extract_tld('c');
 ----
 (empty)
 
 query I
+SELECT extract_tld('c:443');
+----
+(empty)
+
+query I
 SELECT extract_tld('http:/domain.com.ac/path');
+----
+(empty)
+
+query I
+SELECT extract_tld('http:/domain.com.ac:443/path');
 ----
 (empty)
