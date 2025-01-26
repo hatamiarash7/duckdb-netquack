@@ -2,13 +2,6 @@
 # description: test netquack extension extract_path function
 # group: [netquack]
 
-# Before we load the extension, this will fail
-statement error
-SELECT netquack('domain.com');
-----
-Catalog Error: Scalar Function with name netquack does not exist!
-
-# Require statement will ensure this test is run with this extension loaded
 require netquack
 
 query I
