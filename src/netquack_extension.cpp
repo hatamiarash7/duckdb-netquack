@@ -261,6 +261,7 @@ namespace duckdb
 		}
 	}
 
+	// Function to update the Tranco list table
 	static void UpdateTrancoListFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
 		// Extract the force_download argument
@@ -272,6 +273,29 @@ namespace duckdb
 		LoadTrancoList(db, force_download);
 
 		result.SetValue(0, Value("Tranco list updated"));
+	}
+
+	// Function to get the Tranco rank of a domain
+	static void GetTrancoRankFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		auto &db = *state.GetContext().db;
+		LoadPublicSuffixList(db, false);
+		Connection con(db);
+
+		auto table_exists = con.Query("SELECT 1 FROM information_schema.tables WHERE table_name = 'tranco_list'");
+
+		if (table_exists->RowCount() == 0)
+		{
+			throw std::runtime_error("Tranco table not found. Download it first using `SELECT update_tranco(true);`");
+		}
+
+		auto &domain_vector = args.data[0];
+		auto domain = domain_vector.GetValue(0).ToString();
+
+		auto query = "SELECT rank FROM tranco_list WHERE domain = '" + domain + "'";
+		auto query_result = con.Query(query);
+
+		result.SetValue(0, query_result->RowCount() > 0 ? query_result->GetValue(0, 0) : Value());
 	}
 
 	// Load the extension into the database
@@ -312,13 +336,19 @@ namespace duckdb
 			ExtractSubDomainFunction);
 		ExtensionUtil::RegisterFunction(instance, netquack_extract_subdomain_function);
 
-		// Register the new function
 		auto netquack_update_tranco_function = ScalarFunction(
 			"update_tranco",
 			{LogicalType::BOOLEAN},
 			LogicalType::VARCHAR,
 			UpdateTrancoListFunction);
 		ExtensionUtil::RegisterFunction(instance, netquack_update_tranco_function);
+
+		auto get_tranco_rank_function = ScalarFunction(
+			"get_tranco_rank",
+			{LogicalType::VARCHAR},
+			LogicalType::INTEGER,
+			GetTrancoRankFunction);
+		ExtensionUtil::RegisterFunction(instance, get_tranco_rank_function);
 	}
 
 	void NetquackExtension::Load(DuckDB &db)

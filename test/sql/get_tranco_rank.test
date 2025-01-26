@@ -1,0 +1,28 @@
+# name: test/sql/extract_tld.test
+# description: test netquack extension extract_tld function
+# group: [netquack]
+
+require netquack
+
+statement ok
+CREATE TABLE tranco_list AS SELECT * FROM read_csv('test/data/tranco.csv', header=false, columns={'rank': 'INTEGER', 'domain': 'VARCHAR'});
+
+query I
+SELECT COUNT(*) FROM tranco_list;
+----
+20
+
+query I
+SELECT get_tranco_rank('microsoft.com');
+----
+2
+
+query I
+SELECT get_tranco_rank('gstatic.com');
+----
+19
+
+query I
+SELECT get_tranco_rank('notfound.com');
+----
+NULL

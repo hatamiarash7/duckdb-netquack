@@ -4,7 +4,6 @@
 
 namespace duckdb
 {
-
 	// Function to download a file from a URL
 	size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
@@ -19,5 +18,4 @@ namespace duckdb
 
 	// Function to download the Tranco list and create a table
 	void LoadTrancoList(DatabaseInstance &db, bool force);
-
 } // namespace duckdb
