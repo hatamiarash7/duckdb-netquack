@@ -23,7 +23,7 @@ LOAD netquack;
 
 Once installed, the [macro functions](https://community-extensions.duckdb.org/extensions/netquack.html#added-functions) provided by the extension can be used just like built-in functions.
 
-## Extracting The Main Domain
+### Extracting The Main Domain
 
 This function extracts the main domain from a URL. For this purpose, the extension will get all public suffixes from the [publicsuffix.org](https://publicsuffix.org/) list and extract the main domain from the URL.
 
@@ -59,7 +59,7 @@ D SELECT update_suffixes();
 └───────────────────┘
 ```
 
-## Extracting The Path
+### Extracting The Path
 
 This function extracts the path from a URL.
 
@@ -81,7 +81,7 @@ D SELECT extract_path('domain.com/path/path/image.png') as path;
 └──────────────────────┘
 ```
 
-## Extracting The TLD (Top-Level Domain)
+### Extracting The TLD (Top-Level Domain)
 
 This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
 
@@ -103,7 +103,7 @@ D SELECT extract_tld('a.domain.com') as tld;
 └─────────┘
 ```
 
-## Extracting The Sub Domain
+### Extracting The Sub Domain
 
 This function extracts the sub-domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
 
@@ -123,6 +123,54 @@ D SELECT extract_subdomain('test.domain.com.ac') as dns_record;
 ├────────────┤
 │ test       │
 └────────────┘
+```
+
+### Get Tranco Rank
+
+#### Update Tranco List
+
+This function returns the [Tranco](https://tranco-list.eu/) rank of a domain. You have a `update_tranco` function to update the Tranco list manually.
+
+```sql
+D select update_tranco(true);
+┌─────────────────────────────────────┐
+│ update_tranco(CAST('f' AS BOOLEAN)) │
+│               varchar               │
+├─────────────────────────────────────┤
+│ Tranco list updated                 │
+└─────────────────────────────────────┘
+```
+
+This function will get the latest Tranco list and save it into the `tranco_list` table. There will be a `tranco_lit_%Y-%m-%d.csv` file in the current directory after the function is called. The extension will use this file to prevent downloading the list again.
+
+You can ignore the file and force the extension to download the list again by calling the function with `true` as a parameter. If you don't want to download the list again, you can call the function with `false` as a parameter.
+
+```sql
+D select update_tranco(false);
+```
+
+As the latest Tranco list is for the last day, you can download your list manually and rename it to `tranco_lit_%Y-%m-%d.csv` to use it with the extension too.
+
+#### Get Tranco Ranking
+
+You can use this function to get the ranking of a domain:
+
+```sql
+D select get_tranco_rank('microsoft.com') as rank;
+┌───────┐
+│ rank  │
+│ int32 │
+├───────┤
+│     2 │
+└───────┘
+
+D select get_tranco_rank('cloudflare.com') as rank;
+┌───────┐
+│ rank  │
+│ int32 │
+├───────┤
+│    13 │
+└───────┘
 ```
 
 ## Contributing 🤝
