@@ -17,4 +17,7 @@ namespace duckdb
 	// Function to extract the path from a URL or host
 	std::string ExtractPath(const std::string &input);
 
+	// Function to download the Tranco list and create a table
+	void LoadTrancoList(DatabaseInstance &db, bool force);
+
 } // namespace duckdb

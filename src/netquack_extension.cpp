@@ -261,6 +261,19 @@ namespace duckdb
 		}
 	}
 
+	static void UpdateTrancoListFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the force_download argument
+		auto &force_download_vector = args.data[0];
+		bool force_download = force_download_vector.GetValue(0).GetValue<bool>();
+
+		// Load the Tranco list into the database
+		auto &db = *state.GetContext().db;
+		LoadTrancoList(db, force_download);
+
+		result.SetValue(0, Value("Tranco list updated"));
+	}
+
 	// Load the extension into the database
 	static void LoadInternal(DatabaseInstance &instance)
 	{
@@ -298,6 +311,14 @@ namespace duckdb
 			LogicalType::VARCHAR,
 			ExtractSubDomainFunction);
 		ExtensionUtil::RegisterFunction(instance, netquack_extract_subdomain_function);
+
+		// Register the new function
+		auto netquack_update_tranco_function = ScalarFunction(
+			"update_tranco",
+			{LogicalType::BOOLEAN},
+			LogicalType::VARCHAR,
+			UpdateTrancoListFunction);
+		ExtensionUtil::RegisterFunction(instance, netquack_update_tranco_function);
 	}
 
 	void NetquackExtension::Load(DuckDB &db)
