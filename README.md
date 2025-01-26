@@ -81,6 +81,28 @@ D SELECT extract_path('domain.com/path/path/image.png') as path;
 └──────────────────────┘
 ```
 
+## Extracting The TLD (Top-Level Domain)
+
+This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
+
+```sql
+D SELECT extract_tld('https://domain.com.ac/path/path') as tld;
+┌─────────┐
+│   tld   │
+│ varchar │
+├─────────┤
+│ com.ac  │
+└─────────┘
+
+D SELECT extract_tld('a.domain.com') as tld;
+┌─────────┐
+│   tld   │
+│ varchar │
+├─────────┤
+│ com     │
+└─────────┘
+```
+
 ## Contributing 🤝
 
 Don't be shy and reach out to us if you want to contribute 😉

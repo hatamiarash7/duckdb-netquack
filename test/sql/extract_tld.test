@@ -1,0 +1,92 @@
+# name: test/sql/extract_tld.test
+# description: test netquack extension extract_tld function
+# group: [netquack]
+
+# Before we load the extension, this will fail
+statement error
+SELECT netquack('domain.com');
+----
+Catalog Error: Scalar Function with name netquack does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require netquack
+
+query I
+SELECT extract_tld('domain.com');
+----
+com
+
+query I
+SELECT extract_tld('a.domain.com');
+----
+com
+
+query I
+SELECT extract_tld('domain.com.ac');
+----
+com.ac
+
+query I
+SELECT extract_tld('a.domain.com.ac');
+----
+com.ac
+
+query I
+SELECT extract_tld('domain.com.ac/path');
+----
+com.ac
+
+query I
+SELECT extract_tld('domain.com.ac/');
+----
+com.ac
+
+query I
+SELECT extract_tld('https://domain.com.ac');
+----
+com.ac
+
+query I
+SELECT extract_tld('http://domain.com.ac');
+----
+com.ac
+
+query I
+SELECT extract_tld('https://domain.com.ac/path');
+----
+com.ac
+
+query I
+SELECT extract_tld('http://domain.com.ac/path');
+----
+com.ac
+
+query I
+SELECT extract_tld('https://domain.com.ac/');
+----
+com.ac
+
+query I
+SELECT extract_tld('https://domain.com.ac/path/path');
+----
+com.ac
+
+query I
+SELECT extract_tld('com.ac');
+----
+com.ac
+
+query I
+SELECT extract_tld('com');
+----
+com
+
+query I
+SELECT extract_tld('c');
+----
+(empty)
+
+query I
+SELECT extract_tld('http:/domain.com.ac/path');
+----
+(empty)
