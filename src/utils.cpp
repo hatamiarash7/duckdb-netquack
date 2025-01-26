@@ -106,6 +106,26 @@ namespace duckdb
 		return "/";
 	}
 
+	// Function to extract the host from a URL
+	std::string ExtractHost(const std::string &input)
+	{
+		// Regex to match the host component
+		std::regex host_regex(R"(^(?:https?:\/\/)?([^\/\s:?#]+))");
+		std::smatch host_match;
+
+		if (std::regex_search(input, host_match, host_regex))
+		{
+			// If a host is found, return it
+			if (host_match.size() > 1 && host_match[1].matched)
+			{
+				return host_match[1].str();
+			}
+		}
+
+		// If no host is found, return ""
+		return "'";
+	}
+
 	// Function to get the download code for the Tranco list
 	std::string GetTrancoDownloadCode(char *date)
 	{

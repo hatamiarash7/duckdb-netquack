@@ -81,6 +81,28 @@ D SELECT extract_path('domain.com/path/path/image.png') as path;
 └──────────────────────┘
 ```
 
+### Extracting The Host
+
+This function extracts the host from a URL.
+
+```sql
+D SELECT extract_host('https://b.a.domain.com/path/path') as path;
+┌────────────────┐
+│      path      │
+│    varchar     │
+├────────────────┤
+│ b.a.domain.com │
+└────────────────┘
+
+D SELECT extract_host('domain.com:443/path/image.png') as path;
+┌────────────┐
+│    path    │
+│  varchar   │
+├────────────┤
+│ domain.com │
+└────────────┘
+```
+
 ### Extracting The TLD (Top-Level Domain)
 
 This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.

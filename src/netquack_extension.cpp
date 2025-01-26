@@ -110,6 +110,20 @@ namespace duckdb
 		result.SetValue(0, Value(path));
 	}
 
+	// Function to extract the host from a URL
+	static void ExtractHostFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto input = input_vector.GetValue(0).ToString();
+
+		// Extract the host using the utility function
+		auto host = ExtractHost(input);
+
+		// Set the result
+		result.SetValue(0, Value(host));
+	}
+
 	// Function to extract the top-level domain from a URL
 	static void ExtractTLDFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
@@ -301,6 +315,13 @@ namespace duckdb
 			LogicalType::VARCHAR,
 			ExtractPathFunction);
 		ExtensionUtil::RegisterFunction(instance, netquack_extract_path_function);
+
+		auto netquack_extract_host_function = ScalarFunction(
+			"extract_host",
+			{LogicalType::VARCHAR},
+			LogicalType::VARCHAR,
+			ExtractHostFunction);
+		ExtensionUtil::RegisterFunction(instance, netquack_extract_host_function);
 
 		auto netquack_extract_tld_function = ScalarFunction(
 			"extract_tld",

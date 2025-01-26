@@ -1,0 +1,55 @@
+# name: test/sql/extract_host.test
+# description: test netquack extension extract_host function
+# group: [netquack]
+
+require netquack
+
+query I
+SELECT extract_host('http://domain.com.ac/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_host('http://domain.com.ac:443/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_host('https://domain.com.ac/path/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_host('https://domain.com.ac:443/path/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_host('http://a.b.domain.com.ac/path');
+----
+a.b.domain.com.ac
+
+query I
+SELECT extract_host('http://a.b.domain.com.ac:443/path');
+----
+a.b.domain.com.ac
+
+query I
+SELECT extract_host('a.b.domain.com.ac/path');
+----
+a.b.domain.com.ac
+
+query I
+SELECT extract_host('a.b.domain.com.ac:443/path');
+----
+a.b.domain.com.ac
+
+query I
+SELECT extract_host('domain.com.ac/path/path');
+----
+domain.com.ac
+
+query I
+SELECT extract_host('domain.com.ac:443/path/path');
+----
+domain.com.ac
