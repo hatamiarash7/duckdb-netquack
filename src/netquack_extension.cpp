@@ -13,6 +13,7 @@
 
 namespace duckdb
 {
+	// Function to update the public suffix list table
 	static void UpdateSuffixesFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
 		// Load the public suffix list if not already loaded
@@ -100,6 +101,7 @@ namespace duckdb
 		}
 	}
 
+	// Function to extract the path from a URL
 	static void ExtractPathFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
 		// Extract the input from the arguments
@@ -118,6 +120,7 @@ namespace duckdb
 		}
 	}
 
+	// Load the extension into the database
 	static void LoadInternal(DatabaseInstance &instance)
 	{
 		auto netquack_extract_domain_function = ScalarFunction(
