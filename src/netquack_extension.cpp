@@ -162,9 +162,9 @@ namespace duckdb
 
 	static void LoadInternal(DatabaseInstance &instance)
 	{
-		auto insight_extract_domain_function = ScalarFunction("extract_domain", {LogicalType::VARCHAR},
-															  LogicalType::VARCHAR, ExtractDomainFunction);
-		ExtensionUtil::RegisterFunction(instance, insight_extract_domain_function);
+		auto netquack_extract_domain_function = ScalarFunction("extract_domain", {LogicalType::VARCHAR},
+															   LogicalType::VARCHAR, ExtractDomainFunction);
+		ExtensionUtil::RegisterFunction(instance, netquack_extract_domain_function);
 	}
 
 	void NetquackExtension::Load(DuckDB &db)
