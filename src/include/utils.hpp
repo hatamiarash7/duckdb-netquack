@@ -14,4 +14,7 @@ namespace duckdb
 	// Function to parse the public suffix list and store it in a table
 	void LoadPublicSuffixList(DatabaseInstance &db, bool force);
 
+	// Function to extract the path from a URL or host
+	std::string ExtractPath(const std::string &input);
+
 } // namespace duckdb

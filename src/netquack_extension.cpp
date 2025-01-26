@@ -100,6 +100,24 @@ namespace duckdb
 		}
 	}
 
+	static void ExtractPathFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto result_data = FlatVector::GetData<string_t>(result);
+
+		for (idx_t i = 0; i < args.size(); i++)
+		{
+			auto input = input_vector.GetValue(i).ToString();
+
+			// Extract the path using the utility function
+			auto path = ExtractPath(input);
+
+			// Set the result
+			result_data[i] = StringVector::AddString(result, path);
+		}
+	}
+
 	static void LoadInternal(DatabaseInstance &instance)
 	{
 		auto netquack_extract_domain_function = ScalarFunction(
@@ -115,6 +133,13 @@ namespace duckdb
 			LogicalType::VARCHAR,
 			UpdateSuffixesFunction);
 		ExtensionUtil::RegisterFunction(instance, netquack_update_suffixes_function);
+
+		auto netquack_extract_path_function = ScalarFunction(
+			"extract_path",
+			{LogicalType::VARCHAR},
+			LogicalType::VARCHAR,
+			ExtractPathFunction);
+		ExtensionUtil::RegisterFunction(instance, netquack_extract_path_function);
 	}
 
 	void NetquackExtension::Load(DuckDB &db)

@@ -59,6 +59,28 @@ D SELECT update_suffixes();
 └───────────────────┘
 ```
 
+## Extracting The Path
+
+This function extracts the path from a URL.
+
+```sql
+D SELECT extract_path('https://b.a.domain.com/path/path') as path;
+┌────────────┐
+│    path    │
+│  varchar   │
+├────────────┤
+│ /path/path │
+└────────────┘
+
+D SELECT extract_path('domain.com/path/path/image.png') as path;
+┌──────────────────────┐
+│         path         │
+│       varchar        │
+├──────────────────────┤
+│ /path/path/image.png │
+└──────────────────────┘
+```
+
 ## Contributing 🤝
 
 Don't be shy and reach out to us if you want to contribute 😉

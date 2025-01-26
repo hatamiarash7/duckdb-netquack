@@ -71,4 +71,24 @@ namespace duckdb
 			}
 		}
 	}
+
+	// Function to extract the path from a URL or host
+	std::string ExtractPath(const std::string &input)
+	{
+		// Regex to match the path component
+		std::regex path_regex(R"((?:https?:\/\/)?[^\/\?:]+(\/[^\?#]*)?)");
+		std::smatch path_match;
+
+		if (std::regex_match(input, path_match, path_regex))
+		{
+			// If a path is found, return it
+			if (path_match.size() > 1 && path_match[1].matched)
+			{
+				return path_match[1].str();
+			}
+		}
+
+		// If no path is found, return "/"
+		return "/";
+	}
 }
