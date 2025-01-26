@@ -5,124 +5,124 @@
 require netquack
 
 query I
-SELECT extract_domain('domain.com');
+SELECT extract_domain('example.com');
 ----
-domain.com
+example.com
 
 query I
-SELECT extract_domain('domain.com:443');
+SELECT extract_domain('example.com:443');
 ----
-domain.com
+example.com
 
 query I
-SELECT extract_domain('a.domain.com');
+SELECT extract_domain('a.example.com');
 ----
-domain.com
+example.com
 
 query I
-SELECT extract_domain('a.domain.com:443');
+SELECT extract_domain('a.example.com:443');
 ----
-domain.com
+example.com
 
 query I
-SELECT extract_domain('domain.com.ac');
+SELECT extract_domain('example.com.ac');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('domain.com.ac:443');
+SELECT extract_domain('example.com.ac:443');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('a.domain.com.ac');
+SELECT extract_domain('a.example.com.ac');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('a.domain.com.ac:443');
+SELECT extract_domain('a.example.com.ac:443');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('domain.com.ac/path');
+SELECT extract_domain('example.com.ac/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('domain.com.ac:443/path');
+SELECT extract_domain('example.com.ac:443/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('domain.com.ac/');
+SELECT extract_domain('example.com.ac/');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('domain.com.ac:443/');
+SELECT extract_domain('example.com.ac:443/');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('https://domain.com.ac');
+SELECT extract_domain('https://example.com.ac');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('https://domain.com.ac:443');
+SELECT extract_domain('https://example.com.ac:443');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('http://domain.com.ac');
+SELECT extract_domain('http://example.com.ac');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('http://domain.com.ac:443');
+SELECT extract_domain('http://example.com.ac:443');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('https://domain.com.ac/path');
+SELECT extract_domain('https://example.com.ac/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('https://domain.com.ac:443/path');
+SELECT extract_domain('https://example.com.ac:443/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('http://domain.com.ac/path');
+SELECT extract_domain('http://example.com.ac/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('http://domain.com.ac:443/path');
+SELECT extract_domain('http://example.com.ac:443/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('https://domain.com.ac/');
+SELECT extract_domain('https://example.com.ac/');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('https://domain.com.ac:443/');
+SELECT extract_domain('https://example.com.ac:443/');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('https://domain.com.ac/path/path');
+SELECT extract_domain('https://example.com.ac/path/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_domain('https://domain.com.ac:443/path/path');
+SELECT extract_domain('https://example.com.ac:443/path/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
 SELECT extract_domain('com.ac');
@@ -155,11 +155,11 @@ SELECT extract_domain('c:443');
 (empty)
 
 query I
-SELECT extract_domain('http:/domain.com.ac/path');
+SELECT extract_domain('http:/example.com.ac/path');
 ----
 (empty)
 
 query I
-SELECT extract_domain('http:/domain.com.ac:443/path');
+SELECT extract_domain('http:/example.com.ac:443/path');
 ----
 (empty)

@@ -5,51 +5,51 @@
 require netquack
 
 query I
-SELECT extract_path('http://domain.com.ac/path');
+SELECT extract_path('http://example.com.ac/path');
 ----
 /path
 
 query I
-SELECT extract_path('http://domain.com.ac:443/path');
+SELECT extract_path('http://example.com.ac:443/path');
 ----
 /path
 
 query I
-SELECT extract_path('https://domain.com.ac/path/path');
+SELECT extract_path('https://example.com.ac/path/path');
 ----
 /path/path
 
 query I
-SELECT extract_path('https://domain.com.ac:443/path/path');
+SELECT extract_path('https://example.com.ac:443/path/path');
 ----
 /path/path
 
 query I
-SELECT extract_path('http://a.b.domain.com.ac/path');
+SELECT extract_path('http://a.b.example.com.ac/path');
 ----
 /path
 
 query I
-SELECT extract_path('http://a.b.domain.com.ac:443/path');
+SELECT extract_path('http://a.b.example.com.ac:443/path');
 ----
 /path
 
 query I
-SELECT extract_path('a.b.domain.com.ac/path');
+SELECT extract_path('a.b.example.com.ac/path');
 ----
 /path
 
 query I
-SELECT extract_path('a.b.domain.com.ac:443/path');
+SELECT extract_path('a.b.example.com.ac:443/path');
 ----
 /path
 
 query I
-SELECT extract_path('domain.com.ac/path/path');
+SELECT extract_path('example.com.ac/path/path');
 ----
 /path/path
 
 query I
-SELECT extract_path('domain.com.ac:443/path/path');
+SELECT extract_path('example.com.ac:443/path/path');
 ----
 /path/path

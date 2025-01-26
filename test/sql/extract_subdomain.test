@@ -5,72 +5,72 @@
 require netquack
 
 query I
-SELECT extract_subdomain('a.domain.com');
+SELECT extract_subdomain('a.example.com');
 ----
 a
 
 query I
-SELECT extract_subdomain('a.domain.com:443');
+SELECT extract_subdomain('a.example.com:443');
 ----
 a
 
 query I
-SELECT extract_subdomain('a.domain.com.ac');
+SELECT extract_subdomain('a.example.com.ac');
 ----
 a
 
 query I
-SELECT extract_subdomain('a.domain.com.ac:443');
+SELECT extract_subdomain('a.example.com.ac:443');
 ----
 a
 
 query I
-SELECT extract_subdomain('b.a.domain.com');
+SELECT extract_subdomain('b.a.example.com');
 ----
 b.a
 
 query I
-SELECT extract_subdomain('b.a.domain.com:443');
+SELECT extract_subdomain('b.a.example.com:443');
 ----
 b.a
 
 query I
-SELECT extract_subdomain('b.a.domain.com.ac');
+SELECT extract_subdomain('b.a.example.com.ac');
 ----
 b.a
 
 query I
-SELECT extract_subdomain('b.a.domain.com.ac:443');
+SELECT extract_subdomain('b.a.example.com.ac:443');
 ----
 b.a
 
 query I
-SELECT extract_subdomain('http://b.a.domain.com');
+SELECT extract_subdomain('http://b.a.example.com');
 ----
 b.a
 
 query I
-SELECT extract_subdomain('http://b.a.domain.com:443');
+SELECT extract_subdomain('http://b.a.example.com:443');
 ----
 b.a
 
 query I
-SELECT extract_subdomain('https://b.a.domain.com.ac');
+SELECT extract_subdomain('https://b.a.example.com.ac');
 ----
 b.a
 
 query I
-SELECT extract_subdomain('https://b.a.domain.com.ac:443');
+SELECT extract_subdomain('https://b.a.example.com.ac:443');
 ----
 b.a
 
 query I
-SELECT extract_subdomain('https://b.a.domain.com.ac/path');
+SELECT extract_subdomain('https://b.a.example.com.ac/path');
 ----
 b.a
 
 query I
-SELECT extract_subdomain('https://b.a.domain.com.ac:443/path');
+SELECT extract_subdomain('https://b.a.example.com.ac:443/path');
 ----
 b.a
 
@@ -105,11 +105,11 @@ SELECT extract_subdomain('c:443');
 (empty)
 
 query I
-SELECT extract_subdomain('http:/domain.com.ac/path');
+SELECT extract_subdomain('http:/example.com.ac/path');
 ----
 (empty)
 
 query I
-SELECT extract_subdomain('http:/domain.com.ac:443/path');
+SELECT extract_subdomain('http:/example.com.ac:443/path');
 ----
 (empty)

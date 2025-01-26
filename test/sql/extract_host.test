@@ -5,51 +5,51 @@
 require netquack
 
 query I
-SELECT extract_host('http://domain.com.ac/path');
+SELECT extract_host('http://example.com.ac/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_host('http://domain.com.ac:443/path');
+SELECT extract_host('http://example.com.ac:443/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_host('https://domain.com.ac/path/path');
+SELECT extract_host('https://example.com.ac/path/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_host('https://domain.com.ac:443/path/path');
+SELECT extract_host('https://example.com.ac:443/path/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_host('http://a.b.domain.com.ac/path');
+SELECT extract_host('http://a.b.example.com.ac/path');
 ----
-a.b.domain.com.ac
+a.b.example.com.ac
 
 query I
-SELECT extract_host('http://a.b.domain.com.ac:443/path');
+SELECT extract_host('http://a.b.example.com.ac:443/path');
 ----
-a.b.domain.com.ac
+a.b.example.com.ac
 
 query I
-SELECT extract_host('a.b.domain.com.ac/path');
+SELECT extract_host('a.b.example.com.ac/path');
 ----
-a.b.domain.com.ac
+a.b.example.com.ac
 
 query I
-SELECT extract_host('a.b.domain.com.ac:443/path');
+SELECT extract_host('a.b.example.com.ac:443/path');
 ----
-a.b.domain.com.ac
+a.b.example.com.ac
 
 query I
-SELECT extract_host('domain.com.ac/path/path');
+SELECT extract_host('example.com.ac/path/path');
 ----
-domain.com.ac
+example.com.ac
 
 query I
-SELECT extract_host('domain.com.ac:443/path/path');
+SELECT extract_host('example.com.ac:443/path/path');
 ----
-domain.com.ac
+example.com.ac
