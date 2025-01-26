@@ -30,20 +30,20 @@ This function extracts the main domain from a URL. For this purpose, the extensi
 The download process of the public suffix list is done automatically when the function called for the first time. After that, the list is stored in the `public_suffix_list` table to avoid downloading it again.
 
 ```sql
-D SELECT extract_domain('a.domain.com') as domain;
+D SELECT extract_domain('a.example.com') as domain;
 ┌────────────┐
 │   domain   │
 │  varchar   │
 ├────────────┤
-│ domain.com │
+│ example.com │
 └────────────┘
 
-D SELECT extract_domain('https://b.a.domain.com/path') as domain;
+D SELECT extract_domain('https://b.a.example.com/path') as domain;
 ┌────────────┐
 │   domain   │
 │  varchar   │
 ├────────────┤
-│ domain.com │
+│ example.com │
 └────────────┘
 ```
 
@@ -64,7 +64,7 @@ D SELECT update_suffixes();
 This function extracts the path from a URL.
 
 ```sql
-D SELECT extract_path('https://b.a.domain.com/path/path') as path;
+D SELECT extract_path('https://b.a.example.com/path/path') as path;
 ┌────────────┐
 │    path    │
 │  varchar   │
@@ -72,7 +72,7 @@ D SELECT extract_path('https://b.a.domain.com/path/path') as path;
 │ /path/path │
 └────────────┘
 
-D SELECT extract_path('domain.com/path/path/image.png') as path;
+D SELECT extract_path('example.com/path/path/image.png') as path;
 ┌──────────────────────┐
 │         path         │
 │       varchar        │
@@ -86,20 +86,20 @@ D SELECT extract_path('domain.com/path/path/image.png') as path;
 This function extracts the host from a URL.
 
 ```sql
-D SELECT extract_host('https://b.a.domain.com/path/path') as path;
+D SELECT extract_host('https://b.a.example.com/path/path') as path;
 ┌────────────────┐
 │      path      │
 │    varchar     │
 ├────────────────┤
-│ b.a.domain.com │
+│ b.a.example.com │
 └────────────────┘
 
-D SELECT extract_host('domain.com:443/path/image.png') as path;
+D SELECT extract_host('example.com:443/path/image.png') as path;
 ┌────────────┐
 │    path    │
 │  varchar   │
 ├────────────┤
-│ domain.com │
+│ example.com │
 └────────────┘
 ```
 
@@ -108,7 +108,7 @@ D SELECT extract_host('domain.com:443/path/image.png') as path;
 This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
 
 ```sql
-D SELECT extract_tld('https://domain.com.ac/path/path') as tld;
+D SELECT extract_tld('https://example.com.ac/path/path') as tld;
 ┌─────────┐
 │   tld   │
 │ varchar │
@@ -116,7 +116,7 @@ D SELECT extract_tld('https://domain.com.ac/path/path') as tld;
 │ com.ac  │
 └─────────┘
 
-D SELECT extract_tld('a.domain.com') as tld;
+D SELECT extract_tld('a.example.com') as tld;
 ┌─────────┐
 │   tld   │
 │ varchar │
@@ -130,7 +130,7 @@ D SELECT extract_tld('a.domain.com') as tld;
 This function extracts the sub-domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
 
 ```sql
-D SELECT extract_subdomain('http://a.b.domain.com/path') as dns_record;
+D SELECT extract_subdomain('http://a.b.example.com/path') as dns_record;
 ┌────────────┐
 │ dns_record │
 │  varchar   │
@@ -138,7 +138,7 @@ D SELECT extract_subdomain('http://a.b.domain.com/path') as dns_record;
 │ a.b        │
 └────────────┘
 
-D SELECT extract_subdomain('test.domain.com.ac') as dns_record;
+D SELECT extract_subdomain('test.example.com.ac') as dns_record;
 ┌────────────┐
 │ dns_record │
 │  varchar   │
