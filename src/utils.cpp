@@ -93,7 +93,7 @@ namespace duckdb
 		std::regex path_regex(R"(^(?:(?:https?:\/\/)?(?:[^\/\s]+))(\/[^?#]*))");
 		std::smatch path_match;
 
-		if (std::regex_match(input, path_match, path_regex))
+		if (std::regex_search(input, path_match, path_regex))
 		{
 			// If a path is found, return it
 			if (path_match.size() > 1 && path_match[1].matched)
