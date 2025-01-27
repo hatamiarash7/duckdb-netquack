@@ -1,0 +1,30 @@
+# name: test/sql/extract_query.test
+# description: test netquack extension extract_query_string function
+# group: [netquack]
+
+require netquack
+
+query I
+SELECT extract_query_string('http://example.com.ac?a=1');
+----
+a=1
+
+query I
+SELECT extract_query_string('http://example.com.ac/?a=1');
+----
+a=1
+
+query I
+SELECT extract_query_string('http://example.com.ac/path?a=1');
+----
+a=1
+
+query I
+SELECT extract_query_string('http://example.com.ac/path?a=1&b=2');
+----
+a=1&b=2
+
+query I
+SELECT extract_query_string('http://example.com.ac/path/?a=1');
+----
+a=1

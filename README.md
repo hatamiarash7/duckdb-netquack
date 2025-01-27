@@ -138,6 +138,28 @@ D SELECT extract_schema('tel:+123456789') as schema;
 └─────────┘
 ```
 
+### Extracting The Query
+
+This function extracts the query string from a URL.
+
+```sql
+D SELECT extract_query_string('example.com?key=value') as query;
+┌───────────┐
+│   query   │
+│  varchar  │
+├───────────┤
+│ key=value │
+└───────────┘
+
+D SELECT extract_query_string('http://example.com.ac/path/?a=1&b=2&') as query;
+┌──────────┐
+│  query   │
+│ varchar  │
+├──────────┤
+│ a=1&b=2& │
+└──────────┘
+```
+
 ### Extracting The TLD (Top-Level Domain)
 
 This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
@@ -229,6 +251,10 @@ D select get_tranco_rank('cloudflare.com') as rank;
 │    13 │
 └───────┘
 ```
+
+## Roadmap
+
+- [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
 
 ## Contributing 🤝
 

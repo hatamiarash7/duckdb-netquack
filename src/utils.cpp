@@ -155,6 +155,21 @@ namespace duckdb
 		return "";
 	}
 
+	// Function to extract the query string from a URL
+	std::string ExtractQueryString(const std::string &input)
+	{
+		std::regex query_regex(R"((?:\?|&)([^#]+))");
+		std::smatch query_match;
+
+		if (std::regex_search(input, query_match, query_regex) && query_match.size() > 1)
+		{
+			return query_match[1].str();
+		}
+
+		// Return empty string if no query string is found
+		return "";
+	}
+
 	// Function to get the download code for the Tranco list
 	std::string GetTrancoDownloadCode(char *date)
 	{

@@ -138,6 +138,19 @@ namespace duckdb
 		result.SetValue(0, Value(schema));
 	}
 
+	static void ExtractQueryStringFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the URL from the input
+		auto &url_vector = args.data[0];
+		auto url = url_vector.GetValue(0).ToString();
+
+		// Extract the query string
+		auto query_string = ExtractQueryString(url);
+
+		// Set the result
+		result.SetValue(0, Value(query_string));
+	}
+
 	// Function to extract the top-level domain from a URL
 	static void ExtractTLDFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
@@ -309,6 +322,11 @@ namespace duckdb
 	// Load the extension into the database
 	static void LoadInternal(DatabaseInstance &instance)
 	{
+		ExtensionUtil::RegisterExtension(
+			instance,
+			"netquack",
+			{"Parsing, extracting, and analyzing domains, URIs, and paths with ease."});
+
 		auto netquack_extract_domain_function = ScalarFunction(
 			"extract_domain",
 			{LogicalType::VARCHAR},
@@ -343,6 +361,13 @@ namespace duckdb
 			LogicalType::VARCHAR,
 			ExtractHostFunction);
 		ExtensionUtil::RegisterFunction(instance, netquack_extract_host_function);
+
+		auto netquack_extract_query_string_function = ScalarFunction(
+			"extract_query_string",
+			{LogicalType::VARCHAR},
+			LogicalType::VARCHAR,
+			ExtractQueryStringFunction);
+		ExtensionUtil::RegisterFunction(instance, netquack_extract_query_string_function);
 
 		auto netquack_extract_tld_function = ScalarFunction(
 			"extract_tld",
