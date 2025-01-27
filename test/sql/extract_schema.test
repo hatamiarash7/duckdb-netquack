@@ -1,0 +1,190 @@
+# name: test/sql/extract_schema.test
+# description: test netquack extension extract_schema function
+# group: [netquack]
+
+require netquack
+
+# ---------------------------- HTTP/S ----------------------------
+
+query I
+SELECT extract_schema('http://example.com.ac/path');
+----
+http
+
+query I
+SELECT extract_schema('http://example.com.ac:443/path');
+----
+http
+
+query I
+SELECT extract_schema('https://example.com.ac/path/path');
+----
+https
+
+query I
+SELECT extract_schema('https://example.com.ac:443/path/path');
+----
+https
+
+query I
+SELECT extract_schema('http://a.b.example.com.ac/path');
+----
+http
+
+query I
+SELECT extract_schema('http://a.b.example.com.ac:443/path');
+----
+http
+
+query I
+SELECT extract_schema('a.b.example.com.ac/path');
+----
+(empty)
+
+query I
+SELECT extract_schema('a.b.example.com.ac:443/path');
+----
+(empty)
+
+query I
+SELECT extract_schema('example.com.ac/path/path');
+----
+(empty)
+
+query I
+SELECT extract_schema('example.com.ac:443/path/path');
+----
+(empty)
+
+# ---------------------------- Mail ----------------------------
+
+query I
+SELECT extract_schema('mailto:someone@example.com');
+----
+mailto
+
+query I
+SELECT extract_schema('mailto://someone@example.com');
+----
+(empty)
+
+query I
+SELECT extract_schema('mailtosomeone@example.com');
+----
+(empty)
+
+query I
+SELECT extract_schema('mailto:');
+----
+(empty)
+
+query I
+SELECT extract_schema('mailto:a');
+----
+mailto
+
+# ---------------------------- FTP ----------------------------
+
+query I
+SELECT extract_schema('ftp://example.com');
+----
+ftp
+
+query I
+SELECT extract_schema('ftp:/example.com');
+----
+(empty)
+
+# ---------------------------- TEL ----------------------------
+
+query I
+SELECT extract_schema('tel:someone@example.com');
+----
+tel
+
+query I
+SELECT extract_schema('tel:01234');
+----
+tel
+
+query I
+SELECT extract_schema('tel:+1234');
+----
+tel
+
+query I
+SELECT extract_schema('tel://someone@example.com');
+----
+(empty)
+
+query I
+SELECT extract_schema('telsomeone@example.com');
+----
+(empty)
+
+query I
+SELECT extract_schema('tel:');
+----
+(empty)
+
+query I
+SELECT extract_schema('tel:1');
+----
+tel
+
+query I
+SELECT extract_schema('tel:+');
+----
+tel
+
+query I
+SELECT extract_schema('tel:a');
+----
+tel
+
+# ---------------------------- SMS ----------------------------
+
+query I
+SELECT extract_schema('sms:someone@example.com');
+----
+sms
+
+query I
+SELECT extract_schema('sms:01234');
+----
+sms
+
+query I
+SELECT extract_schema('sms:+1234');
+----
+sms
+
+query I
+SELECT extract_schema('sms://someone@example.com');
+----
+(empty)
+
+query I
+SELECT extract_schema('smssomeone@example.com');
+----
+(empty)
+
+query I
+SELECT extract_schema('sms:');
+----
+(empty)
+
+query I
+SELECT extract_schema('sms:1');
+----
+sms
+
+query I
+SELECT extract_schema('sms:+');
+----
+sms
+
+query I
+SELECT extract_schema('sms:a');
+----
+sms

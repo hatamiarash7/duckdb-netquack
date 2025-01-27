@@ -123,7 +123,36 @@ namespace duckdb
 		}
 
 		// If no host is found, return ""
-		return "'";
+		return "";
+	}
+
+	// Function to extract the schema from a URL
+	std::string ExtractSchema(const std::string &input)
+	{
+		// Regex to match the schema component
+		std::regex schema_regex(R"(^(http|https|ftp):\/\/|^(mailto|sms|tel):[^/])");
+		std::smatch schema_match;
+
+		if (std::regex_search(input, schema_match, schema_regex))
+		{
+			// If a schema is found, return it
+			if (schema_match.size() > 1)
+			{
+				if (schema_match[1].matched)
+				{
+					// Group 1 matches "http|https|ftp"
+					return schema_match[1].str();
+				}
+				else if (schema_match[2].matched)
+				{
+					// Group 2 matches "mailto|sms|tel"
+					return schema_match[2].str();
+				}
+			}
+		}
+
+		// If no schema is found, return ""
+		return "";
 	}
 
 	// Function to get the download code for the Tranco list

@@ -86,21 +86,56 @@ D SELECT extract_path('example.com/path/path/image.png') as path;
 This function extracts the host from a URL.
 
 ```sql
-D SELECT extract_host('https://b.a.example.com/path/path') as path;
-┌────────────────┐
-│      path      │
-│    varchar     │
-├────────────────┤
+D SELECT extract_host('https://b.a.example.com/path/path') as host;
+┌─────────────────┐
+│      host       │
+│     varchar     │
+├─────────────────┤
 │ b.a.example.com │
-└────────────────┘
+└─────────────────┘
 
-D SELECT extract_host('example.com:443/path/image.png') as path;
-┌────────────┐
-│    path    │
-│  varchar   │
-├────────────┤
+D SELECT extract_host('example.com:443/path/image.png') as host;
+┌─────────────┐
+│    host     │
+│   varchar   │
+├─────────────┤
 │ example.com │
-└────────────┘
+└─────────────┘
+```
+
+### Extracting The Schema
+
+This function extracts the schema from a URL. Supported schemas for now:
+
+- `http` | `https`
+- `ftp`
+- `mailto`
+- `tel` | `sms`
+
+```sql
+D SELECT extract_schema('https://b.a.example.com/path/path') as schema;
+┌─────────┐
+│ schema  │
+│ varchar │
+├─────────┤
+│ https   │
+└─────────┘
+
+D SELECT extract_schema('mailto:someone@example.com') as schema;
+┌─────────┐
+│ schema  │
+│ varchar │
+├─────────┤
+│ mailto  │
+└─────────┘
+
+D SELECT extract_schema('tel:+123456789') as schema;
+┌─────────┐
+│ schema  │
+│ varchar │
+├─────────┤
+│ tel     │
+└─────────┘
 ```
 
 ### Extracting The TLD (Top-Level Domain)

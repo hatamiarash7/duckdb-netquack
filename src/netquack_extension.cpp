@@ -124,6 +124,20 @@ namespace duckdb
 		result.SetValue(0, Value(host));
 	}
 
+	// Function to extract the schema from a URL
+	static void ExtractSchemaFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto input = input_vector.GetValue(0).ToString();
+
+		// Extract the schema using the utility function
+		auto schema = ExtractSchema(input);
+
+		// Set the result
+		result.SetValue(0, Value(schema));
+	}
+
 	// Function to extract the top-level domain from a URL
 	static void ExtractTLDFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
@@ -315,6 +329,13 @@ namespace duckdb
 			LogicalType::VARCHAR,
 			ExtractPathFunction);
 		ExtensionUtil::RegisterFunction(instance, netquack_extract_path_function);
+
+		auto netquack_extract_schema_function = ScalarFunction(
+			"extract_schema",
+			{LogicalType::VARCHAR},
+			LogicalType::VARCHAR,
+			ExtractSchemaFunction);
+		ExtensionUtil::RegisterFunction(instance, netquack_extract_schema_function);
 
 		auto netquack_extract_host_function = ScalarFunction(
 			"extract_host",
