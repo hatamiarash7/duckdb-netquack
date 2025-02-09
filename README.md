@@ -4,7 +4,7 @@
 
 This extension designed to simplify working with domains, URIs, and web paths directly within your database queries. Whether you're extracting top-level domains (TLDs), parsing URI components, or analyzing web paths, Netquack provides a suite of intuitive functions to handle all your network tasks efficiently. Built for data engineers, analysts, and developers.
 
-With Netquack, you can unlock deeper insights from your web-related datasets without the need for external tools or complex workflows."
+With Netquack, you can unlock deeper insights from your web-related datasets without the need for external tools or complex workflows.
 
 ## Installation 🚀
 
@@ -34,20 +34,20 @@ The download process of the public suffix list is done automatically when the fu
 
 ```sql
 D SELECT extract_domain('a.example.com') as domain;
-┌────────────┐
-│   domain   │
-│  varchar   │
-├────────────┤
+┌─────────────┐
+│   domain    │
+│   varchar   │
+├─────────────┤
 │ example.com │
-└────────────┘
+└─────────────┘
 
 D SELECT extract_domain('https://b.a.example.com/path') as domain;
-┌────────────┐
-│   domain   │
-│  varchar   │
-├────────────┤
+┌─────────────┐
+│   domain    │
+│   varchar   │
+├─────────────┤
 │ example.com │
-└────────────┘
+└─────────────┘
 ```
 
 You can use the `update_suffixes` function to update the public suffix list manually.
