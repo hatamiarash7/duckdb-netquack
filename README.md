@@ -255,6 +255,10 @@ D select get_tranco_rank('cloudflare.com') as rank;
 ## Roadmap
 
 - [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
+- [ ] Save Tranco data as Parquet
+- [ ] Create Rank category for Tranco ( `top1k` , `top5k`, `top10k`, `top100k`, `top500k`, `top1m` )
+- [ ] Implement GeoIP functionality
+- [ ] Return default value for `get_tranco_rank`
 
 ## Contributing 🤝
 
