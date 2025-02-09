@@ -5,7 +5,7 @@
 This extension designed to simplify working with domains, URIs, and web paths directly within your database queries. Whether you're extracting top-level domains (TLDs), parsing URI components, or analyzing web paths, Netquack provides a suite of intuitive functions to handle all your network tasks efficiently. Built for data engineers, analysts, and developers.
 With Netquack, you can unlock deeper insights from your web-related datasets without the need for external tools or complex workflows."
 
-## Installation
+## Installation 🚀
 
 **netquack** is distributed as a [DuckDB Community Extension](https://github.com/duckdb/community-extensions) and can be installed using SQL:
 
@@ -21,7 +21,7 @@ FORCE INSTALL netquack FROM community;
 LOAD netquack;
 ```
 
-## Usage Examples
+## Usage Examples 📚
 
 Once installed, the [macro functions](https://community-extensions.duckdb.org/extensions/netquack.html#added-functions) provided by the extension can be used just like built-in functions.
 
@@ -254,7 +254,7 @@ D select get_tranco_rank('cloudflare.com') as rank;
 └───────┘
 ```
 
-## Roadmap
+## Roadmap 🗺️
 
 - [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
 - [ ] Save Tranco data as Parquet
@@ -272,6 +272,6 @@ Don't be shy and reach out to us if you want to contribute 😉
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request
 
-## Issues
+## Issues 🐛
 
 Each project may have many problems. Contributing to the better development of this project by reporting them. 👍
