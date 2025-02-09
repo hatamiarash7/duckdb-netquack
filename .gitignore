@@ -8,3 +8,4 @@ test/python/__pycache__/
 .Rhistory
 *.log
 *.csv
+!test/data/tranco.csv
