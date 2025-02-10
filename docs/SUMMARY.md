@@ -1,0 +1,22 @@
+# Table of contents
+
+* [Introduce](README.md)
+* [Why Netquack](why-netquack.md)
+
+## Getting Started
+
+* [Quickstart](getting-started/quickstart.md)
+* [How to build](getting-started/publish-your-docs.md)
+
+## Functions
+
+* [Extract Domain](functions/editor.md)
+* [Extract Subdomain](functions/extract-subdomain.md)
+* [Extract Path](functions/extract-path.md)
+* [Extract Host](functions/extract-host.md)
+* [Extract Schema](functions/extract-schema.md)
+* [Extract Query](functions/extract-query.md)
+* [Extract TLD](functions/extract-tld.md)
+* [Tranco](functions/tranco/README.md)
+  * [Get Tranco Rank](functions/tranco/get-tranco-rank.md)
+  * [Download / Update Tranco](functions/tranco/download-update-tranco.md)
