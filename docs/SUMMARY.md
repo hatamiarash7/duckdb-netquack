@@ -10,7 +10,7 @@
 
 ## Functions
 
-* [Extract Domain](functions/editor.md)
+* [Extract Domain](functions/extract-domain.md)
 * [Extract Subdomain](functions/extract-subdomain.md)
 * [Extract Path](functions/extract-path.md)
 * [Extract Host](functions/extract-host.md)
