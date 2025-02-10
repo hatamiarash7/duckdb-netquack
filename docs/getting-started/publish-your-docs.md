@@ -1,5 +1,5 @@
 ---
-icon: globe-pointer
+icon: trowel
 layout:
   title:
     visible: true
@@ -21,7 +21,9 @@ layout:
 git clone --recurse-submodules git@github.com:hatamiarash7/duckdb-netquack.git
 ```
 
-> `--recurse-submodules` is need because Netquack has two submodules.
+{% hint style="info" %}
+`--recurse-submodules` is needed because Netquack has two submodules for DuckDB and its extension CI tools.
+{% endhint %}
 
 #### Managing dependencies <a href="#managing-dependencies" id="managing-dependencies"></a>
 

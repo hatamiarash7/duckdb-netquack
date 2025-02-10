@@ -14,7 +14,7 @@ layout:
 
 # Extract TLD
 
-This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](https://github.com/hatamiarash7/duckdb-netquack#extracting-the-main-domain) section for more information about the public suffix list.
+This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](extract-domain.md) section for more information about the public suffix list.
 
 ```sql
 D SELECT extract_tld('https://example.com.ac/path/path') as tld;

@@ -14,7 +14,7 @@ layout:
 
 # Extract Subdomain
 
-This function extracts the sub-domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](https://github.com/hatamiarash7/duckdb-netquack#extracting-the-main-domain) section for more information about the public suffix list.
+This function extracts the sub-domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](extract-domain.md) section for more information about the public suffix list.
 
 ```sql
 D SELECT extract_subdomain('http://a.b.example.com/path') as dns_record;
