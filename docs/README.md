@@ -1,5 +1,5 @@
 ---
-icon: face-glasses
+icon: hand-wave
 layout:
   title:
     visible: true

@@ -1,5 +1,5 @@
 ---
-icon: face-grin-stars
+icon: question
 layout:
   title:
     visible: true
