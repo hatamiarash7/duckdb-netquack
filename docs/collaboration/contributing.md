@@ -1,6 +1,12 @@
 ---
 icon: champagne-glasses
+cover: >-
+  https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?crop=entropy&cs=srgb&fm=jpg&ixid=M3wxOTcwMjR8MHwxfHNlYXJjaHw2fHxoZWxwfGVufDB8fHx8MTczOTE5NTg1M3ww&ixlib=rb-4.0.3&q=85
+coverY: 0
 layout:
+  cover:
+    visible: true
+    size: full
   title:
     visible: true
   description:
