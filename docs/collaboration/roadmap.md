@@ -25,4 +25,5 @@ layout:
 * [ ] Save Tranco data as Parquet
 * [ ] Create a Rank category for Tranco ( `top1k` , `top5k`, `top10k`, `top100k`, `top500k`, `top1m` )
 * [ ] Implement GeoIP functionality
+* [ ] Add new functions to work with IPs
 * [ ] Return default value for `get_tranco_rank`
