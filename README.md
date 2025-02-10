@@ -30,7 +30,7 @@ Once installed, the macro functions provided by the extension can be used just l
 
 This function extracts the main domain from a URL. For this purpose, the extension will get all public suffixes from the [publicsuffix.org](https://publicsuffix.org/) list and extract the main domain from the URL.
 
-The download process of the public suffix list is done automatically when the function called for the first time. After that, the list is stored in the `public_suffix_list` table to avoid downloading it again.
+The download process of the public suffix list is done automatically when the function is called for the first time. After that, the list is stored in the `public_suffix_list` table to avoid downloading it again.
 
 ```sql
 D SELECT extract_domain('a.example.com') as domain;
@@ -214,7 +214,7 @@ D SELECT extract_subdomain('test.example.com.ac') as dns_record;
 This function returns the [Tranco](https://tranco-list.eu/) rank of a domain. You have a `update_tranco` function to update the Tranco list manually.
 
 ```sql
-D select update_tranco(true);
+D SELECT update_tranco(true);
 ┌─────────────────────────────────────┐
 │ update_tranco(CAST('f' AS BOOLEAN)) │
 │               varchar               │
@@ -228,7 +228,7 @@ This function will get the latest Tranco list and save it into the `tranco_list`
 You can ignore the file and force the extension to download the list again by calling the function with `true` as a parameter. If you don't want to download the list again, you can call the function with `false` as a parameter.
 
 ```sql
-D select update_tranco(false);
+D SELECT update_tranco(false);
 ```
 
 As the latest Tranco list is for the last day, you can download your list manually and rename it to `tranco_lit_%Y-%m-%d.csv` to use it with the extension too.
@@ -238,7 +238,7 @@ As the latest Tranco list is for the last day, you can download your list manual
 You can use this function to get the ranking of a domain:
 
 ```sql
-D select get_tranco_rank('microsoft.com') as rank;
+D SELECT get_tranco_rank('microsoft.com') as rank;
 ┌───────┐
 │ rank  │
 │ int32 │
@@ -246,7 +246,7 @@ D select get_tranco_rank('microsoft.com') as rank;
 │     2 │
 └───────┘
 
-D select get_tranco_rank('cloudflare.com') as rank;
+D SELECT get_tranco_rank('cloudflare.com') as rank;
 ┌───────┐
 │ rank  │
 │ int32 │
@@ -257,6 +257,7 @@ D select get_tranco_rank('cloudflare.com') as rank;
 
 ## Roadmap 🗺️
 
+- [ ] Create a version function `SELECT * from netquack_version();`
 - [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
 - [ ] Save Tranco data as Parquet
 - [ ] Create Rank category for Tranco ( `top1k` , `top5k`, `top10k`, `top100k`, `top500k`, `top1m` )
