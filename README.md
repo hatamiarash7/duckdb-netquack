@@ -1,6 +1,6 @@
 # DuckDB Netquack Extension
 
-![image](.github/image.webp)
+![DuckDB Badge](https://img.shields.io/badge/Built_With-DuckDB-fff100) ![GitHub License](https://img.shields.io/github/license/hatamiarash7/duckdb-netquack) ![GitHub Release](https://img.shields.io/github/v/release/hatamiarash7/duckdb-netquack)
 
 This extension is designed to simplify working with domains, URIs, and web paths directly within your database queries. Whether you're extracting top-level domains (TLDs), parsing URI components, or analyzing web paths, Netquack provides a suite of intuitive functions to handle all your network tasks efficiently. Built for data engineers, analysts, and developers.
 
@@ -24,7 +24,7 @@ LOAD netquack;
 
 ## Usage Examples 📚
 
-Once installed, the macro functions provided by the extension can be used just like built-in functions.
+Once installed, the [macro functions](https://duckdb.org/community_extensions/extensions/netquack.html#added-functions) provided by the extension can be used just like built-in functions.
 
 ### Extracting The Main Domain
 
