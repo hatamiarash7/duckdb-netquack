@@ -8,7 +8,7 @@ With Netquack, you can unlock deeper insights from your web-related datasets wit
 
 ## Installation 🚀
 
-**netquack** is distributed as a [DuckDB Community Extension](https://github.com/duckdb/community-extensions) and can be installed using SQL:
+**netquack** is distributed as a [DuckDB Community Extension](https://duckdb.org/community_extensions/) and can be installed using SQL:
 
 ```sql
 INSTALL netquack FROM community;
@@ -24,7 +24,7 @@ LOAD netquack;
 
 ## Usage Examples 📚
 
-Once installed, the [macro functions](https://community-extensions.duckdb.org/extensions/netquack.html#added-functions) provided by the extension can be used just like built-in functions.
+Once installed, the macro functions provided by the extension can be used just like built-in functions.
 
 ### Extracting The Main Domain
 
