@@ -13,18 +13,6 @@ namespace duckdb
 	// Function to parse the public suffix list and store it in a table
 	void LoadPublicSuffixList(DatabaseInstance &db, bool force);
 
-	// Function to extract the path from a URL or host
-	std::string ExtractPath(const std::string &input);
-
-	// Function to extract the host from a URL
-	std::string ExtractHost(const std::string &input);
-
-	// Function to extract the schema from a URL
-	std::string ExtractSchema(const std::string &input);
-
-	// Function to extract the query string from a URL
-	std::string ExtractQueryString(const std::string &input);
-
 	// Function to download the Tranco list and create a table
 	void LoadTrancoList(DatabaseInstance &db, bool force);
-} // namespace duckdb
+}

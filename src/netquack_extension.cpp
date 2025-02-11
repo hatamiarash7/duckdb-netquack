@@ -1,14 +1,20 @@
 #define DUCKDB_EXTENSION_MAIN
 
 #include "netquack_extension.hpp"
+
 #include "duckdb.hpp"
 #include "duckdb/common/exception.hpp"
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/function/scalar_function.hpp"
 #include "duckdb/main/extension_util.hpp"
 #include "duckdb/parser/parsed_data/create_scalar_function_info.hpp"
+
 #include "utils/utils.hpp"
-#include "functions/version.hpp"
+#include "functions/get_version.hpp"
+#include "functions/extract_path.hpp"
+#include "functions/extract_host.hpp"
+#include "functions/extract_query.hpp"
+#include "functions/extract_schema.hpp"
 
 #include <regex>
 
@@ -105,7 +111,7 @@ namespace duckdb
 		auto input = input_vector.GetValue(0).ToString();
 
 		// Extract the path using the utility function
-		auto path = ExtractPath(input);
+		auto path = netquack::ExtractPath(input);
 
 		// Set the result
 		result.SetValue(0, Value(path));
@@ -119,7 +125,7 @@ namespace duckdb
 		auto input = input_vector.GetValue(0).ToString();
 
 		// Extract the host using the utility function
-		auto host = ExtractHost(input);
+		auto host = netquack::ExtractHost(input);
 
 		// Set the result
 		result.SetValue(0, Value(host));
@@ -133,7 +139,7 @@ namespace duckdb
 		auto input = input_vector.GetValue(0).ToString();
 
 		// Extract the schema using the utility function
-		auto schema = ExtractSchema(input);
+		auto schema = netquack::ExtractSchema(input);
 
 		// Set the result
 		result.SetValue(0, Value(schema));
@@ -146,7 +152,7 @@ namespace duckdb
 		auto url = url_vector.GetValue(0).ToString();
 
 		// Extract the query string
-		auto query_string = ExtractQueryString(url);
+		auto query_string = netquack::ExtractQueryString(url);
 
 		// Set the result
 		result.SetValue(0, Value(query_string));

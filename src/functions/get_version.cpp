@@ -1,4 +1,4 @@
-#include "version.hpp"
+#include "get_version.hpp"
 
 #include <future>
 #include <iostream>
