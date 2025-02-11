@@ -25,7 +25,7 @@ namespace duckdb
 	{
 		// Load the public suffix list if not already loaded
 		auto &db = *state.GetContext().db;
-		LoadPublicSuffixList(db, true);
+		netquack::LoadPublicSuffixList(db, true);
 
 		result.SetValue(0, Value("updated"));
 	}
@@ -35,7 +35,7 @@ namespace duckdb
 	{
 		// Load the public suffix list if not already loaded
 		auto &db = *state.GetContext().db;
-		LoadPublicSuffixList(db, false);
+		netquack::LoadPublicSuffixList(db, false);
 		Connection con(db);
 
 		// Extract the URL from the input
@@ -163,7 +163,7 @@ namespace duckdb
 	{
 		// Load the public suffix list if not already loaded
 		auto &db = *state.GetContext().db;
-		LoadPublicSuffixList(db, false);
+		netquack::LoadPublicSuffixList(db, false);
 		Connection con(db);
 
 		// Extract the URL from the input
@@ -223,7 +223,7 @@ namespace duckdb
 	{
 		// Load the public suffix list if not already loaded
 		auto &db = *state.GetContext().db;
-		LoadPublicSuffixList(db, false);
+		netquack::LoadPublicSuffixList(db, false);
 		Connection con(db);
 
 		// Extract the URL from the input
@@ -298,7 +298,7 @@ namespace duckdb
 
 		// Load the Tranco list into the database
 		auto &db = *state.GetContext().db;
-		LoadTrancoList(db, force_download);
+		netquack::LoadTrancoList(db, force_download);
 
 		result.SetValue(0, Value("Tranco list updated"));
 	}
@@ -307,7 +307,7 @@ namespace duckdb
 	static void GetTrancoRankFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
 		auto &db = *state.GetContext().db;
-		LoadPublicSuffixList(db, false);
+		netquack::LoadPublicSuffixList(db, false);
 		Connection con(db);
 
 		auto table_exists = con.Query("SELECT 1 FROM information_schema.tables WHERE table_name = 'tranco_list'");
