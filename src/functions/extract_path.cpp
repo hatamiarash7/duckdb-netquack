@@ -4,6 +4,20 @@
 
 namespace duckdb
 {
+	// Function to extract the path from a URL
+	void ExtractPathFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto input = input_vector.GetValue(0).ToString();
+
+		// Extract the path using the utility function
+		auto path = netquack::ExtractPath(input);
+
+		// Set the result
+		result.SetValue(0, Value(path));
+	}
+
 	namespace netquack
 	{
 		std::string ExtractPath(const std::string &input)

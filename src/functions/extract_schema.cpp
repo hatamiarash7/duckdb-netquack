@@ -4,6 +4,20 @@
 
 namespace duckdb
 {
+	// Function to extract the schema from a URL
+	void ExtractSchemaFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto input = input_vector.GetValue(0).ToString();
+
+		// Extract the schema using the utility function
+		auto schema = netquack::ExtractSchema(input);
+
+		// Set the result
+		result.SetValue(0, Value(schema));
+	}
+
 	namespace netquack
 	{
 		std::string ExtractSchema(const std::string &input)

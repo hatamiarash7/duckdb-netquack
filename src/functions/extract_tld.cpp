@@ -5,6 +5,20 @@
 
 namespace duckdb
 {
+	// Function to extract the top-level domain from a URL
+	void ExtractTLDFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto input = input_vector.GetValue(0).ToString();
+
+		// Extract the top-level domain using the utility function
+		auto tld = netquack::ExtractTLD(state, input);
+
+		// Set the result
+		result.SetValue(0, Value(tld));
+	}
+
 	namespace netquack
 	{
 		std::string ExtractTLD(ExpressionState &state, const std::string &input)

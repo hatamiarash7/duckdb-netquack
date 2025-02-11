@@ -4,6 +4,9 @@
 
 namespace duckdb
 {
+	// Function to extract the sub-domain from a URL
+	void ExtractSubDomainFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
 	namespace netquack
 	{
 		// Function to extract the sub-domain from a URL

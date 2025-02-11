@@ -4,6 +4,20 @@
 
 namespace duckdb
 {
+	// Function to extract the host from a URL
+	void ExtractHostFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto input = input_vector.GetValue(0).ToString();
+
+		// Extract the host using the utility function
+		auto host = netquack::ExtractHost(input);
+
+		// Set the result
+		result.SetValue(0, Value(host));
+	}
+
 	namespace netquack
 	{
 		std::string ExtractHost(const std::string &input)

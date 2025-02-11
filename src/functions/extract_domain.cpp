@@ -5,6 +5,25 @@
 
 namespace duckdb
 {
+	// Function to extract the domain from a URL
+	void ExtractDomainFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto input = input_vector.GetValue(0).ToString();
+
+		if (input.empty())
+		{
+			result.SetValue(0, Value(""));
+			return;
+		}
+
+		// Extract the domain using the utility function
+		auto domain = netquack::ExtractDomain(state, input);
+
+		result.SetValue(0, Value(domain));
+	}
+
 	namespace netquack
 	{
 		std::string ExtractDomain(ExpressionState &state, const std::string &input)

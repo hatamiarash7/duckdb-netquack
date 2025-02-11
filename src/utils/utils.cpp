@@ -89,6 +89,18 @@ namespace duckdb
 			}
 		}
 
+		// Function to update the public suffix list table
+		void UpdateSuffixesFunction(DataChunk &args, ExpressionState &state, Vector &result)
+		{
+			// Load the public suffix list if not already loaded
+			auto &db = *state.GetContext().db;
+
+			// Load the public suffix list with the update flag set to true
+			LoadPublicSuffixList(db, true);
+
+			result.SetValue(0, Value("updated"));
+		}
+
 		// Function to get the download code for the Tranco list
 		std::string GetTrancoDownloadCode(char *date)
 		{

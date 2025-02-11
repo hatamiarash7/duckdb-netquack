@@ -1,10 +1,23 @@
-#include "extract_domain.hpp"
+#include "extract_subdomain.hpp"
 #include "../utils/utils.hpp"
 
 #include <regex>
 
 namespace duckdb
 {
+	// Function to extract the sub-domain from a URL
+	void ExtractSubDomainFunction(DataChunk &args, ExpressionState &state, Vector &result)
+	{
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto input = input_vector.GetValue(0).ToString();
+
+		// Extract the sub-domain using the utility function
+		auto subdomain = netquack::ExtractSubDomain(state, input);
+
+		result.SetValue(0, Value(subdomain));
+	}
+
 	namespace netquack
 	{
 		std::string ExtractSubDomain(ExpressionState &state, const std::string &input)

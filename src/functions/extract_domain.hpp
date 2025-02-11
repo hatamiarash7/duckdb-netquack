@@ -4,6 +4,8 @@
 
 namespace duckdb
 {
+	void ExtractDomainFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
 	namespace netquack
 	{
 		// Function to extract the main domain from a URL
