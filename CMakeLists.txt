@@ -7,12 +7,9 @@ set(LOADABLE_EXTENSION_NAME ${TARGET_NAME}_loadable_extension)
 
 project(${TARGET_NAME})
 
-file(
-  GLOB
-  EXTENSION_SOURCES
-  src/*.cpp)
 set(EXTENSION_SOURCES ${EXTENSION_SOURCES})
 include_directories(src/include)
+file(GLOB_RECURSE EXTENSION_SOURCES src/*.cpp)
 
 build_static_extension(${TARGET_NAME} ${EXTENSION_SOURCES})
 build_loadable_extension(${TARGET_NAME} " " ${EXTENSION_SOURCES})
