@@ -16,7 +16,7 @@ namespace duckdb
 			//   (?:[^\/\s]+)    - Domain name (any characters except '/' or whitespace)
 			// )
 			// (\/[^?#]*)       - Capturing group for the path (starts with '/', followed by any characters except '?' or '#')
-			std::regex path_regex(R"(^(?:(?:https?:\/\/)?(?:[^\/\s]+))(\/[^?#]*)");
+			std::regex path_regex(R"(^(?:(?:https?:\/\/)?(?:[^\/\s]+))(\/[^?#]*))");
 			std::smatch path_match;
 
 			// Use regex_search to find the path component in the input string
