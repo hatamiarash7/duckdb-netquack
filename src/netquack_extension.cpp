@@ -28,11 +28,14 @@ namespace duckdb
 	{
 		// Load the public suffix list if not already loaded
 		auto &db = *state.GetContext().db;
+
+		// Load the public suffix list with the update flag set to true
 		netquack::LoadPublicSuffixList(db, true);
 
 		result.SetValue(0, Value("updated"));
 	}
 
+	// Function to extract the domain from a URL
 	static void ExtractDomainFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
 		// Extract the input from the arguments
@@ -87,6 +90,7 @@ namespace duckdb
 		result.SetValue(0, Value(schema));
 	}
 
+	// Function to extract the query string from a URL
 	static void ExtractQueryStringFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
 		// Extract the URL from the input
