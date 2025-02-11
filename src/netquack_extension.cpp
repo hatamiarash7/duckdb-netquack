@@ -11,6 +11,7 @@
 
 #include "utils/utils.hpp"
 #include "functions/get_version.hpp"
+#include "functions/extract_domain.hpp"
 #include "functions/extract_path.hpp"
 #include "functions/extract_host.hpp"
 #include "functions/extract_query.hpp"
@@ -30,75 +31,14 @@ namespace duckdb
 		result.SetValue(0, Value("updated"));
 	}
 
-	// Function to extract the main domain from a URL
 	static void ExtractDomainFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	{
-		// Load the public suffix list if not already loaded
-		auto &db = *state.GetContext().db;
-		netquack::LoadPublicSuffixList(db, false);
-		Connection con(db);
+		// Extract the input from the arguments
+		auto &input_vector = args.data[0];
+		auto input = input_vector.GetValue(0).ToString();
 
-		// Extract the URL from the input
-		auto &url_vector = args.data[0];
-		auto url = url_vector.GetValue(0).ToString();
-
-		// Extract the host from the URL
-		std::regex host_regex(R"(^(?:https?:\/\/)?([^\/\?:]+))");
-		std::smatch host_match;
-		if (!std::regex_search(url, host_match, host_regex))
-		{
-			result.SetValue(0, Value(""));
-			return;
-		}
-
-		auto host = host_match[1].str();
-
-		// Split the host into parts
-		std::vector<std::string> parts;
-		std::istringstream stream(host);
-		std::string part;
-		while (std::getline(stream, part, '.'))
-		{
-			parts.push_back(part);
-		}
-
-		// Find the longest matching public suffix
-		std::string public_suffix;
-		int public_suffix_index = -1;
-
-		for (int j = 0; j < parts.size(); j++)
-		{
-			// Build the candidate suffix
-			std::string candidate;
-			for (int k = j; k < parts.size(); k++)
-			{
-				candidate += (k == j ? "" : ".") + parts[k];
-			}
-
-			// Query the public suffix list
-			auto query = "SELECT 1 FROM public_suffix_list WHERE suffix = '" + candidate + "'";
-			auto query_result = con.Query(query);
-
-			if (query_result->RowCount() > 0)
-			{
-				public_suffix = candidate;
-				public_suffix_index = j;
-				break;
-			}
-		}
-
-		// Determine the main domain
-		std::string domain;
-		if (!public_suffix.empty() && public_suffix_index > 0)
-		{
-			// Combine the part before the public suffix with the public suffix
-			domain = parts[public_suffix_index - 1] + "." + public_suffix;
-		}
-		else if (!public_suffix.empty())
-		{
-			// No part before the suffix, use the public suffix only
-			domain = public_suffix;
-		}
+		// Extract the domain using the utility function
+		auto domain = netquack::ExtractDomain(state, input);
 
 		result.SetValue(0, Value(domain));
 	}
