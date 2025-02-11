@@ -89,84 +89,116 @@ namespace duckdb
 	// Function to extract the path from a URL or host
 	std::string ExtractPath(const std::string &input)
 	{
-		// Regex to match the path component
-		std::regex path_regex(R"(^(?:(?:https?:\/\/)?(?:[^\/\s]+))(\/[^?#]*))");
+		// Regex to match the path component of a URL
+		// Explanation:
+		// ^                - Start of the string
+		// (?:              - Non-capturing group for the protocol and domain part
+		//   (?:https?:\/\/)? - Optional http:// or https://
+		//   (?:[^\/\s]+)    - Domain name (any characters except '/' or whitespace)
+		// )
+		// (\/[^?#]*)       - Capturing group for the path (starts with '/', followed by any characters except '?' or '#')
+		std::regex path_regex(R"(^(?:(?:https?:\/\/)?(?:[^\/\s]+))(\/[^?#]*)");
 		std::smatch path_match;
 
+		// Use regex_search to find the path component in the input string
 		if (std::regex_search(input, path_match, path_regex))
 		{
-			// If a path is found, return it
+			// Check if the path group was matched and is not empty
 			if (path_match.size() > 1 && path_match[1].matched)
 			{
 				return path_match[1].str();
 			}
 		}
 
-		// If no path is found, return "/"
+		// If no path is found, return the default path "/"
 		return "/";
 	}
 
 	// Function to extract the host from a URL
 	std::string ExtractHost(const std::string &input)
 	{
-		// Regex to match the host component
+		// Regex to match the host component of a URL
+		// Explanation:
+		// ^                - Start of the string
+		// (?:              - Non-capturing group for the optional protocol
+		//   https?:\/\/    - Matches "http://" or "https://"
+		// )?
+		// ([^\/\s:?#]+)    - Capturing group for the host (any characters except '/', ':', '?', '#', or whitespace)
 		std::regex host_regex(R"(^(?:https?:\/\/)?([^\/\s:?#]+))");
 		std::smatch host_match;
 
+		// Use regex_search to find the host component in the input string
 		if (std::regex_search(input, host_match, host_regex))
 		{
-			// If a host is found, return it
+			// Check if the host group was matched and is not empty
 			if (host_match.size() > 1 && host_match[1].matched)
 			{
 				return host_match[1].str();
 			}
 		}
 
-		// If no host is found, return ""
+		// If no host is found, return an empty string
 		return "";
 	}
 
-	// Function to extract the schema from a URL
+	// Function to extract the schema (protocol) from a URL
 	std::string ExtractSchema(const std::string &input)
 	{
-		// Regex to match the schema component
+		// Regex to match the schema component of a URL
+		// Explanation:
+		// ^                - Start of the string
+		// (http|https|ftp) - Capturing group for common protocols (http, https, ftp)
+		// :\/\/            - Matches "://" after the protocol
+		// |                - OR
+		// (mailto|sms|tel) - Capturing group for other protocols (mailto, sms, tel)
+		// :[^/]            - Matches ":" followed by any character except "/"
 		std::regex schema_regex(R"(^(http|https|ftp):\/\/|^(mailto|sms|tel):[^/])");
 		std::smatch schema_match;
 
+		// Use regex_search to find the schema component in the input string
 		if (std::regex_search(input, schema_match, schema_regex))
 		{
-			// If a schema is found, return it
+			// Check if the schema was matched in either group
 			if (schema_match.size() > 1)
 			{
 				if (schema_match[1].matched)
 				{
-					// Group 1 matches "http|https|ftp"
+					// Group 1 matches "http", "https", or "ftp"
 					return schema_match[1].str();
 				}
 				else if (schema_match[2].matched)
 				{
-					// Group 2 matches "mailto|sms|tel"
+					// Group 2 matches "mailto", "sms", or "tel"
 					return schema_match[2].str();
 				}
 			}
 		}
 
-		// If no schema is found, return ""
+		// If no schema is found, return an empty string
 		return "";
 	}
 
 	// Function to extract the query string from a URL
 	std::string ExtractQueryString(const std::string &input)
 	{
+		// Regex to match the query string component of a URL
+		// Explanation:
+		// (?:\?|&)  - Non-capturing group to match either "?" (start of query) or "&" (query parameter separator)
+		// ([^#]+)   - Capturing group to match the query string (any characters except "#")
 		std::regex query_regex(R"((?:\?|&)([^#]+))");
 		std::smatch query_match;
 
-		if (std::regex_search(input, query_match, query_regex) && query_match.size() > 1)
+		// Use regex_search to find the query string in the input
+		if (std::regex_search(input, query_match, query_regex))
 		{
-			return query_match[1].str();
+			// Check if the query string group was matched and is not empty
+			if (query_match.size() > 1 && query_match[1].matched)
+			{
+				return query_match[1].str();
+			}
 		}
 
-		// Return empty string if no query string is found
+		// If no query string is found, return an empty string
 		return "";
 	}
 
