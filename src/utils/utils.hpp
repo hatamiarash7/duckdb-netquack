@@ -6,6 +6,9 @@ namespace duckdb
 {
 	namespace netquack
 	{
+		// Function to log messages with a specified log level
+		void LogMessage(const std::string &level, const std::string &message);
+
 		// Function to download a file from a URL
 		size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
