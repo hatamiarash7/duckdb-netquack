@@ -7,7 +7,7 @@
 #include "duckdb/function/scalar_function.hpp"
 #include "duckdb/main/extension_util.hpp"
 #include "duckdb/parser/parsed_data/create_scalar_function_info.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 #include "functions/version.hpp"
 
 #include <regex>
