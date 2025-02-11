@@ -255,9 +255,22 @@ D SELECT get_tranco_rank('cloudflare.com') as rank;
 └───────┘
 ```
 
+### Get Extension Version
+
+You can use the `netquack_version` function to get the version of the extension.
+
+```sql
+D select * from netquack_version();
+┌─────────┐
+│ version │
+│ varchar │
+├─────────┤
+│ v1.1.0  │
+└─────────┘
+```
+
 ## Roadmap 🗺️
 
-- [ ] Create a version function `SELECT * from netquack_version();`
 - [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
 - [ ] Save Tranco data as Parquet
 - [ ] Create Rank category for Tranco ( `top1k` , `top5k`, `top10k`, `top100k`, `top500k`, `top1m` )

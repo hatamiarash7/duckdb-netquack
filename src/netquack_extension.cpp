@@ -8,6 +8,7 @@
 #include "duckdb/main/extension_util.hpp"
 #include "duckdb/parser/parsed_data/create_scalar_function_info.hpp"
 #include "utils.hpp"
+#include "version.hpp"
 
 #include <regex>
 
@@ -396,6 +397,15 @@ namespace duckdb
 			LogicalType::INTEGER,
 			GetTrancoRankFunction);
 		ExtensionUtil::RegisterFunction(instance, get_tranco_rank_function);
+
+		auto version_function = TableFunction(
+			"netquack_version",
+			{},
+			netquack::VersionFunc::Scan,
+			netquack::VersionFunc::Bind,
+			netquack::VersionFunc::InitGlobal,
+			netquack::VersionFunc::InitLocal);
+		ExtensionUtil::RegisterFunction(instance, version_function);
 	}
 
 	void NetquackExtension::Load(DuckDB &db)
