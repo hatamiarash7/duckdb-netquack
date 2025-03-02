@@ -145,6 +145,16 @@ SELECT extract_domain('com:443');
 com
 
 query I
+SELECT extract_domain('ftp://example.com/path');
+----
+example.com
+
+query I
+SELECT extract_domain('rsync://rpki.example.com/path');
+----
+example.com
+
+query I
 SELECT extract_domain('c');
 ----
 (empty)
