@@ -24,12 +24,13 @@ namespace duckdb
         {
             // Regex to match the host component of a URL
             // Explanation:
-            // ^                - Start of the string
-            // (?:              - Non-capturing group for the optional protocol
-            //   https?:\/\/    - Matches "http://" or "https://"
+            // ^                        - Start of the string
+            // (?:                      - Non-capturing group for the optional protocol
+            //   (?:ftp|https?|rsync)   - Non-capturing group for the scheme
+            //   :\/\/                  - Matches "://"
             // )?
-            // ([^\/\s:?#]+)    - Capturing group for the host (any characters except '/', ':', '?', '#', or whitespace)
-            std::regex host_regex (R"(^(?:https?:\/\/)?([^\/\s:?#]+))");
+            // ([^\/\s:?#]+)            - Capturing group for the host (any characters except '/', ':', '?', '#', or whitespace)
+            std::regex host_regex (R"(^(?:(?:ftp|https?|rsync):\/\/)?([^\/\s:?#]+))");
             std::smatch host_match;
 
             // Use regex_search to find the host component in the input string
