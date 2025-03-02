@@ -29,7 +29,7 @@ namespace duckdb
             Connection con (db);
 
             // Extract the host from the URL
-            std::regex host_regex (R"(^(?:https?:\/\/)?([^\/\?:]+))");
+            std::regex host_regex (R"(^(?:(?:https?|ftp|rsync):\/\/)?([^\/\?:]+))");
             std::smatch host_match;
             if (!std::regex_search (input, host_match, host_regex))
             {
