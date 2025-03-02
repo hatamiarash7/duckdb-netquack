@@ -53,3 +53,13 @@ query I
 SELECT extract_path('example.com.ac:443/path/path');
 ----
 /path/path
+
+query I
+SELECT extract_path('ftp://ftp.exmple.com/path/path');
+----
+/path/path
+
+query I
+SELECT extract_path('rsync://rpki.exmple.com/path/path');
+----
+/path/path

@@ -75,6 +75,16 @@ SELECT extract_subdomain('https://b.a.example.com.ac:443/path');
 b.a
 
 query I
+SELECT extract_subdomain('rsync://rpki.example.com/path');
+----
+rpki
+
+query I
+SELECT extract_subdomain('ftp://ftp1.example.com/path');
+----
+ftp1
+
+query I
 SELECT extract_subdomain('com.ac');
 ----
 (empty)

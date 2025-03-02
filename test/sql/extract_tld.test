@@ -124,6 +124,16 @@ SELECT extract_tld('https://example.com.ac:443/path/path');
 ----
 com.ac
 
+query I
+SELECT extract_tld('ftp://ftp.example.com/path/path');
+----
+com
+
+query I
+SELECT extract_tld('rsync://rpki.example.com/path/path');
+----
+com
+
 
 query I
 SELECT extract_tld('com.ac');

@@ -26,11 +26,11 @@ namespace duckdb
             // Explanation:
             // ^                - Start of the string
             // (?:              - Non-capturing group for the protocol and domain part
-            //   (?:https?:\/\/)? - Optional http:// or https://
+            //   (?:(?:ftp|https?|rsync):\/\/)? - Optional ftp://, http://, https://, or rsync://
             //   (?:[^\/\s]+)    - Domain name (any characters except '/' or whitespace)
             // )
             // (\/[^?#]*)       - Capturing group for the path (starts with '/', followed by any characters except '?' or '#')
-            std::regex path_regex (R"(^(?:(?:https?:\/\/)?(?:[^\/\s]+))(\/[^?#]*))");
+            std::regex path_regex (R"(^(?:(?:(?:ftp|https?|rsync):\/\/)?(?:[^\/\s]+))(\/[^?#]*))");
             std::smatch path_match;
 
             // Use regex_search to find the path component in the input string
