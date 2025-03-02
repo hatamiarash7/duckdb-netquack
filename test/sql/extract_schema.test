@@ -95,6 +95,13 @@ SELECT extract_schema('ftp:/example.com');
 ----
 (empty)
 
+# ---------------------------- RSYNC ----------------------------
+
+query I
+SELECT extract_schema('rsync://rpki.example.com');
+----
+rsync
+
 # ---------------------------- TEL ----------------------------
 
 query I

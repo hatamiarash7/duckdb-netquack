@@ -30,7 +30,7 @@ namespace duckdb
             // |                - OR
             // (mailto|sms|tel) - Capturing group for other protocols (mailto, sms, tel)
             // :[^/]            - Matches ":" followed by any character except "/"
-            std::regex schema_regex (R"(^(http|https|ftp):\/\/|^(mailto|sms|tel):[^/])");
+            std::regex schema_regex (R"(^(http|https|ftp|rsync):\/\/|^(mailto|sms|tel):[^/])");
             std::smatch schema_match;
 
             // Use regex_search to find the schema component in the input string
