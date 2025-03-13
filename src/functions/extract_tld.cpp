@@ -11,13 +11,23 @@ namespace duckdb
     {
         // Extract the input from the arguments
         auto &input_vector = args.data[0];
-        auto input         = input_vector.GetValue (0).ToString ();
+        auto result_data   = FlatVector::GetData<string_t> (result);
 
-        // Extract the top-level domain using the utility function
-        auto tld = netquack::ExtractTLD (state, input);
+        for (idx_t i = 0; i < args.size (); i++)
+        {
+            auto input = input_vector.GetValue (i).ToString ();
 
-        // Set the result
-        result.SetValue (0, Value (tld));
+            try
+            {
+                // Extract the top-level domain using the utility function
+                auto tld       = netquack::ExtractTLD (state, input);
+                result_data[i] = StringVector::AddString (result, tld);
+            }
+            catch (const std::exception &e)
+            {
+                result_data[i] = "Error extracting tld: " + std::string (e.what ());
+            }
+        }
     }
 
     namespace netquack
