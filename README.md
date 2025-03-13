@@ -239,20 +239,20 @@ You can use this function to get the ranking of a domain:
 
 ```sql
 D SELECT get_tranco_rank('microsoft.com') as rank;
-┌───────┐
-│ rank  │
-│ int32 │
-├───────┤
-│     2 │
-└───────┘
+┌─────────┐
+│  rank   │
+│ varchar │
+├─────────┤
+│ 2       │
+└─────────┘
 
 D SELECT get_tranco_rank('cloudflare.com') as rank;
-┌───────┐
-│ rank  │
-│ int32 │
-├───────┤
-│    13 │
-└───────┘
+┌─────────┐
+│  rank   │
+│ varchar │
+├─────────┤
+│ 13      │
+└─────────┘
 ```
 
 ### Get Extension Version

@@ -95,7 +95,7 @@ namespace duckdb
         auto get_tranco_rank_function = ScalarFunction (
             "get_tranco_rank",
             { LogicalType::VARCHAR },
-            LogicalType::INTEGER,
+            LogicalType::VARCHAR,
             netquack::GetTrancoRankFunction);
         ExtensionUtil::RegisterFunction (instance, get_tranco_rank_function);
 

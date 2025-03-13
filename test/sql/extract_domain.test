@@ -4,6 +4,9 @@
 
 require netquack
 
+statement ok
+CREATE TABLE uri_list AS SELECT * FROM read_csv('test/data/examples.csv', header=false, columns={'uri': 'VARCHAR'});
+
 query I
 SELECT extract_domain('example.com');
 ----
@@ -173,3 +176,16 @@ query I
 SELECT extract_domain('http:/example.com.ac:443/path');
 ----
 (empty)
+
+query I
+SELECT extract_domain(uri) from uri_list;
+----
+example.com
+example.com.ac
+example.com.co
+example.com
+example.com
+example.com.ac
+example.com
+example.com
+example.com.ac

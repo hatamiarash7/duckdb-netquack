@@ -4,6 +4,9 @@
 
 require netquack
 
+statement ok
+CREATE TABLE uri_list AS SELECT * FROM read_csv('test/data/examples.csv', header=false, columns={'uri': 'VARCHAR'});
+
 # ---------------------------- HTTP/S ----------------------------
 
 query I
@@ -195,3 +198,16 @@ query I
 SELECT extract_schema('sms:a');
 ----
 sms
+
+query I
+SELECT extract_schema(uri) from uri_list;
+----
+(empty)
+(empty)
+(empty)
+(empty)
+(empty)
+(empty)
+https
+https
+http

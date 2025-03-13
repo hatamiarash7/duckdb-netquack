@@ -7,15 +7,25 @@ namespace duckdb
     // Function to extract the query string from a URL
     void ExtractQueryStringFunction (DataChunk &args, ExpressionState &state, Vector &result)
     {
-        // Extract the URL from the input
-        auto &url_vector = args.data[0];
-        auto url         = url_vector.GetValue (0).ToString ();
+        // Extract the input from the arguments
+        auto &input_vector = args.data[0];
+        auto result_data   = FlatVector::GetData<string_t> (result);
 
-        // Extract the query string
-        auto query_string = netquack::ExtractQueryString (url);
+        for (idx_t i = 0; i < args.size (); i++)
+        {
+            auto input = input_vector.GetValue (i).ToString ();
 
-        // Set the result
-        result.SetValue (0, Value (query_string));
+            try
+            {
+                // Extract the query string using the utility function
+                auto query_string = netquack::ExtractQueryString (input);
+                result_data[i]    = StringVector::AddString (result, query_string);
+            }
+            catch (const std::exception &e)
+            {
+                result_data[i] = "Error extracting query string: " + std::string (e.what ());
+            }
+        };
     }
 
     namespace netquack

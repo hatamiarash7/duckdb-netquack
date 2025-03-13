@@ -11,12 +11,23 @@ namespace duckdb
     {
         // Extract the input from the arguments
         auto &input_vector = args.data[0];
-        auto input         = input_vector.GetValue (0).ToString ();
+        auto result_data   = FlatVector::GetData<string_t> (result);
 
-        // Extract the sub-domain using the utility function
-        auto subdomain = netquack::ExtractSubDomain (state, input);
+        for (idx_t i = 0; i < args.size (); i++)
+        {
+            auto input = input_vector.GetValue (i).ToString ();
 
-        result.SetValue (0, Value (subdomain));
+            try
+            {
+                // Extract the subdomain using the utility function
+                auto subdomain = netquack::ExtractSubDomain (state, input);
+                result_data[i] = StringVector::AddString (result, subdomain);
+            }
+            catch (const std::exception &e)
+            {
+                result_data[i] = "Error extracting subdomain: " + std::string (e.what ());
+            }
+        }
     }
 
     namespace netquack

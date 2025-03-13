@@ -4,6 +4,9 @@
 
 require netquack
 
+statement ok
+CREATE TABLE uri_list AS SELECT * FROM read_csv('test/data/examples.csv', header=false, columns={'uri': 'VARCHAR'});
+
 query I
 SELECT extract_query_string('http://example.com.ac?a=1');
 ----
@@ -28,3 +31,16 @@ query I
 SELECT extract_query_string('http://example.com.ac/path/?a=1');
 ----
 a=1
+
+query I
+SELECT extract_query_string(uri) from uri_list;
+----
+(empty)
+(empty)
+(empty)
+(empty)
+(empty)
+(empty)
+(empty)
+(empty)
+a=1&b=2&
