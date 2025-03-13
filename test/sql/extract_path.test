@@ -8,6 +8,11 @@ statement ok
 CREATE TABLE uri_list AS SELECT * FROM read_csv('test/data/examples.csv', header=false, columns={'uri': 'VARCHAR'});
 
 query I
+SELECT extract_path('http://example.com.ac');
+----
+/
+
+query I
 SELECT extract_path('http://example.com.ac/path');
 ----
 /path
