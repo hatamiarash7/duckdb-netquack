@@ -148,13 +148,28 @@ namespace duckdb
                 throw std::runtime_error ("Tranco table not found. Download it first using `SELECT update_tranco(true);`");
             }
 
-            auto &domain_vector = args.data[0];
-            auto domain         = domain_vector.GetValue (0).ToString ();
+            // Extract the input from the arguments
+            auto &input_vector = args.data[0];
+            auto result_data   = FlatVector::GetData<string_t> (result);
 
-            auto query        = "SELECT rank FROM tranco_list WHERE domain = '" + domain + "'";
-            auto query_result = con.Query (query);
+            for (idx_t i = 0; i < args.size (); i++)
+            {
+                auto input = input_vector.GetValue (i).ToString ();
 
-            result.SetValue (0, query_result->RowCount () > 0 ? query_result->GetValue (0, 0) : Value ());
+                try
+                {
+                    auto query = "SELECT rank FROM tranco_list WHERE domain = '" + input + "'";
+
+                    auto query_result = con.Query (query);
+                    auto rank         = query_result->RowCount () > 0 ? query_result->GetValue (0, 0) : Value ();
+
+                    result_data[i] = StringVector::AddString (result, rank.ToString ());
+                }
+                catch (const std::exception &e)
+                {
+                    result_data[i] = "Error extracting tranco rank: " + std::string (e.what ());
+                }
+            }
         }
     } // namespace netquack
 } // namespace duckdb

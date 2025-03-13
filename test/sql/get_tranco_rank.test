@@ -7,6 +7,9 @@ require netquack
 statement ok
 CREATE TABLE tranco_list AS SELECT * FROM read_csv('test/data/tranco.csv', header=false, columns={'rank': 'INTEGER', 'domain': 'VARCHAR'});
 
+statement ok
+CREATE TABLE uri_list AS SELECT * FROM read_csv('test/data/examples_tranco.csv', header=false, columns={'uri': 'VARCHAR'});
+
 query I
 SELECT COUNT(*) FROM tranco_list;
 ----
@@ -26,3 +29,11 @@ query I
 SELECT get_tranco_rank('notfound.com');
 ----
 NULL
+
+query I
+SELECT get_tranco_rank(uri) from uri_list;
+----
+2
+10
+19
+7
