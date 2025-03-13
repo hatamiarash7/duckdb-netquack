@@ -23,12 +23,22 @@ SELECT extract_subdomain('a.example.com.ac');
 a
 
 query I
+SELECT extract_subdomain('A.exaMple.cOm.ac');
+----
+a
+
+query I
 SELECT extract_subdomain('a.example.com.ac:443');
 ----
 a
 
 query I
 SELECT extract_subdomain('b.a.example.com');
+----
+b.a
+
+query I
+SELECT extract_subdomain('B.A.example.com');
 ----
 b.a
 

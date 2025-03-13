@@ -18,6 +18,11 @@ SELECT extract_path('http://example.com.ac/path');
 /path
 
 query I
+SELECT extract_path('http://exAmple.com.ac/paTh');
+----
+/path
+
+query I
 SELECT extract_path('http://example.com.ac:443/path');
 ----
 /path

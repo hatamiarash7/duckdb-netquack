@@ -13,6 +13,11 @@ SELECT extract_tld('example.com');
 com
 
 query I
+SELECT extract_tld('example.COM');
+----
+com
+
+query I
 SELECT extract_tld('example.com:443');
 ----
 com

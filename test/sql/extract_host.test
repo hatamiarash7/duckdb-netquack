@@ -13,6 +13,11 @@ SELECT extract_host('http://example.com.ac/path');
 example.com.ac
 
 query I
+SELECT extract_host('http://exAmple.com.aC/paTh');
+----
+example.com.ac
+
+query I
 SELECT extract_host('http://example.com.ac:443/path');
 ----
 example.com.ac

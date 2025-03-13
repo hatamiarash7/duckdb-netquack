@@ -13,6 +13,11 @@ SELECT extract_domain('example.com');
 example.com
 
 query I
+SELECT extract_domain('ExaMple.com');
+----
+example.com
+
+query I
 SELECT extract_domain('example.com:443');
 ----
 example.com

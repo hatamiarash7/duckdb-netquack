@@ -21,6 +21,11 @@ SELECT get_tranco_rank('microsoft.com');
 2
 
 query I
+SELECT get_tranco_rank('MICROSOFT.COM');
+----
+2
+
+query I
 SELECT get_tranco_rank('gstatic.com');
 ----
 19

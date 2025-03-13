@@ -20,6 +20,11 @@ SELECT extract_schema('http://example.com.ac:443/path');
 http
 
 query I
+SELECT extract_schema('HTTP://example.com.ac:443/path');
+----
+http
+
+query I
 SELECT extract_schema('https://example.com.ac/path/path');
 ----
 https

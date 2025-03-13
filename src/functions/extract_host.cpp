@@ -14,6 +14,7 @@ namespace duckdb
         for (idx_t i = 0; i < args.size (); i++)
         {
             auto input = input_vector.GetValue (i).ToString ();
+            std::transform (input.begin (), input.end (), input.begin (), ::tolower);
 
             try
             {
