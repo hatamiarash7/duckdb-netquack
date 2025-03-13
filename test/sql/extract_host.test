@@ -4,6 +4,9 @@
 
 require netquack
 
+statement ok
+CREATE TABLE uri_list AS SELECT * FROM read_csv('test/data/examples.csv', header=false, columns={'uri': 'VARCHAR'});
+
 query I
 SELECT extract_host('http://example.com.ac/path');
 ----
@@ -63,3 +66,16 @@ query I
 SELECT extract_host('rsync://rpki.example.com/path');
 ----
 rpki.example.com
+
+query I
+SELECT extract_host(uri) from uri_list;
+----
+example.com
+example.com.ac
+example.com.co
+a.example.com
+example.com
+example.com.ac
+example.com
+a.example.com
+example.com.ac

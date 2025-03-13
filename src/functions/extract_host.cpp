@@ -9,13 +9,23 @@ namespace duckdb
     {
         // Extract the input from the arguments
         auto &input_vector = args.data[0];
-        auto input         = input_vector.GetValue (0).ToString ();
+        auto result_data   = FlatVector::GetData<string_t> (result);
 
-        // Extract the host using the utility function
-        auto host = netquack::ExtractHost (input);
+        for (idx_t i = 0; i < args.size (); i++)
+        {
+            auto input = input_vector.GetValue (i).ToString ();
 
-        // Set the result
-        result.SetValue (0, Value (host));
+            try
+            {
+                // Extract the host using the utility function
+                auto host      = netquack::ExtractHost (input);
+                result_data[i] = StringVector::AddString (result, host);
+            }
+            catch (const std::exception &e)
+            {
+                result_data[i] = "Error extracting host: " + std::string (e.what ());
+            }
+        }
     }
 
     namespace netquack
