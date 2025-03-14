@@ -41,14 +41,14 @@ namespace duckdb
             Connection con (db);
 
             // Extract the host from the URL
-            std::regex host_regex (R"(^(?:(?:https?|ftp|rsync):\/\/)?([^\/\?:]+))");
+            std::regex host_regex (R"(^(?:(?:https?|ftp|rsync):\/\/|mailto:)?((?:[^\/\?:#@]+@)?([^\/\?:#]+)))");
             std::smatch host_match;
             if (!std::regex_search (input, host_match, host_regex))
             {
                 return "";
             }
 
-            auto host = host_match[1].str ();
+            auto host = host_match[host_match.size () - 1].str ();
 
             // Split the host into parts
             std::vector<std::string> parts;

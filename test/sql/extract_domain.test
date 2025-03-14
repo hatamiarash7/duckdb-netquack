@@ -194,3 +194,86 @@ example.com.ac
 example.com
 example.com
 example.com.ac
+
+# Test IP addresses
+query I
+SELECT extract_domain('http://192.168.1.1');
+----
+(empty)
+
+query I
+SELECT extract_domain('http://192.168.1.1:8080');
+----
+(empty)
+
+query I
+SELECT extract_domain('192.168.1.1');
+----
+(empty)
+
+# Test IPv6 addresses
+query I
+SELECT extract_domain('http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]');
+----
+(empty)
+
+query I
+SELECT extract_domain('[2001:0db8:85a3:0000:0000:8a2e:0370:7334]');
+----
+(empty)
+
+# Test URLs with query parameters
+query I
+SELECT extract_domain('https://example.com?param=value');
+----
+example.com
+
+query I
+SELECT extract_domain('https://example.com/path?param=value');
+----
+example.com
+
+# Test URLs with fragments
+query I
+SELECT extract_domain('https://example.com#section');
+----
+example.com
+
+query I
+SELECT extract_domain('https://example.com/path#section');
+----
+example.com
+
+# Test combined query parameters and fragments
+query I
+SELECT extract_domain('https://example.com?param=value#section');
+----
+example.com
+
+# Test special and edge cases
+query I
+SELECT extract_domain('');
+----
+(empty)
+
+query I
+SELECT extract_domain(NULL);
+----
+NULL
+
+query I
+SELECT extract_domain('localhost');
+----
+(empty)
+
+# Test scheme with no authority
+query I
+SELECT extract_domain('file:///path/to/file');
+----
+(empty)
+
+# Test mailto URLs
+query I
+SELECT extract_domain('mailto:user@example.com');
+----
+example.com
