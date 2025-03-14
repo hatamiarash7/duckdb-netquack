@@ -11,5 +11,8 @@ namespace duckdb
 
         // Function to get the Tranco rank of a domain
         void GetTrancoRankFunction (DataChunk &args, ExpressionState &state, Vector &result);
+
+        // Function to get the Tranco rank category of a domain
+        void GetTrancoRankCategoryFunction (DataChunk &args, ExpressionState &state, Vector &result);
     } // namespace netquack
 } // namespace duckdb

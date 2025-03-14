@@ -124,6 +124,7 @@ namespace duckdb
                            " WHEN rank <= 1000 THEN 'top1k'"
                            " WHEN rank <= 5000 THEN 'top5k'"
                            " WHEN rank <= 10000 THEN 'top10k'"
+                           " WHEN rank <= 50000 THEN 'top50k'"
                            " WHEN rank <= 100000 THEN 'top100k'"
                            " WHEN rank <= 500000 THEN 'top500k'"
                            " WHEN rank <= 1000000 THEN 'top1m'"
@@ -189,6 +190,45 @@ namespace duckdb
                 catch (const std::exception &e)
                 {
                     result_data[i] = "Error extracting tranco rank: " + std::string (e.what ());
+                }
+            }
+        }
+
+        // Function to get the Tranco rank category of a domain
+        void GetTrancoRankCategoryFunction (DataChunk &args, ExpressionState &state, Vector &result)
+        {
+            auto &db = *state.GetContext ().db;
+            netquack::LoadPublicSuffixList (db, false);
+            Connection con (db);
+
+            auto table_exists = con.Query ("SELECT 1 FROM information_schema.tables WHERE table_name = 'tranco_list'");
+
+            if (table_exists->RowCount () == 0)
+            {
+                throw std::runtime_error ("Tranco table not found. Download it first using `SELECT update_tranco(true);`");
+            }
+
+            // Extract the input from the arguments
+            auto &input_vector = args.data[0];
+            auto result_data   = FlatVector::GetData<string_t> (result);
+
+            for (idx_t i = 0; i < args.size (); i++)
+            {
+                auto input = input_vector.GetValue (i).ToString ();
+                std::transform (input.begin (), input.end (), input.begin (), ::tolower);
+
+                try
+                {
+                    auto query = "SELECT category FROM tranco_list WHERE domain = '" + input + "'";
+
+                    auto query_result = con.Query (query);
+                    auto category     = query_result->RowCount () > 0 ? query_result->GetValue (0, 0) : Value ();
+
+                    result_data[i] = StringVector::AddString (result, category.ToString ());
+                }
+                catch (const std::exception &e)
+                {
+                    result_data[i] = "Error extracting tranco category: " + std::string (e.what ());
                 }
             }
         }

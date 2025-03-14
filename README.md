@@ -255,6 +255,18 @@ D SELECT get_tranco_rank('cloudflare.com') as rank;
 └─────────┘
 ```
 
+You can use the `get_tranco_rank_category` function to retrieve the category utility column that gives you the rank category of the domain. The `category` value is on a log10 scale with half steps (e.g. top 1k, top 5k, top 10k, top 50k, top 100k, top 500k, top 1M, top 5m, etc.) with each rank excluding the previous (e.g. top 5k is actually 4k domains, excluding top 1k).
+
+```sql
+D SELECT get_tranco_rank_category('microsoft.com') as category;
+┌──────────┐
+│ category │
+│ varchar  │
+├──────────┤
+│ top1k    │
+└──────────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the version of the extension.
@@ -273,7 +285,6 @@ D select * from netquack_version();
 
 - [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
 - [ ] Save Tranco data as Parquet
-- [ ] Create Rank category for Tranco ( `top1k` , `top5k`, `top10k`, `top100k`, `top500k`, `top1m` )
 - [ ] Implement GeoIP functionality
 - [ ] Add new functions to work with IPs
 - [ ] Return default value for `get_tranco_rank`
