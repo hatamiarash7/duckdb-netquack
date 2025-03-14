@@ -35,4 +35,3 @@ D SELECT extract_domain('https://b.a.example.com/path') as domain;
 │ example.com │
 └─────────────┘
 ```
-

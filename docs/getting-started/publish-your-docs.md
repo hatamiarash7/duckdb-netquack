@@ -23,7 +23,7 @@ layout:
 
 #### Clone repo <a href="#clone-repo" id="clone-repo"></a>
 
-```
+```bash
 git clone --recurse-submodules git@github.com:hatamiarash7/duckdb-netquack.git
 ```
 
