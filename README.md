@@ -231,7 +231,7 @@ You can ignore the file and force the extension to download the list again by ca
 D SELECT update_tranco(false);
 ```
 
-As the latest Tranco list is for the last day, you can download your list manually and rename it to `tranco_lit_%Y-%m-%d.csv` to use it with the extension too.
+As the latest Tranco list is for the last day, you can download your list manually and rename it to `tranco_list_%Y-%m-%d.csv` to use it with the extension too.
 
 #### Get Tranco Ranking
 
