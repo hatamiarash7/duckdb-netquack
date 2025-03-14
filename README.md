@@ -277,6 +277,7 @@ D select * from netquack_version();
 - [ ] Implement GeoIP functionality
 - [ ] Add new functions to work with IPs
 - [ ] Return default value for `get_tranco_rank`
+- [ ] Support internationalized domain names (IDNs)
 
 ## Contributing 🤝
 
