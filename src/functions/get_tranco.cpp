@@ -110,14 +110,34 @@ namespace duckdb
 
             if (!file.good ())
             {
-                LogMessage ("ERROR", "Tranco list not found. Download it first using `SELECT update_tranco(true);`");
+                LogMessage ("ERROR", "Tranco list `" + temp_file + "` not found. Download it first using `SELECT update_tranco(true);`");
             }
 
             // Parse the CSV data and insert into a table
             LogMessage ("INFO", "Inserting Tranco list into table");
 
             Connection con (db);
-            con.Query ("CREATE OR REPLACE TABLE tranco_list AS SELECT * FROM read_csv('" + temp_file + "', header=false, columns={'rank': 'INTEGER', 'domain': 'VARCHAR'})");
+            string query = "CREATE OR REPLACE TABLE tranco_list AS"
+                           " SELECT rank,"
+                           " domain,"
+                           " CASE"
+                           " WHEN rank <= 1000 THEN 'top1k'"
+                           " WHEN rank <= 5000 THEN 'top5k'"
+                           " WHEN rank <= 10000 THEN 'top10k'"
+                           " WHEN rank <= 100000 THEN 'top100k'"
+                           " WHEN rank <= 500000 THEN 'top500k'"
+                           " WHEN rank <= 1000000 THEN 'top1m'"
+                           " WHEN rank <= 5000000 THEN 'top5m'"
+                           " ELSE 'other'"
+                           " END AS category"
+                           " FROM read_csv('" +
+                temp_file + "', header = false, columns = { 'rank': 'INTEGER', 'domain': 'VARCHAR' })";
+            auto result = con.Query (query);
+
+            if (result->HasError ())
+            {
+                LogMessage ("ERROR", result->GetError ());
+            }
         }
 
         // Function to update the Tranco list table
