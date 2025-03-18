@@ -17,6 +17,7 @@
 #include "functions/extract_tld.hpp"
 #include "functions/get_tranco.hpp"
 #include "functions/get_version.hpp"
+#include "functions/ipcalc.hpp"
 #include "utils/utils.hpp"
 
 namespace duckdb
@@ -105,6 +106,16 @@ namespace duckdb
             LogicalType::VARCHAR,
             netquack::GetTrancoRankCategoryFunction);
         ExtensionUtil::RegisterFunction (instance, get_tranco_rank_category_function);
+
+        auto ipcalc_function = TableFunction (
+            "ipcalc",
+            { LogicalType::VARCHAR },
+            netquack::IPCalcFunc::Scan,
+            netquack::IPCalcFunc::Bind,
+            netquack::IPCalcFunc::InitGlobal,
+            netquack::IPCalcFunc::InitLocal);
+        ipcalc_function.projection_pushdown = true;
+        ExtensionUtil::RegisterFunction (instance, ipcalc_function);
 
         auto version_function = TableFunction (
             "netquack_version",
