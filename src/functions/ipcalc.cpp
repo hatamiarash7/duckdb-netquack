@@ -296,46 +296,10 @@ namespace duckdb
             output.data[6].SetValue (0, info.broadcast);
             output.data[7].SetValue (0, info.hostsPerNet);
             output.data[8].SetValue (0, info.ipClass);
+
             // Set done
             auto &local_state = (IPCalcLocalState &)*data_p.local_state;
             local_state.done  = true;
         }
-
-        // Function to extract the information from an IP address
-        // void IPCalcFunction (DataChunk &args, ExpressionState &state, Vector &result)
-        // {
-        //     // Extract the input from the arguments
-        //     auto &input_vector = args.data[0];
-        //     auto result_data   = FlatVector::GetData<string_t> (result);
-
-        //     for (idx_t i = 0; i < args.size (); i++)
-        //     {
-        //         auto input = input_vector.GetValue (i).ToString ();
-
-        //         try
-        //         {
-        //             // Get IP information
-        //             IPInfo info = IPCalculator::calculate (input);
-
-        //             // Format the result as a string
-        //             std::stringstream ss;
-        //             ss << "Address: " << info.address << ", "
-        //                << "Netmask: " << info.netmask << ", "
-        //                << "Wildcard: " << info.wildcard << ", "
-        //                << "Network: " << info.network << ", "
-        //                << "HostMin: " << info.hostMin << ", "
-        //                << "HostMax: " << info.hostMax << ", "
-        //                << "Broadcast: " << info.broadcast << ", "
-        //                << "Hosts/Net: " << info.hostsPerNet << ", "
-        //                << "Class: " << info.ipClass;
-
-        //             result_data[i] = ss.str ();
-        //         }
-        //         catch (const std::exception &e)
-        //         {
-        //             result_data[i] = "Error ipcalc: " + std::string (e.what ());
-        //         }
-        //     }
-        // }
     } // namespace netquack
 } // namespace duckdb
