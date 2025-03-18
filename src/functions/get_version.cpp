@@ -48,6 +48,5 @@ namespace duckdb
             auto &local_state = (VersionLocalState &)*data_p.local_state;
             local_state.done  = true;
         }
-
     } // namespace netquack
 } // namespace duckdb
