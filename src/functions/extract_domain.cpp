@@ -63,11 +63,11 @@ namespace duckdb
             std::string public_suffix;
             int public_suffix_index = -1;
 
-            for (int j = 0; j < parts.size (); j++)
+            for (size_t j = 0; j < parts.size (); j++)
             {
                 // Build the candidate suffix
                 std::string candidate;
-                for (int k = j; k < parts.size (); k++)
+                for (size_t k = j; k < parts.size (); k++)
                 {
                     candidate += (k == j ? "" : ".") + parts[k];
                 }
