@@ -30,7 +30,7 @@ namespace duckdb
             static std::vector<int> parseIP (const std::string &ip);
             static std::string getSubnetMask (int maskBits);
             static std::string getWildcardMask (const std::string &subnetMask);
-            static std::string getNetworkAddress (const std::string &ip, const std::string &subnetMask);
+            static std::string getNetworkAddress (const std::string &ip, const std::string &subnetMask, const int &maskBits);
             static std::string getBroadcastAddress (const std::string &networkAddress, const std::string &wildcardMask);
             static std::string getHostMin (const std::string &networkAddress);
             static std::string getHostMax (const std::string &broadcastAddress);

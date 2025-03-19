@@ -18,8 +18,8 @@ namespace duckdb
             size_t slashPos = ipWithMask.find ('/');
             std::string ip  = ipWithMask.substr (0, slashPos);
 
-            // Default to /32 if no subnet mask is provided
-            int maskBits = 32;
+            // Default to /24 if no subnet mask is provided
+            int maskBits = 24;
             if (slashPos != std::string::npos)
             {
                 std::string maskStr = ipWithMask.substr (slashPos + 1);
@@ -58,18 +58,15 @@ namespace duckdb
 
             if (maskBits != 32)
             {
-                info.network   = getNetworkAddress (ip, subnetMask);
+                info.network   = getNetworkAddress (ip, subnetMask, maskBits);
                 info.broadcast = getBroadcastAddress (info.network, wildcardMask);
                 info.hostMin   = getHostMin (info.network);
                 info.hostMax   = getHostMax (info.broadcast);
             }
             else
             {
-                // For /32, the IP itself is the only host
-                info.network   = ip;
-                info.broadcast = ip;
-                info.hostMin   = ip;
-                info.hostMax   = ip;
+                // For /32, the IP itself is the only host ( Hostroute )
+                info.network = ip;
             }
 
             return info;
@@ -123,7 +120,7 @@ namespace duckdb
             return wildcard;
         }
 
-        std::string IPCalculator::getNetworkAddress (const std::string &ip, const std::string &subnetMask)
+        std::string IPCalculator::getNetworkAddress (const std::string &ip, const std::string &subnetMask, const int &maskBits)
         {
             auto ipOctets   = parseIP (ip);
             auto maskOctets = parseIP (subnetMask);
@@ -132,7 +129,7 @@ namespace duckdb
             {
                 network += std::to_string (ipOctets[i] & maskOctets[i]) + (i < 3 ? "." : "");
             }
-            return network;
+            return network + "/" + std::to_string (maskBits);
         }
 
         std::string IPCalculator::getBroadcastAddress (const std::string &networkAddress, const std::string &wildcardMask)
