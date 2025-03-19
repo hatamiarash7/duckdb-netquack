@@ -269,7 +269,7 @@ D SELECT get_tranco_rank_category('microsoft.com') as category;
 
 ### IP Address Functions
 
-This extension provides various functions to manipulate and analyze IP addresses, including calculating networks, hosts, and subnet masks.
+This extension provides various functions for manipulating and analyzing IP addresses, including calculating networks, hosts, and subnet masks.
 
 #### IP Calculator
 
