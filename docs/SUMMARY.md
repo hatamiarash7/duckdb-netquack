@@ -21,6 +21,11 @@
   * [Get Tranco Rank](functions/tranco/get-tranco-rank.md)
   * [Download / Update Tranco](functions/tranco/download-update-tranco.md)
 
+***
+
+* [IP Address](ip-address/README.md)
+  * [IP Calculator](ip-address/ip-calculator.md)
+
 ## Collaboration
 
 * [Roadmap](collaboration/roadmap.md)
