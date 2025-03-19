@@ -267,6 +267,47 @@ D SELECT get_tranco_rank_category('microsoft.com') as category;
 └──────────┘
 ```
 
+### IP Address Functions
+
+This extension provides various functions to manipulate and analyze IP addresses, including calculating networks, hosts, and subnet masks.
+
+#### IP Calculator
+
+The `ipcalc` function takes an IP address and netmask and calculates the resulting broadcast, network, wildcard mask, and host range.
+
+![ipcalc-sc](./.github/ipcalc-sc.png)
+
+It's a table function that provides various details about IP addresses including:
+
+- Address
+- Netmask
+- Wildcard
+- Network / Hostroute
+- HostMin
+- HostMax
+- Broadcast
+- Hosts count
+
+You can use this table function with your data easily:
+
+```sql
+D CREATE OR REPLACE TABLE ips AS SELECT '127.0.0.1' AS ip UNION ALL SELECT '192.168.1.0/22';
+
+D SELECT i.IP,
+      (
+          SELECT hostsPerNet
+          FROM ipcalc(i.IP)
+      ) AS hosts
+  FROM ips AS i;
+┌────────────────┬───────┐
+│       ip       │ hosts │
+│    varchar     │ int64 │
+├────────────────┼───────┤
+│ 127.0.0.1      │   254 │
+│ 192.168.1.0/22 │  1022 │
+└────────────────┴───────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the version of the extension.
@@ -286,7 +327,6 @@ D select * from netquack_version();
 - [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
 - [ ] Save Tranco data as Parquet
 - [ ] Implement GeoIP functionality
-- [ ] Add new functions to work with IPs
 - [ ] Return default value for `get_tranco_rank`
 - [ ] Support internationalized domain names (IDNs)
 
