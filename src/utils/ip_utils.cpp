@@ -65,7 +65,7 @@ namespace duckdb
             }
             else
             {
-                // For /32, the IP itself is the only host ( Hostroute )
+                // For /32, the IP itself is the only host (Hostroute)
                 info.network = ip;
             }
 
@@ -74,7 +74,7 @@ namespace duckdb
 
         bool IPCalculator::isValidInput (const std::string &input)
         {
-            std::regex pattern (R"((\d{1,3}\.){3}\d{1,3}(/\d{1,2})?)");
+            static const std::regex pattern (R"((\d{1,3}\.){3}\d{1,3}(/\d{1,2})?)");
             return std::regex_match (input, pattern);
         }
 
@@ -91,14 +91,15 @@ namespace duckdb
             return true;
         }
 
-        std::vector<int> IPCalculator::parseIP (const std::string &ip)
+        std::array<int, 4> IPCalculator::parseIP (const std::string &ip)
         {
-            std::vector<int> octets;
+            std::array<int, 4> octets{};
             std::stringstream ss (ip);
             std::string octet;
-            while (std::getline (ss, octet, '.'))
+            for (int i = 0; i < 4; ++i)
             {
-                octets.push_back (std::stoi (octet));
+                std::getline (ss, octet, '.');
+                octets[i] = std::stoi (octet);
             }
             return octets;
         }
@@ -190,7 +191,7 @@ namespace duckdb
             return ss.str ();
         }
 
-        std::string IPCalculator::intToIP (const std::vector<int> &octets)
+        std::string IPCalculator::intToIP (const std::array<int, 4> &octets)
         {
             std::stringstream ss;
             for (int i = 0; i < 4; ++i)

@@ -27,7 +27,7 @@ namespace duckdb
           private:
             static bool isValidInput (const std::string &input);
             static bool isValidIP (const std::string &ip);
-            static std::vector<int> parseIP (const std::string &ip);
+            static std::array<int, 4> parseIP (const std::string &ip);
             static std::string getSubnetMask (int maskBits);
             static std::string getWildcardMask (const std::string &subnetMask);
             static std::string getNetworkAddress (const std::string &ip, const std::string &subnetMask, const int &maskBits);
@@ -37,7 +37,7 @@ namespace duckdb
             static int getHostsPerNet (int maskBits);
             static std::string getIPClass (const std::string &ip);
             static std::string intToIP (uint32_t ip);
-            static std::string intToIP (const std::vector<int> &octets);
+            static std::string intToIP (const std::array<int, 4> &octets);
         };
     } // namespace netquack
 } // namespace duckdb
