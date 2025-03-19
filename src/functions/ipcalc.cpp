@@ -18,9 +18,6 @@ namespace duckdb
 
         unique_ptr<FunctionData> IPCalcFunc::Bind (ClientContext &context, TableFunctionBindInput &input, vector<LogicalType> &return_types, vector<string> &names)
         {
-            auto bind_data = make_uniq<IPCalcData> ();
-            bind_data->ip  = StringValue::Get (input.inputs[0]);
-
             // 0. address
             return_types.emplace_back (LogicalType::VARCHAR);
             names.emplace_back ("address");
@@ -57,7 +54,7 @@ namespace duckdb
             return_types.emplace_back (LogicalType::VARCHAR);
             names.emplace_back ("ipClass");
 
-            return std::move (bind_data);
+            return make_uniq<IPCalcData> ();
         }
 
         unique_ptr<LocalTableFunctionState> IPCalcFunc::InitLocal (ExecutionContext &context, TableFunctionInitInput &input, GlobalTableFunctionState *global_state_p)
@@ -65,24 +62,21 @@ namespace duckdb
             return make_uniq<IPCalcLocalState> ();
         }
 
-        unique_ptr<GlobalTableFunctionState> IPCalcFunc::InitGlobal (ClientContext &context, TableFunctionInitInput &input)
-        {
-            return nullptr;
-        }
-
-        void IPCalcFunc::Scan (ClientContext &context, TableFunctionInput &data_p, DataChunk &output)
+        OperatorResultType IPCalcFunc::Function (ExecutionContext &context, TableFunctionInput &data_p, DataChunk &input, DataChunk &output)
         {
             // Check done
             if (((IPCalcLocalState &)*data_p.local_state).done)
             {
-                return;
+                return OperatorResultType::NEED_MORE_INPUT;
             }
 
-            auto &data = data_p.bind_data->Cast<IPCalcData> ();
+            auto &data        = data_p.bind_data->Cast<IPCalcData> ();
+            auto &local_state = (IPCalcLocalState &)*data_p.local_state;
 
-            IPInfo info = IPCalculator::calculate (data.ip);
+            auto ip = input.data[0].GetValue (0).GetValue<string> ();
 
-            output.SetCardinality (1);
+            IPInfo info = IPCalculator::calculate (ip);
+
             output.data[0].SetValue (0, info.address);
             output.data[1].SetValue (0, info.netmask);
             output.data[2].SetValue (0, info.wildcard);
@@ -92,10 +86,12 @@ namespace duckdb
             output.data[6].SetValue (0, info.broadcast);
             output.data[7].SetValue (0, info.hostsPerNet);
             output.data[8].SetValue (0, info.ipClass);
+            output.SetCardinality (1);
 
             // Set done
-            auto &local_state = (IPCalcLocalState &)*data_p.local_state;
-            local_state.done  = true;
+            local_state.done = true;
+
+            return OperatorResultType::NEED_MORE_INPUT;
         }
     } // namespace netquack
 } // namespace duckdb

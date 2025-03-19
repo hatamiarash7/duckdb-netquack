@@ -110,11 +110,11 @@ namespace duckdb
         auto ipcalc_function = TableFunction (
             "ipcalc",
             { LogicalType::VARCHAR },
-            netquack::IPCalcFunc::Scan,
+            nullptr,
             netquack::IPCalcFunc::Bind,
-            netquack::IPCalcFunc::InitGlobal,
+            nullptr,
             netquack::IPCalcFunc::InitLocal);
-        ipcalc_function.projection_pushdown = true;
+        ipcalc_function.in_out_function = netquack::IPCalcFunc::Function;
         ExtensionUtil::RegisterFunction (instance, ipcalc_function);
 
         auto version_function = TableFunction (
