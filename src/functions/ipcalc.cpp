@@ -47,7 +47,7 @@ namespace duckdb
             names.emplace_back ("broadcast");
 
             // 7. hostsPerNet
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType::BIGINT);
             names.emplace_back ("hostsPerNet");
 
             // 8. ipClass
