@@ -66,7 +66,10 @@ namespace duckdb
             else
             {
                 // For /32, the IP itself is the only host (Hostroute)
-                info.network = ip;
+                info.network   = ip;
+                info.broadcast = '-';
+                info.hostMin   = '-';
+                info.hostMax   = '-';
             }
 
             return info;
