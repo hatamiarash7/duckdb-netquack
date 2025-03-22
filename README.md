@@ -325,6 +325,8 @@ D select * from netquack_version();
 ## Roadmap 🗺️
 
 - [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
+- [ ] Implement `extract_port`
+- [ ] Implement `extract_custom_format`
 - [ ] Save Tranco data as Parquet
 - [ ] Implement GeoIP functionality
 - [ ] Return default value for `get_tranco_rank`
