@@ -6,6 +6,28 @@ This extension is designed to simplify working with domains, URIs, and web paths
 
 With Netquack, you can unlock deeper insights from your web-related datasets without the need for external tools or complex workflows.
 
+Table of Contents
+
+- [DuckDB Netquack Extension](#duckdb-netquack-extension)
+  - [Installation 🚀](#installation-)
+  - [Usage Examples 📚](#usage-examples-)
+    - [Extracting The Main Domain](#extracting-the-main-domain)
+    - [Extracting The Path](#extracting-the-path)
+    - [Extracting The Host](#extracting-the-host)
+    - [Extracting The Schema](#extracting-the-schema)
+    - [Extracting The Query](#extracting-the-query)
+    - [Extracting The TLD (Top-Level Domain)](#extracting-the-tld-top-level-domain)
+    - [Extracting The Sub Domain](#extracting-the-sub-domain)
+    - [Get Tranco Rank](#get-tranco-rank)
+      - [Update Tranco List](#update-tranco-list)
+      - [Get Tranco Ranking](#get-tranco-ranking)
+    - [IP Address Functions](#ip-address-functions)
+      - [IP Calculator](#ip-calculator)
+    - [Get Extension Version](#get-extension-version)
+  - [Roadmap 🗺️](#roadmap-️)
+  - [Contributing 🤝](#contributing-)
+  - [Issues 🐛](#issues-)
+
 ## Installation 🚀
 
 **netquack** is distributed as a [DuckDB Community Extension](https://duckdb.org/community_extensions/) and can be installed using SQL:
