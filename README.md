@@ -233,7 +233,7 @@ D SELECT extract_subdomain('test.example.com.ac') as dns_record;
 
 #### Update Tranco List
 
-This function returns the [Tranco](https://tranco-list.eu/) rank of a domain. You have a `update_tranco` function to update the Tranco list manually.
+This function returns the [Tranco](https://tranco-list.eu/) rank of a domain. You have an `update_tranco` function to update the Tranco list manually.
 
 ```sql
 D SELECT update_tranco(true);
@@ -277,7 +277,7 @@ D SELECT get_tranco_rank('cloudflare.com') as rank;
 └─────────┘
 ```
 
-You can use the `get_tranco_rank_category` function to retrieve the category utility column that gives you the rank category of the domain. The `category` value is on a log10 scale with half steps (e.g. top 1k, top 5k, top 10k, top 50k, top 100k, top 500k, top 1M, top 5m, etc.) with each rank excluding the previous (e.g. top 5k is actually 4k domains, excluding top 1k).
+You can use the `get_tranco_rank_category` function to retrieve the category utility column that gives you the domain's rank category. The `category` value is on a log10 scale with half steps (e.g., top 1k, top 5k, top 10k, top 50k, top 100k, top 500k, top 1M, top 5m, etc.), with each rank excluding the previous (e.g., top 5k is actually 4k domains, excluding top 1k).
 
 ```sql
 D SELECT get_tranco_rank_category('microsoft.com') as category;
@@ -299,7 +299,7 @@ The `ipcalc` function takes an IP address and netmask and calculates the resulti
 
 ![ipcalc-sc](./.github/ipcalc-sc.png)
 
-It's a table function that provides various details about IP addresses including:
+It's a table function that provides various details about IP addresses, including:
 
 - Address
 - Netmask
@@ -330,9 +330,13 @@ D SELECT i.IP,
 └────────────────┴───────┘
 ```
 
+
+> [!WARNING]
+> It's an experimental function.
+
 ### Get Extension Version
 
-You can use the `netquack_version` function to get the version of the extension.
+You can use the `netquack_version` function to get the extension version.
 
 ```sql
 D select * from netquack_version();
