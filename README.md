@@ -17,6 +17,7 @@ Table of Contents
     - [Extracting The Schema](#extracting-the-schema)
     - [Extracting The Query](#extracting-the-query)
     - [Extracting The Port](#extracting-the-port)
+    - [Extracting The File Extension](#extracting-the-file-extension)
     - [Extracting The TLD (Top-Level Domain)](#extracting-the-tld-top-level-domain)
     - [Extracting The Sub Domain](#extracting-the-sub-domain)
     - [Get Tranco Rank](#get-tranco-rank)
@@ -208,6 +209,20 @@ D SELECT extract_port('[::1]:6379') AS port;
 └─────────┘
 ```
 
+### Extracting The File Extension
+
+This function extracts the file extension from a URL. It will return the file extension without the dot.
+
+```sql
+D SELECT extract_extension('http://example.com/image.jpg') AS ext;
+┌─────────┐
+│   ext   │
+│ varchar │
+├─────────┤
+│ jpg     │
+└─────────┘
+```
+
 ### Extracting The TLD (Top-Level Domain)
 
 This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
@@ -373,7 +388,6 @@ D select * from netquack_version();
 ## Roadmap 🗺️
 
 - [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
-- [ ] Implement `extract_port` function
 - [ ] Implement `extract_custom_format` function
 - [ ] Implement `parse_uri` function
 - [ ] Save Tranco data as Parquet
