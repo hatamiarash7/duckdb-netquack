@@ -84,8 +84,10 @@ SELECT extract_path(uri) from uri_list;
 /
 /
 /
+/
 /a
 /a
+/
 /
 /
 /path/

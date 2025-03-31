@@ -143,9 +143,11 @@ SELECT extract_subdomain(uri) from uri_list;
 (empty)
 (empty)
 (empty)
+(empty)
 a
 (empty)
 (empty)
 (empty)
+a
 a
 (empty)

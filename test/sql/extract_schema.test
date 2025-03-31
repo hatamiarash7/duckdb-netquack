@@ -213,6 +213,8 @@ SELECT extract_schema(uri) from uri_list;
 (empty)
 (empty)
 (empty)
+(empty)
+https
 https
 https
 http

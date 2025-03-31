@@ -77,10 +77,12 @@ SELECT extract_host(uri) from uri_list;
 ----
 example.com
 example.com.ac
+example.com.ac
 example.com.co
 a.example.com
 example.com
 example.com.ac
 example.com
+a.example.com
 a.example.com
 example.com.ac

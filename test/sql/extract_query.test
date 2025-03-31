@@ -43,4 +43,6 @@ SELECT extract_query_string(uri) from uri_list;
 (empty)
 (empty)
 (empty)
+(empty)
+(empty)
 a=1&b=2&

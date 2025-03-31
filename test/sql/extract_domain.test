@@ -187,10 +187,12 @@ SELECT extract_domain(uri) from uri_list;
 ----
 example.com
 example.com.ac
+example.com.ac
 example.com.co
 example.com
 example.com
 example.com.ac
+example.com
 example.com
 example.com
 example.com.ac

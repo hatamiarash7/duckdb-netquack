@@ -1,0 +1,149 @@
+# name: test/sql/extract_port.test
+# description: test netquack extension extract_port function
+# group: [netquack]
+
+require netquack
+
+statement ok
+CREATE TABLE uri_list AS SELECT * FROM read_csv('test/data/examples.csv', header=false, columns={'uri': 'VARCHAR'});
+
+# Basic HTTP/HTTPS cases
+query I
+SELECT extract_port('http://example.com:80/path');
+----
+80
+
+query I
+SELECT extract_port('https://example.com:443/path');
+----
+443
+
+# No port specified (should return NULL or default)
+query I
+SELECT extract_port('http://example.com/path');
+----
+(empty)
+
+query I
+SELECT extract_port('https://example.com/');
+----
+(empty)
+
+# Non-standard ports
+query I
+SELECT extract_port('http://example.com:8080/path');
+----
+8080
+
+query I
+SELECT extract_port('https://example.com:8443/');
+----
+8443
+
+# Different protocols
+query I
+SELECT extract_port('ftp://example.com:21');
+----
+21
+
+query I
+SELECT extract_port('sftp://example.com:22/path');
+----
+22
+
+query I
+SELECT extract_port('rsync://example.com:873');
+----
+873
+
+# With authentication
+query I
+SELECT extract_port('https://user:pass@example.com:443/path');
+----
+443
+
+query I
+SELECT extract_port('ftp://user:pass@example.com:2121/files');
+----
+2121
+
+# IPv4 addresses
+query I
+SELECT extract_port('http://192.168.1.1:8080/path');
+----
+8080
+
+# IPv6 addresses
+query I
+SELECT extract_port('http://[2001:db8::1]:8080/path');
+----
+8080
+
+query I
+SELECT extract_port('http://[::1]:80/');
+----
+80
+
+# No scheme cases
+query I
+SELECT extract_port('example.com:8080/path');
+----
+8080
+
+query I
+SELECT extract_port('localhost:5432');
+----
+5432
+
+query I
+SELECT extract_port('192.168.1.1:3389');
+----
+3389
+
+query I
+SELECT extract_port('[::1]:6379');
+----
+6379
+
+# Query parameters and fragments
+query I
+SELECT extract_port('http://example.com:8080?param=value');
+----
+8080
+
+query I
+SELECT extract_port('https://example.com:8443#section');
+----
+8443
+
+query I
+SELECT extract_port('ws://example.com:8080/path?query=1#frag');
+----
+8080
+
+# Edge cases
+query I
+SELECT extract_port('http://example.com:/path');
+----
+(empty)
+
+query I
+SELECT extract_port('http://example.com:notaport/path');
+----
+(empty)
+
+# Test with data from CSV
+query I
+SELECT extract_port(uri) from uri_list;
+----
+(empty)
+(empty)
+80
+(empty)
+(empty)
+(empty)
+(empty)
+(empty)
+(empty)
+443
+(empty)

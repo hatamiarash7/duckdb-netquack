@@ -188,10 +188,12 @@ SELECT extract_tld(uri) from uri_list;
 ----
 com
 com.ac
+com.ac
 com.co
 com
 com
 com.ac
+com
 com
 com
 com.ac
