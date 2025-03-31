@@ -11,6 +11,7 @@
 #include "functions/extract_domain.hpp"
 #include "functions/extract_host.hpp"
 #include "functions/extract_path.hpp"
+#include "functions/extract_port.hpp"
 #include "functions/extract_query.hpp"
 #include "functions/extract_schema.hpp"
 #include "functions/extract_subdomain.hpp"
@@ -85,6 +86,13 @@ namespace duckdb
             LogicalType::VARCHAR,
             ExtractSubDomainFunction);
         ExtensionUtil::RegisterFunction (instance, netquack_extract_subdomain_function);
+
+        auto netquack_extract_port_function = ScalarFunction (
+            "extract_port",
+            { LogicalType::VARCHAR },
+            LogicalType::VARCHAR,
+            ExtractPortFunction);
+        ExtensionUtil::RegisterFunction (instance, netquack_extract_port_function);
 
         auto netquack_update_tranco_function = ScalarFunction (
             "update_tranco",
