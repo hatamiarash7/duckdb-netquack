@@ -16,6 +16,7 @@ Table of Contents
     - [Extracting The Host](#extracting-the-host)
     - [Extracting The Schema](#extracting-the-schema)
     - [Extracting The Query](#extracting-the-query)
+    - [Extracting The Port](#extracting-the-port)
     - [Extracting The TLD (Top-Level Domain)](#extracting-the-tld-top-level-domain)
     - [Extracting The Sub Domain](#extracting-the-sub-domain)
     - [Get Tranco Rank](#get-tranco-rank)
@@ -185,6 +186,28 @@ D SELECT extract_query_string('http://example.com.ac/path/?a=1&b=2&') as query;
 └──────────┘
 ```
 
+### Extracting The Port
+
+This function extracts the port from a URL.
+
+```sql
+D SELECT extract_port('https://example.com:8443/') AS port;
+┌─────────┐
+│  port   │
+│ varchar │
+├─────────┤
+│ 8443    │
+└─────────┘
+
+D SELECT extract_port('[::1]:6379') AS port;
+┌─────────┐
+│  port   │
+│ varchar │
+├─────────┤
+│ 6379    │
+└─────────┘
+```
+
 ### Extracting The TLD (Top-Level Domain)
 
 This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
@@ -329,7 +352,6 @@ D SELECT i.IP,
 │ 192.168.1.0/22 │  1022 │
 └────────────────┴───────┘
 ```
-
 
 > [!WARNING]
 > It's an experimental function.
