@@ -17,7 +17,7 @@ layout:
 This function extracts the path from a URL.
 
 ```sql
-D SELECT extract_path('https://b.a.example.com/path/path') as path;
+D SELECT extract_path('https://b.a.example.com/path/path') AS path;
 ┌────────────┐
 │    path    │
 │  varchar   │
@@ -25,7 +25,7 @@ D SELECT extract_path('https://b.a.example.com/path/path') as path;
 │ /path/path │
 └────────────┘
 
-D SELECT extract_path('example.com/path/path/image.png') as path;
+D SELECT extract_path('example.com/path/path/image.png') AS path;
 ┌──────────────────────┐
 │         path         │
 │       varchar        │

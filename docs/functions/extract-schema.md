@@ -22,7 +22,7 @@ This function extracts the schema from a URL. Supported schemas for now:
 * `tel` | `sms`
 
 ```sql
-D SELECT extract_schema('https://b.a.example.com/path/path') as schema;
+D SELECT extract_schema('https://b.a.example.com/path/path') AS schema;
 ┌─────────┐
 │ schema  │
 │ varchar │
@@ -30,7 +30,7 @@ D SELECT extract_schema('https://b.a.example.com/path/path') as schema;
 │ https   │
 └─────────┘
 
-D SELECT extract_schema('mailto:someone@example.com') as schema;
+D SELECT extract_schema('mailto:someone@example.com') AS schema;
 ┌─────────┐
 │ schema  │
 │ varchar │
@@ -38,7 +38,7 @@ D SELECT extract_schema('mailto:someone@example.com') as schema;
 │ mailto  │
 └─────────┘
 
-D SELECT extract_schema('tel:+123456789') as schema;
+D SELECT extract_schema('tel:+123456789') AS schema;
 ┌─────────┐
 │ schema  │
 │ varchar │

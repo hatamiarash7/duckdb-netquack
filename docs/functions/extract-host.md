@@ -17,7 +17,7 @@ layout:
 This function extracts the host from a URL.
 
 ```sql
-D SELECT extract_host('https://b.a.example.com/path/path') as host;
+D SELECT extract_host('https://b.a.example.com/path/path') AS host;
 ┌─────────────────┐
 │      host       │
 │     varchar     │
@@ -25,7 +25,7 @@ D SELECT extract_host('https://b.a.example.com/path/path') as host;
 │ b.a.example.com │
 └─────────────────┘
 
-D SELECT extract_host('example.com:443/path/image.png') as host;
+D SELECT extract_host('example.com:443/path/image.png') AS host;
 ┌─────────────┐
 │    host     │
 │   varchar   │

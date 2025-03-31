@@ -19,7 +19,7 @@ This function extracts the main domain from a URL. For this purpose, the extensi
 The download process of the public suffix list is done automatically when the function is called for the first time. After that, the list is stored in the `public_suffix_list` table to avoid downloading it again.
 
 ```sql
-D SELECT extract_domain('a.example.com') as domain;
+D SELECT extract_domain('a.example.com') AS domain;
 ┌─────────────┐
 │   domain    │
 │   varchar   │
@@ -27,7 +27,7 @@ D SELECT extract_domain('a.example.com') as domain;
 │ example.com │
 └─────────────┘
 
-D SELECT extract_domain('https://b.a.example.com/path') as domain;
+D SELECT extract_domain('https://b.a.example.com/path') AS domain;
 ┌─────────────┐
 │   domain    │
 │   varchar   │

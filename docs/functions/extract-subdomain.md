@@ -17,7 +17,7 @@ layout:
 This function extracts the sub-domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](extract-domain.md) section for more information about the public suffix list.
 
 ```sql
-D SELECT extract_subdomain('http://a.b.example.com/path') as dns_record;
+D SELECT extract_subdomain('http://a.b.example.com/path') AS dns_record;
 ┌────────────┐
 │ dns_record │
 │  varchar   │
@@ -25,7 +25,7 @@ D SELECT extract_subdomain('http://a.b.example.com/path') as dns_record;
 │ a.b        │
 └────────────┘
 
-D SELECT extract_subdomain('test.example.com.ac') as dns_record;
+D SELECT extract_subdomain('test.example.com.ac') AS dns_record;
 ┌────────────┐
 │ dns_record │
 │  varchar   │

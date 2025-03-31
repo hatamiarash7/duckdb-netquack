@@ -57,7 +57,7 @@ This function extracts the main domain from a URL. For this purpose, the extensi
 The download process of the public suffix list is done automatically when the function is called for the first time. After that, the list is stored in the `public_suffix_list` table to avoid downloading it again.
 
 ```sql
-D SELECT extract_domain('a.example.com') as domain;
+D SELECT extract_domain('a.example.com') AS domain;
 ┌─────────────┐
 │   domain    │
 │   varchar   │
@@ -65,7 +65,7 @@ D SELECT extract_domain('a.example.com') as domain;
 │ example.com │
 └─────────────┘
 
-D SELECT extract_domain('https://b.a.example.com/path') as domain;
+D SELECT extract_domain('https://b.a.example.com/path') AS domain;
 ┌─────────────┐
 │   domain    │
 │   varchar   │
@@ -91,7 +91,7 @@ D SELECT update_suffixes();
 This function extracts the path from a URL.
 
 ```sql
-D SELECT extract_path('https://b.a.example.com/path/path') as path;
+D SELECT extract_path('https://b.a.example.com/path/path') AS path;
 ┌────────────┐
 │    path    │
 │  varchar   │
@@ -99,7 +99,7 @@ D SELECT extract_path('https://b.a.example.com/path/path') as path;
 │ /path/path │
 └────────────┘
 
-D SELECT extract_path('example.com/path/path/image.png') as path;
+D SELECT extract_path('example.com/path/path/image.png') AS path;
 ┌──────────────────────┐
 │         path         │
 │       varchar        │
@@ -113,7 +113,7 @@ D SELECT extract_path('example.com/path/path/image.png') as path;
 This function extracts the host from a URL.
 
 ```sql
-D SELECT extract_host('https://b.a.example.com/path/path') as host;
+D SELECT extract_host('https://b.a.example.com/path/path') AS host;
 ┌─────────────────┐
 │      host       │
 │     varchar     │
@@ -121,7 +121,7 @@ D SELECT extract_host('https://b.a.example.com/path/path') as host;
 │ b.a.example.com │
 └─────────────────┘
 
-D SELECT extract_host('example.com:443/path/image.png') as host;
+D SELECT extract_host('example.com:443/path/image.png') AS host;
 ┌─────────────┐
 │    host     │
 │   varchar   │
@@ -140,7 +140,7 @@ This function extracts the schema from a URL. Supported schemas for now:
 - `tel` | `sms`
 
 ```sql
-D SELECT extract_schema('https://b.a.example.com/path/path') as schema;
+D SELECT extract_schema('https://b.a.example.com/path/path') AS schema;
 ┌─────────┐
 │ schema  │
 │ varchar │
@@ -148,7 +148,7 @@ D SELECT extract_schema('https://b.a.example.com/path/path') as schema;
 │ https   │
 └─────────┘
 
-D SELECT extract_schema('mailto:someone@example.com') as schema;
+D SELECT extract_schema('mailto:someone@example.com') AS schema;
 ┌─────────┐
 │ schema  │
 │ varchar │
@@ -156,7 +156,7 @@ D SELECT extract_schema('mailto:someone@example.com') as schema;
 │ mailto  │
 └─────────┘
 
-D SELECT extract_schema('tel:+123456789') as schema;
+D SELECT extract_schema('tel:+123456789') AS schema;
 ┌─────────┐
 │ schema  │
 │ varchar │
@@ -170,7 +170,7 @@ D SELECT extract_schema('tel:+123456789') as schema;
 This function extracts the query string from a URL.
 
 ```sql
-D SELECT extract_query_string('example.com?key=value') as query;
+D SELECT extract_query_string('example.com?key=value') AS query;
 ┌───────────┐
 │   query   │
 │  varchar  │
@@ -178,7 +178,7 @@ D SELECT extract_query_string('example.com?key=value') as query;
 │ key=value │
 └───────────┘
 
-D SELECT extract_query_string('http://example.com.ac/path/?a=1&b=2&') as query;
+D SELECT extract_query_string('http://example.com.ac/path/?a=1&b=2&') AS query;
 ┌──────────┐
 │  query   │
 │ varchar  │
@@ -228,7 +228,7 @@ D SELECT extract_extension('http://example.com/image.jpg') AS ext;
 This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
 
 ```sql
-D SELECT extract_tld('https://example.com.ac/path/path') as tld;
+D SELECT extract_tld('https://example.com.ac/path/path') AS tld;
 ┌─────────┐
 │   tld   │
 │ varchar │
@@ -236,7 +236,7 @@ D SELECT extract_tld('https://example.com.ac/path/path') as tld;
 │ com.ac  │
 └─────────┘
 
-D SELECT extract_tld('a.example.com') as tld;
+D SELECT extract_tld('a.example.com') AS tld;
 ┌─────────┐
 │   tld   │
 │ varchar │
@@ -250,7 +250,7 @@ D SELECT extract_tld('a.example.com') as tld;
 This function extracts the sub-domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
 
 ```sql
-D SELECT extract_subdomain('http://a.b.example.com/path') as dns_record;
+D SELECT extract_subdomain('http://a.b.example.com/path') AS dns_record;
 ┌────────────┐
 │ dns_record │
 │  varchar   │
@@ -258,7 +258,7 @@ D SELECT extract_subdomain('http://a.b.example.com/path') as dns_record;
 │ a.b        │
 └────────────┘
 
-D SELECT extract_subdomain('test.example.com.ac') as dns_record;
+D SELECT extract_subdomain('test.example.com.ac') AS dns_record;
 ┌────────────┐
 │ dns_record │
 │  varchar   │
@@ -298,7 +298,7 @@ As the latest Tranco list is for the last day, you can download your list manual
 You can use this function to get the ranking of a domain:
 
 ```sql
-D SELECT get_tranco_rank('microsoft.com') as rank;
+D SELECT get_tranco_rank('microsoft.com') AS rank;
 ┌─────────┐
 │  rank   │
 │ varchar │
@@ -306,7 +306,7 @@ D SELECT get_tranco_rank('microsoft.com') as rank;
 │ 2       │
 └─────────┘
 
-D SELECT get_tranco_rank('cloudflare.com') as rank;
+D SELECT get_tranco_rank('cloudflare.com') AS rank;
 ┌─────────┐
 │  rank   │
 │ varchar │
@@ -318,7 +318,7 @@ D SELECT get_tranco_rank('cloudflare.com') as rank;
 You can use the `get_tranco_rank_category` function to retrieve the category utility column that gives you the domain's rank category. The `category` value is on a log10 scale with half steps (e.g., top 1k, top 5k, top 10k, top 50k, top 100k, top 500k, top 1M, top 5m, etc.), with each rank excluding the previous (e.g., top 5k is actually 4k domains, excluding top 1k).
 
 ```sql
-D SELECT get_tranco_rank_category('microsoft.com') as category;
+D SELECT get_tranco_rank_category('microsoft.com') AS category;
 ┌──────────┐
 │ category │
 │ varchar  │
