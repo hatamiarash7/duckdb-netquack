@@ -9,6 +9,7 @@
 #include "duckdb/main/extension_util.hpp"
 #include "duckdb/parser/parsed_data/create_scalar_function_info.hpp"
 #include "functions/extract_domain.hpp"
+#include "functions/extract_extension.hpp"
 #include "functions/extract_host.hpp"
 #include "functions/extract_path.hpp"
 #include "functions/extract_port.hpp"
@@ -93,6 +94,13 @@ namespace duckdb
             LogicalType::VARCHAR,
             ExtractPortFunction);
         ExtensionUtil::RegisterFunction (instance, netquack_extract_port_function);
+
+        auto netquack_extract_extension_function = ScalarFunction (
+            "extract_extension",
+            { LogicalType::VARCHAR },
+            LogicalType::VARCHAR,
+            ExtractExtensionFunction);
+        ExtensionUtil::RegisterFunction (instance, netquack_extract_extension_function);
 
         auto netquack_update_tranco_function = ScalarFunction (
             "update_tranco",
