@@ -62,6 +62,7 @@ The build process is long and resource-intensive. Use tools like [Ninja](https:/
 ```bash
 GEN=ninja make
 ```
+
 {% endhint %}
 
 #### Tests <a href="#tests" id="tests"></a>
