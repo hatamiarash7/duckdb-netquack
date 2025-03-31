@@ -1,0 +1,117 @@
+# name: test/sql/extract_extension.test
+# description: Test netquack extension extract_extension function
+# group: [netquack]
+
+require netquack
+
+statement ok
+CREATE TABLE test_files(path VARCHAR);
+
+statement ok
+INSERT INTO test_files VALUES
+    ('/images/photo.jpg'),
+    ('/documents/report.pdf'),
+    ('/archives/data.tar.gz'),
+    ('https://example.com/page.html'),
+    ('https://site.com/download.exe?source=official'),
+    ('/config/settings.json#main'),
+    ('/files/data.v2.csv'),
+    ('/invalid/path..jpg'),
+    ('/no_extension/file'),
+    ('/hidden/.gitignore'),
+    ('/path.with.dots/file'),
+    ('http://domain.com/no_ext'),
+    ('/tmp/file.');
+
+# Basic valid extensions
+query I
+SELECT extract_extension('/images/photo.jpg');
+----
+jpg
+
+query I
+SELECT extract_extension('/documents/report.pdf');
+----
+pdf
+
+# Double extensions (should return last valid extension)
+query I
+SELECT extract_extension('/archives/data.tar.gz');
+----
+gz
+
+# URLs with extensions
+query I
+SELECT extract_extension('https://example.com/page.html');
+----
+html
+
+# With query parameters
+query I
+SELECT extract_extension('https://site.com/download.exe?source=official');
+----
+exe
+
+# With fragments
+query I
+SELECT extract_extension('/config/settings.json#main');
+----
+json
+
+# Versioned extensions
+query I
+SELECT extract_extension('/files/data.v2.csv');
+----
+csv
+
+# Invalid cases (should return NULL)
+query I
+SELECT extract_extension('/invalid/path..jpg');
+----
+(empty)
+
+query I
+SELECT extract_extension('/no_extension/file');
+----
+(empty)
+
+query I
+SELECT extract_extension('/hidden/.gitignore');
+----
+(empty)
+
+query I
+SELECT extract_extension('/path.with.dots/file');
+----
+(empty)
+
+query I
+SELECT extract_extension('http://domain.com/no_ext');
+----
+(empty)
+
+query I
+SELECT extract_extension('/tmp/file.');
+----
+(empty)
+
+# Test with table data
+query III
+SELECT	path,
+		extract_extension(path), 
+		CASE WHEN unicode(extract_extension(path)) == -1 THEN 'INVALID' ELSE 'VALID' END AS status
+FROM test_files ORDER BY path;
+----
+/archives/data.tar.gz	gz	VALID
+/config/settings.json#main	json	VALID
+/documents/report.pdf	pdf	VALID
+/files/data.v2.csv	csv	VALID
+/hidden/.gitignore	(empty)	INVALID
+/images/photo.jpg	jpg	VALID
+/invalid/path..jpg	(empty)	INVALID
+/no_extension/file	(empty)	INVALID
+/path.with.dots/file	(empty)	INVALID
+/tmp/file.	(empty)	INVALID
+http://domain.com/no_ext	(empty)	INVALID
+https://example.com/page.html	html	VALID
+https://site.com/download.exe?source=official	exe	VALID
