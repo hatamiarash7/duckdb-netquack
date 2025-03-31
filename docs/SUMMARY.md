@@ -6,7 +6,7 @@
 ## Getting Started
 
 * [Quickstart](getting-started/quickstart.md)
-* [How to build](getting-started/publish-your-docs.md)
+* [How to build](getting-started/how-to-build.md)
 
 ## Functions
 
