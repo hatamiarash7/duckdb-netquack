@@ -35,6 +35,7 @@ namespace duckdb
 
                 if (res != CURLE_OK)
                 {
+                    LogMessage ("ERROR", "Failed to fetch Tranco download code: " + std::string (curl_easy_strerror (res)));
                     throw std::runtime_error ("Failed to fetch Tranco download code.");
                 }
             }
@@ -103,6 +104,7 @@ namespace duckdb
                     if (res != CURLE_OK)
                     {
                         remove (temp_file.c_str ()); // Clean up the temporary file
+                        LogMessage ("ERROR", "Failed to download Tranco list: " + std::string (curl_easy_strerror (res)));
                         throw std::runtime_error ("Failed to download Tranco list.");
                     }
                 }
