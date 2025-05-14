@@ -105,7 +105,7 @@ namespace duckdb
                     {
                         remove (temp_file.c_str ()); // Clean up the temporary file
                         LogMessage ("ERROR", "Failed to download Tranco list: " + std::string (curl_easy_strerror (res)));
-                        throw std::runtime_error ("Failed to download Tranco list.");
+                        throw std::runtime_error ("Failed to download Tranco list. Check logs for details.");
                     }
                 }
             }

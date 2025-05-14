@@ -47,7 +47,7 @@ namespace duckdb
                 if (res != CURLE_OK)
                 {
                     LogMessage ("ERROR", "Failed to download public suffix list: " + std::string (curl_easy_strerror (res)));
-                    throw std::runtime_error ("Failed to download public suffix list.");
+                    throw std::runtime_error ("Failed to download public suffix list. Check logs for details.");
                 }
             }
 
