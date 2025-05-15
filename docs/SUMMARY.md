@@ -8,6 +8,10 @@
 * [Quickstart](getting-started/quickstart.md)
 * [How to build](getting-started/how-to-build.md)
 
+***
+
+* [Debugging](debugging.md)
+
 ## Functions
 
 * [Extract Domain](functions/extract-domain.md)
