@@ -26,6 +26,7 @@ Table of Contents
     - [IP Address Functions](#ip-address-functions)
       - [IP Calculator](#ip-calculator)
     - [Get Extension Version](#get-extension-version)
+  - [Debugging](#debugging)
   - [Roadmap 🗺️](#roadmap-️)
   - [Contributing 🤝](#contributing-)
   - [Issues 🐛](#issues-)
@@ -384,6 +385,10 @@ D select * from netquack_version();
 │ v1.2.0  │
 └─────────┘
 ```
+
+## Debugging
+
+The debugging process for DuckDB extensions is not an easy job. For Netquack, we have created a log file in the current directory. The log file is named `netquack.log` and contains all the logs for the extension. You can use this file to debug your code.
 
 ## Roadmap 🗺️
 
