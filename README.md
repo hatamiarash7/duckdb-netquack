@@ -382,7 +382,7 @@ D select * from netquack_version();
 │ version │
 │ varchar │
 ├─────────┤
-│ v1.2.0  │
+│ v1.4.0  │
 └─────────┘
 ```
 
