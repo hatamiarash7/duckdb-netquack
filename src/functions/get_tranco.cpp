@@ -14,7 +14,7 @@ namespace duckdb
         // Function to get the download code for the Tranco list
         std::string GetTrancoDownloadCode (char *date)
         {
-            CURL *curl;
+            CURL *curl = GetCurlHandler ();
             CURLcode res;
             std::string readBuffer;
 
@@ -23,21 +23,15 @@ namespace duckdb
 
             LogMessage ("INFO", "Get Tranco download code for date: " + std::string (date));
 
-            curl = curl_easy_init ();
-            if (curl)
-            {
-                curl_easy_setopt (curl, CURLOPT_URL, url.c_str ());
-                curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L); // Follow redirects
-                curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-                curl_easy_setopt (curl, CURLOPT_WRITEDATA, &readBuffer);
-                res = curl_easy_perform (curl);
-                curl_easy_cleanup (curl);
+            curl_easy_setopt (curl, CURLOPT_URL, url.c_str ());
+            curl_easy_setopt (curl, CURLOPT_WRITEDATA, &readBuffer);
+            res = curl_easy_perform (curl);
+            curl_easy_cleanup (curl);
 
-                if (res != CURLE_OK)
-                {
-                    LogMessage ("ERROR", "Failed to fetch Tranco download code: " + std::string (curl_easy_strerror (res)));
-                    throw std::runtime_error ("Failed to fetch Tranco download code.");
-                }
+            if (res != CURLE_OK)
+            {
+                LogMessage ("ERROR", "Failed to fetch Tranco download code: " + std::string (curl_easy_strerror (res)));
+                throw std::runtime_error ("Failed to fetch Tranco download code.");
             }
 
             // Extract the download code from the URL

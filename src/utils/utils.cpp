@@ -12,6 +12,57 @@ namespace duckdb
 {
     namespace netquack
     {
+        CURL *GetCurlHandler ()
+        {
+            CURL *curl = curl_easy_init ();
+            if (!curl)
+            {
+                throw std::runtime_error ("Failed to initialize CURL");
+            }
+
+            const char *ca_info = std::getenv ("CURL_CA_INFO");
+#if !defined(_WIN32) && !defined(__APPLE__)
+            if (!ca_info)
+            {
+                // Check for common CA certificate bundle locations on Linux
+                for (const auto *path : {
+                         "/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
+                         "/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
+                         "/etc/ssl/ca-bundle.pem",                            // OpenSUSE
+                         "/etc/pki/tls/cacert.pem",                           // OpenELEC
+                         "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem", // CentOS/RHEL 7
+                         "/etc/ssl/cert.pem"                                  // Alpine Linux
+                     })
+                {
+                    if (FILE *f = fopen (path, "r"))
+                    {
+                        fclose (f);
+                        ca_info = path;
+                        break;
+                    }
+                }
+            }
+#endif
+            curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L); // Follow redirects
+            curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            if (ca_info)
+            {
+                // Set the custom CA certificate bundle file
+                // https://github.com/hatamiarash7/duckdb-netquack/issues/6
+                LogMessage ("DEBUG", "Using custom CA certificate bundle: " + std::string (ca_info));
+                curl_easy_setopt (curl, CURLOPT_CAINFO, ca_info);
+            }
+            const char *ca_path = std::getenv ("CURL_CA_PATH");
+            if (ca_path)
+            {
+                // Set the custom CA certificate directory
+                LogMessage ("DEBUG", "Using custom CA certificate directory: " + std::string (ca_path));
+                curl_easy_setopt (curl, CURLOPT_CAPATH, ca_path);
+            }
+
+            return curl;
+        }
+
         void LogMessage (const std::string &level, const std::string &message)
         {
             std::ofstream log_file ("netquack.log", std::ios_base::app);
@@ -31,24 +82,19 @@ namespace duckdb
 
         std::string DownloadPublicSuffixList ()
         {
-            CURL *curl;
+            CURL *curl = GetCurlHandler ();
             CURLcode res;
             std::string readBuffer;
 
-            curl = curl_easy_init ();
-            if (curl)
-            {
-                curl_easy_setopt (curl, CURLOPT_URL, "https://publicsuffix.org/list/public_suffix_list.dat");
-                curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-                curl_easy_setopt (curl, CURLOPT_WRITEDATA, &readBuffer);
-                res = curl_easy_perform (curl);
-                curl_easy_cleanup (curl);
+            curl_easy_setopt (curl, CURLOPT_URL, "https://publicsuffix.org/list/public_suffix_list.dat");
+            curl_easy_setopt (curl, CURLOPT_WRITEDATA, &readBuffer);
+            res = curl_easy_perform (curl);
+            curl_easy_cleanup (curl);
 
-                if (res != CURLE_OK)
-                {
-                    LogMessage ("ERROR", "Failed to download public suffix list: " + std::string (curl_easy_strerror (res)));
-                    throw std::runtime_error ("Failed to download public suffix list. Check logs for details.");
-                }
+            if (res != CURLE_OK)
+            {
+                LogMessage ("ERROR", "Failed to download public suffix list: " + std::string (curl_easy_strerror (res)));
+                throw std::runtime_error ("Failed to download public suffix list. Check logs for details.");
             }
 
             return readBuffer;
