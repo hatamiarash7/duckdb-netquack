@@ -334,6 +334,9 @@ This extension provides various functions for manipulating and analyzing IP addr
 
 #### IP Calculator
 
+> [!WARNING]
+> It's an experimental function.
+
 The `ipcalc` function takes an IP address and netmask and calculates the resulting broadcast, network, wildcard mask, and host range.
 
 ![ipcalc-sc](./.github/ipcalc-sc.png)
@@ -368,9 +371,6 @@ D SELECT i.IP,
 │ 192.168.1.0/22 │  1022 │
 └────────────────┴───────┘
 ```
-
-> [!WARNING]
-> It's an experimental function.
 
 ### Get Extension Version
 
