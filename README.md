@@ -87,6 +87,12 @@ D SELECT update_suffixes();
 └───────────────────┘
 ```
 
+> [!WARNING]
+> This a public service with a limited number of requests. If you call the function too many times, you may get a 403 error.  
+> `<?xml version='1.0' encoding='UTF-8'?><Error><Code>AccessDenied</Code><Message>Access denied.</Message></Error>`  
+> The list usually changes a few times per week; more frequent downloading will cause rate limiting.
+> In this case, you can download the list manually from [publicsuffix.org](https://publicsuffix.org/) and save it in the `public_suffix_list` table.
+
 ### Extracting The Path
 
 This function extracts the path from a URL.
