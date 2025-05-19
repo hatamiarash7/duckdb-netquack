@@ -66,14 +66,14 @@ namespace duckdb
             {
                 // Set the custom CA certificate bundle file
                 // https://github.com/hatamiarash7/duckdb-netquack/issues/6
-                LogMessage ("DEBUG", "Using custom CA certificate bundle: " + std::string (ca_info));
+                LogMessage (LogLevel::DEBUG, "Using custom CA certificate bundle: " + std::string (ca_info));
                 curl_easy_setopt (curl, CURLOPT_CAINFO, ca_info);
             }
             const char *ca_path = std::getenv ("CURL_CA_PATH");
             if (ca_path)
             {
                 // Set the custom CA certificate directory
-                LogMessage ("DEBUG", "Using custom CA certificate directory: " + std::string (ca_path));
+                LogMessage (LogLevel::DEBUG, "Using custom CA certificate directory: " + std::string (ca_path));
                 curl_easy_setopt (curl, CURLOPT_CAPATH, ca_path);
             }
 
@@ -99,7 +99,7 @@ namespace duckdb
 
             if (res != CURLE_OK)
             {
-                LogMessage ("ERROR", "Failed to download public suffix list: " + std::string (curl_easy_strerror (res)));
+                LogMessage (LogLevel::ERROR, "Failed to download public suffix list: " + std::string (curl_easy_strerror (res)));
                 throw std::runtime_error ("Failed to download public suffix list. Check logs for details.");
             }
 

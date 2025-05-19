@@ -22,7 +22,7 @@ namespace duckdb
             // Construct the URL for the daily list
             std::string url = "https://tranco-list.eu/daily_list?date=" + std::string (date) + "&subdomains=true";
 
-            LogMessage ("INFO", "Get Tranco download code for date: " + std::string (date));
+            LogMessage (LogLevel::INFO, "Get Tranco download code for date: " + std::string (date));
 
             curl_easy_setopt (curl, CURLOPT_URL, url.c_str ());
             curl_easy_setopt (curl, CURLOPT_WRITEDATA, &readBuffer);
@@ -31,7 +31,7 @@ namespace duckdb
 
             if (res != CURLE_OK)
             {
-                LogMessage ("ERROR", "Failed to fetch Tranco download code: " + std::string (curl_easy_strerror (res)));
+                LogMessage (LogLevel::ERROR, "Failed to fetch Tranco download code: " + std::string (curl_easy_strerror (res)));
                 throw std::runtime_error ("Failed to fetch Tranco download code.");
             }
 
@@ -40,7 +40,7 @@ namespace duckdb
             std::smatch code_match;
             if (std::regex_search (readBuffer, code_match, code_regex) && code_match.size () > 1)
             {
-                LogMessage ("INFO", "Tranco download code: " + code_match[1].str ());
+                LogMessage (LogLevel::INFO, "Tranco download code: " + code_match[1].str ());
                 return code_match[1].str ();
             }
 
@@ -76,7 +76,7 @@ namespace duckdb
                 // Construct the download URL
                 std::string download_url = "https://tranco-list.eu/download/" + download_code + "/full";
 
-                LogMessage ("INFO", "Download Tranco list: " + download_url);
+                LogMessage (LogLevel::INFO, "Download Tranco list: " + download_url);
 
                 // Download the CSV file to a temporary file
                 CURL *curl = CreateCurlHandler ();
@@ -84,7 +84,7 @@ namespace duckdb
                 FILE *file = fopen (temp_file.c_str (), "wb");
                 if (!file)
                 {
-                    LogMessage ("ERROR", "Failed to create temporary file for Tranco list: " + temp_file);
+                    LogMessage (LogLevel::ERROR, "Failed to create temporary file for Tranco list: " + temp_file);
                     curl_easy_cleanup (curl);
                     throw std::runtime_error ("Failed to create temporary file for Tranco list.");
                 }
@@ -98,18 +98,18 @@ namespace duckdb
                 if (res != CURLE_OK)
                 {
                     remove (temp_file.c_str ()); // Clean up the temporary file
-                    LogMessage ("ERROR", "Failed to download Tranco list: " + std::string (curl_easy_strerror (res)));
+                    LogMessage (LogLevel::ERROR, "Failed to download Tranco list: " + std::string (curl_easy_strerror (res)));
                     throw std::runtime_error ("Failed to download Tranco list. Check logs for details.");
                 }
             }
 
             if (!file.good ())
             {
-                LogMessage ("ERROR", "Tranco list `" + temp_file + "` not found. Download it first using `SELECT update_tranco(true);`");
+                LogMessage (LogLevel::ERROR, "Tranco list `" + temp_file + "` not found. Download it first using `SELECT update_tranco(true);`");
             }
 
             // Parse the CSV data and insert into a table
-            LogMessage ("INFO", "Inserting Tranco list into table");
+            LogMessage (LogLevel::INFO, "Inserting Tranco list into table");
 
             Connection con (db);
             string query = "CREATE OR REPLACE TABLE tranco_list AS"
@@ -132,7 +132,7 @@ namespace duckdb
 
             if (result->HasError ())
             {
-                LogMessage ("ERROR", result->GetError ());
+                LogMessage (LogLevel::ERROR, result->GetError ());
             }
         }
 
