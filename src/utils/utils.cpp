@@ -8,10 +8,27 @@
 #include <regex>
 #include <sstream>
 
+#ifdef _WIN32
+#include <windows.h>
+#else // POSIX
+#include <sys/stat.h>
+#endif
+
 namespace duckdb
 {
     namespace netquack
     {
+        bool file_exists (const char *file_path)
+        {
+#ifdef _WIN32
+            DWORD attributes = GetFileAttributesA (file_path);
+            return (attributes != INVALID_FILE_ATTRIBUTES);
+#else // POSIX
+            struct stat buffer;
+            return (stat (file_path, &buffer) == 0);
+#endif
+        }
+
         CURL *GetCurlHandler ()
         {
             CURL *curl = curl_easy_init ();
@@ -34,9 +51,8 @@ namespace duckdb
                          "/etc/ssl/cert.pem"                                  // Alpine Linux
                      })
                 {
-                    if (FILE *f = fopen (path, "r"))
+                    if (file_exists (path))
                     {
-                        fclose (f);
                         ca_info = path;
                         break;
                     }
