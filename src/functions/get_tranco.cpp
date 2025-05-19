@@ -78,29 +78,27 @@ namespace duckdb
                 LogMessage ("INFO", "Download Tranco list: " + download_url);
 
                 // Download the CSV file to a temporary file
-                CURL *curl;
+                CURL *curl = CreateCurlHandler ();
                 CURLcode res;
                 FILE *file = fopen (temp_file.c_str (), "wb");
                 if (!file)
                 {
+                    LogMessage ("ERROR", "Failed to create temporary file for Tranco list: " + temp_file);
+                    curl_easy_cleanup (curl);
                     throw std::runtime_error ("Failed to create temporary file for Tranco list.");
                 }
 
-                curl = curl_easy_init ();
-                if (curl)
-                {
-                    curl_easy_setopt (curl, CURLOPT_URL, download_url.c_str ());
-                    curl_easy_setopt (curl, CURLOPT_WRITEDATA, file);
-                    res = curl_easy_perform (curl);
-                    curl_easy_cleanup (curl);
-                    fclose (file);
+                curl_easy_setopt (curl, CURLOPT_URL, download_url.c_str ());
+                curl_easy_setopt (curl, CURLOPT_WRITEDATA, file);
+                res = curl_easy_perform (curl);
+                curl_easy_cleanup (curl);
+                fclose (file);
 
-                    if (res != CURLE_OK)
-                    {
-                        remove (temp_file.c_str ()); // Clean up the temporary file
-                        LogMessage ("ERROR", "Failed to download Tranco list: " + std::string (curl_easy_strerror (res)));
-                        throw std::runtime_error ("Failed to download Tranco list. Check logs for details.");
-                    }
+                if (res != CURLE_OK)
+                {
+                    remove (temp_file.c_str ()); // Clean up the temporary file
+                    LogMessage ("ERROR", "Failed to download Tranco list: " + std::string (curl_easy_strerror (res)));
+                    throw std::runtime_error ("Failed to download Tranco list. Check logs for details.");
                 }
             }
 
