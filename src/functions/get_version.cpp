@@ -43,7 +43,7 @@ namespace duckdb
 
             output.SetCardinality (1);
             // Set version
-            output.data[0].SetValue (0, "v1.1.0");
+            output.data[0].SetValue (0, "v1.4.0");
             // Set done
             auto &local_state = (VersionLocalState &)*data_p.local_state;
             local_state.done  = true;
