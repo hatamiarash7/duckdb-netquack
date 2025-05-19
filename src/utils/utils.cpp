@@ -2,7 +2,6 @@
 
 #include <curl/curl.h>
 
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <regex>
@@ -13,6 +12,8 @@
 #else // POSIX
 #include <sys/stat.h>
 #endif
+
+#include "logger.hpp"
 
 namespace duckdb
 {
@@ -77,17 +78,6 @@ namespace duckdb
             }
 
             return curl;
-        }
-
-        void LogMessage (const std::string &level, const std::string &message)
-        {
-            std::ofstream log_file ("netquack.log", std::ios_base::app);
-            log_file << "[" << level << "] " << message << std::endl;
-
-            if (level == "ERROR")
-            {
-                throw std::runtime_error (message);
-            }
         }
 
         size_t WriteCallback (void *contents, size_t size, size_t nmemb, void *userp)

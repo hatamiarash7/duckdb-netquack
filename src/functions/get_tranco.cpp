@@ -5,6 +5,7 @@
 #include <fstream>
 #include <regex>
 
+#include "../utils/logger.hpp"
 #include "../utils/utils.hpp"
 
 namespace duckdb
