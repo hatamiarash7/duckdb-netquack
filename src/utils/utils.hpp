@@ -9,7 +9,7 @@ namespace duckdb
     namespace netquack
     {
         // Function to get a CURL handler
-        CURL *GetCurlHandler ();
+        CURL *CreateCurlHandler ();
 
         // Function to log messages with a specified log level
         void LogMessage (const std::string &level, const std::string &message);

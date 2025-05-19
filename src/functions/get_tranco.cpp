@@ -14,7 +14,7 @@ namespace duckdb
         // Function to get the download code for the Tranco list
         std::string GetTrancoDownloadCode (char *date)
         {
-            CURL *curl = GetCurlHandler ();
+            CURL *curl = CreateCurlHandler ();
             CURLcode res;
             std::string readBuffer;
 

@@ -29,7 +29,7 @@ namespace duckdb
 #endif
         }
 
-        CURL *GetCurlHandler ()
+        CURL *CreateCurlHandler ()
         {
             CURL *curl = curl_easy_init ();
             if (!curl)
@@ -98,7 +98,7 @@ namespace duckdb
 
         std::string DownloadPublicSuffixList ()
         {
-            CURL *curl = GetCurlHandler ();
+            CURL *curl = CreateCurlHandler ();
             CURLcode res;
             std::string readBuffer;
 
