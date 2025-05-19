@@ -141,6 +141,7 @@ namespace duckdb
 
                 if (valid_line_count <= 1)
                 {
+                    LogMessage (LogLevel::ERROR, validation_line);
                     LogMessage (LogLevel::CRITICAL, "Downloaded public suffix list contains no valid entries. Try again or run `SELECT update_suffixes();`.");
                 }
 
