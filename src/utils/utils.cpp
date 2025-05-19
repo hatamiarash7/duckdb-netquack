@@ -112,9 +112,11 @@ namespace duckdb
             // Check if the table already exists
             Connection con (db);
             auto table_exists = con.Query ("SELECT 1 FROM information_schema.tables WHERE table_name = 'public_suffix_list'");
+            auto table_data   = con.Query ("SELECT * FROM public_suffix_list");
 
-            if (table_exists->RowCount () == 0 || force)
+            if (table_exists->RowCount () == 0 || table_data->RowCount () == 0 || force)
             {
+                LogMessage (LogLevel::INFO, "Loading public suffix list...");
                 // Download the list
                 auto list_data = DownloadPublicSuffixList ();
 
