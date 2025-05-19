@@ -31,8 +31,8 @@ namespace duckdb
 
             if (res != CURLE_OK)
             {
-                LogMessage (LogLevel::ERROR, "Failed to fetch Tranco download code: " + std::string (curl_easy_strerror (res)));
-                throw std::runtime_error ("Failed to fetch Tranco download code.");
+                LogMessage (LogLevel::ERROR, std::string (curl_easy_strerror (res)));
+                LogMessage (LogLevel::CRITICAL, "Failed to fetch Tranco download code.");
             }
 
             // Extract the download code from the URL
@@ -44,7 +44,7 @@ namespace duckdb
                 return code_match[1].str ();
             }
 
-            throw std::runtime_error ("Failed to extract Tranco download code.");
+            LogMessage (LogLevel::CRITICAL, "Failed to extract Tranco download code.");
         }
 
         // Function to download the Tranco list and create a table
@@ -84,9 +84,8 @@ namespace duckdb
                 FILE *file = fopen (temp_file.c_str (), "wb");
                 if (!file)
                 {
-                    LogMessage (LogLevel::ERROR, "Failed to create temporary file for Tranco list: " + temp_file);
                     curl_easy_cleanup (curl);
-                    throw std::runtime_error ("Failed to create temporary file for Tranco list.");
+                    LogMessage (LogLevel::CRITICAL, "Failed to create temporary file for Tranco list.");
                 }
 
                 curl_easy_setopt (curl, CURLOPT_URL, download_url.c_str ());
@@ -98,14 +97,14 @@ namespace duckdb
                 if (res != CURLE_OK)
                 {
                     remove (temp_file.c_str ()); // Clean up the temporary file
-                    LogMessage (LogLevel::ERROR, "Failed to download Tranco list: " + std::string (curl_easy_strerror (res)));
-                    throw std::runtime_error ("Failed to download Tranco list. Check logs for details.");
+                    LogMessage (LogLevel::ERROR, std::string (curl_easy_strerror (res)));
+                    LogMessage (LogLevel::CRITICAL, "Failed to download Tranco list. Check logs for details.");
                 }
             }
 
             if (!file.good ())
             {
-                LogMessage (LogLevel::ERROR, "Tranco list `" + temp_file + "` not found. Download it first using `SELECT update_tranco(true);`");
+                LogMessage (LogLevel::CRITICAL, "Tranco list `" + temp_file + "` not found. Download it first using `SELECT update_tranco(true);`");
             }
 
             // Parse the CSV data and insert into a table
@@ -132,7 +131,7 @@ namespace duckdb
 
             if (result->HasError ())
             {
-                LogMessage (LogLevel::ERROR, result->GetError ());
+                LogMessage (LogLevel::CRITICAL, result->GetError ());
             }
         }
 
@@ -161,7 +160,7 @@ namespace duckdb
 
             if (table_exists->RowCount () == 0)
             {
-                throw std::runtime_error ("Tranco table not found. Download it first using `SELECT update_tranco(true);`");
+                LogMessage (LogLevel::CRITICAL, "Tranco table not found. Download it first using `SELECT update_tranco(true);`");
             }
 
             // Extract the input from the arguments
@@ -200,7 +199,7 @@ namespace duckdb
 
             if (table_exists->RowCount () == 0)
             {
-                throw std::runtime_error ("Tranco table not found. Download it first using `SELECT update_tranco(true);`");
+                LogMessage (LogLevel::CRITICAL, "Tranco table not found. Download it first using `SELECT update_tranco(true);`");
             }
 
             // Extract the input from the arguments

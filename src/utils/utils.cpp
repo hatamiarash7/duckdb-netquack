@@ -35,7 +35,7 @@ namespace duckdb
             CURL *curl = curl_easy_init ();
             if (!curl)
             {
-                throw std::runtime_error ("Failed to initialize CURL");
+                LogMessage (LogLevel::CRITICAL, "Failed to initialize CURL");
             }
 
             const char *ca_info = std::getenv ("CURL_CA_INFO");
@@ -99,8 +99,8 @@ namespace duckdb
 
             if (res != CURLE_OK)
             {
-                LogMessage (LogLevel::ERROR, "Failed to download public suffix list: " + std::string (curl_easy_strerror (res)));
-                throw std::runtime_error ("Failed to download public suffix list. Check logs for details.");
+                LogMessage (LogLevel::ERROR, std::string (curl_easy_strerror (res)));
+                LogMessage (LogLevel::CRITICAL, "Failed to download public suffix list. Check logs for details.");
             }
 
             return readBuffer;
