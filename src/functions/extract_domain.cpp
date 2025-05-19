@@ -13,6 +13,10 @@ namespace duckdb
         auto &input_vector = args.data[0];
         auto result_data   = FlatVector::GetData<string_t> (result);
 
+        // Load the public suffix list if not already loaded
+        auto &db = *state.GetContext ().db;
+        netquack::LoadPublicSuffixList (db, false);
+
         for (idx_t i = 0; i < args.size (); i++)
         {
             auto input = input_vector.GetValue (i).ToString ();
@@ -35,9 +39,7 @@ namespace duckdb
     {
         std::string ExtractDomain (ExpressionState &state, const std::string &input)
         {
-            // Load the public suffix list if not already loaded
             auto &db = *state.GetContext ().db;
-            netquack::LoadPublicSuffixList (db, false);
             Connection con (db);
 
             // Extract the host from the URL
