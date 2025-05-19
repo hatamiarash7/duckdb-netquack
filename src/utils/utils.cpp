@@ -114,11 +114,37 @@ namespace duckdb
             auto table_exists = con.Query ("SELECT 1 FROM information_schema.tables WHERE table_name = 'public_suffix_list'");
             auto table_data   = con.Query ("SELECT * FROM public_suffix_list");
 
-            if (table_exists->RowCount () == 0 || table_data->RowCount () == 0 || force)
+            if (table_exists->RowCount () == 0 || table_data->RowCount () <= 1 || force)
             {
                 LogMessage (LogLevel::INFO, "Loading public suffix list...");
                 // Download the list
                 auto list_data = DownloadPublicSuffixList ();
+
+                // Validate the downloaded data
+                if (list_data.empty ())
+                {
+                    LogMessage (LogLevel::CRITICAL, "Failed to download public suffix list: empty data received");
+                }
+
+                // Count non-comment/non-empty lines for validation
+                std::istringstream validation_stream (list_data);
+                std::string validation_line;
+                size_t valid_line_count = 0;
+
+                while (std::getline (validation_stream, validation_line))
+                {
+                    if (!validation_line.empty () && validation_line[0] != '/' && validation_line[0] != ' ')
+                    {
+                        valid_line_count++;
+                    }
+                }
+
+                if (valid_line_count <= 1)
+                {
+                    LogMessage (LogLevel::CRITICAL, "Downloaded public suffix list contains no valid entries. Try again or run `SELECT update_suffixes();`.");
+                }
+
+                LogMessage (LogLevel::INFO, "Downloaded public suffix list with " + std::to_string (valid_line_count) + " valid entries");
 
                 // Parse the list and insert into a table
                 std::istringstream stream (list_data);
