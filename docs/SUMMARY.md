@@ -7,7 +7,7 @@
 
 * [Quickstart](getting-started/quickstart.md)
 * [How to build](getting-started/how-to-build.md)
-* [Debugging](debugging.md)
+* [Debugging](getting-started/debugging.md)
 
 ## Functions
 
