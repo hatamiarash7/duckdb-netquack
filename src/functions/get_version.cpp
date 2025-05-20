@@ -1,3 +1,5 @@
+// Copyright 2025 Arash Hatami
+
 #include "get_version.hpp"
 
 #include <future>

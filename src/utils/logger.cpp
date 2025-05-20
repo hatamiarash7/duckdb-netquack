@@ -1,3 +1,5 @@
+// Copyright 2025 Arash Hatami
+
 #include "logger.hpp"
 
 #include <fstream>

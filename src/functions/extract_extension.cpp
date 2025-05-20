@@ -1,3 +1,5 @@
+// Copyright 2025 Arash Hatami
+
 #include "extract_extension.hpp"
 
 #include <regex>

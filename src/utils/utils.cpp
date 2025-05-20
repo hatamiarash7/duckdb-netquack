@@ -1,3 +1,5 @@
+// Copyright 2025 Arash Hatami
+
 #include "utils.hpp"
 
 #include <curl/curl.h>

@@ -1,3 +1,5 @@
+// Copyright 2025 Arash Hatami
+
 #define DUCKDB_EXTENSION_MAIN
 
 #include "netquack_extension.hpp"

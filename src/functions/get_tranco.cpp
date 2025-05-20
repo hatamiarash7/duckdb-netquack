@@ -1,3 +1,5 @@
+// Copyright 2025 Arash Hatami
+
 #include "get_tranco.hpp"
 
 #include <curl/curl.h>

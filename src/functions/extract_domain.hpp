@@ -1,3 +1,5 @@
+// Copyright 2025 Arash Hatami
+
 #pragma once
 
 #include "duckdb.hpp"

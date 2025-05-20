@@ -1,3 +1,5 @@
+// Copyright 2025 Arash Hatami
+
 #include "ipcalc.hpp"
 
 #include "../utils/ip_utils.hpp"
