@@ -349,6 +349,10 @@ The `ipcalc` function takes an IP address and netmask and calculates the resulti
 
 ![ipcalc-sc](./.github/ipcalc-sc.png)
 
+```sql
+SELECT * FROM ipcalc('192.168.1.0/24');
+```
+
 It's a table function that provides various details about IP addresses, including:
 
 - Address
@@ -385,7 +389,7 @@ D SELECT i.IP,
 You can use the `netquack_version` function to get the extension version.
 
 ```sql
-D select * from netquack_version();
+D SELECT * FROM netquack_version();
 ┌─────────┐
 │ version │
 │ varchar │
@@ -422,4 +426,4 @@ Don't be shy and reach out to us if you want to contribute 😉
 
 ## Issues 🐛
 
-Each project may have many problems. Contributing to the better development of this project by reporting them. 👍
+Each project may have many problems. Contributing to the better development of this project by [reporting them](https://github.com/hatamiarash7/duckdb-netquack/issues). 👍
