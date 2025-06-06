@@ -58,20 +58,24 @@ namespace duckdb
             info.hostsPerNet = getHostsPerNet (maskBits);
             info.ipClass     = getIPClass (ip);
 
-            if (maskBits != 32)
-            {
-                info.network   = getNetworkAddress (ip, subnetMask, maskBits);
-                info.broadcast = getBroadcastAddress (info.network, wildcardMask);
-                info.hostMin   = getHostMin (info.network);
-                info.hostMax   = getHostMax (info.broadcast);
-            }
-            else
-            {
-                // For /32, the IP itself is the only host (Hostroute)
-                info.network   = ip;
-                info.broadcast = '-';
-                info.hostMin   = '-';
-                info.hostMax   = '-';
+            // Store the network IP without CIDR suffix temporarily for calculations
+            std::string network_ip_only = getNetworkAddress(ip, subnetMask, maskBits);
+            info.network = network_ip_only + "/" + std::to_string(maskBits); // Store with CIDR
+
+            if (maskBits == 32) {
+                info.broadcast = "-"; // No traditional broadcast
+                info.hostMin   = network_ip_only;  // The IP itself is the only host
+                info.hostMax   = network_ip_only;  // The IP itself is the only host
+            } else if (maskBits == 31) {
+                // For /31, the two addresses in the range are the network and broadcast addresses,
+                // and both are considered usable hosts (RFC 3021).
+                info.hostMin   = network_ip_only; // First IP in /31
+                info.broadcast = getBroadcastAddress(network_ip_only, wildcardMask); // Calculate actual broadcast (second IP)
+                info.hostMax   = info.broadcast; // The second IP in the /31 range
+            } else { // For masks /0 to /30
+                info.broadcast = getBroadcastAddress(network_ip_only, wildcardMask);
+                info.hostMin   = getHostMin(network_ip_only);
+                info.hostMax   = getHostMax(info.broadcast);
             }
 
             return info;
@@ -126,16 +130,18 @@ namespace duckdb
             return wildcard;
         }
 
-        std::string IPCalculator::getNetworkAddress (const std::string &ip, const std::string &subnetMask, const int &maskBits)
+        // Note: maskBits parameter is changed from const int& to int
+        std::string IPCalculator::getNetworkAddress (const std::string &ip, const std::string &subnetMask, int maskBits)
         {
             auto ipOctets   = parseIP (ip);
             auto maskOctets = parseIP (subnetMask);
-            std::string network;
+            std::string network_ip_str;
             for (int i = 0; i < 4; ++i)
             {
-                network += std::to_string (ipOctets[i] & maskOctets[i]) + (i < 3 ? "." : "");
+                network_ip_str += std::to_string (ipOctets[i] & maskOctets[i]) + (i < 3 ? "." : "");
             }
-            return network + "/" + std::to_string (maskBits);
+            // Return only the IP string, not with /maskBits
+            return network_ip_str;
         }
 
         std::string IPCalculator::getBroadcastAddress (const std::string &networkAddress, const std::string &wildcardMask)
@@ -166,9 +172,22 @@ namespace duckdb
 
         int IPCalculator::getHostsPerNet (int maskBits)
         {
-            if (maskBits == 32)
-                return 1; // Special case for /32
-            return (1 << (32 - maskBits)) - 2;
+            // Basic validation, though typically done before calling this
+            if (maskBits < 0 || maskBits > 32) {
+                throw std::invalid_argument("Subnet mask must be between 0 and 32");
+            }
+
+            if (maskBits == 32) {
+                return 1; // The IP itself is considered the only host
+            }
+            if (maskBits == 31) {
+                return 2; // For point-to-point links, as per RFC 3021
+            }
+            // For networks /0 through /30
+            // Number of addresses in the subnet is 2^(32-maskBits)
+            // Subtract 2 for network and broadcast addresses
+            uint64_t total_ips = 1ULL << (32 - maskBits);
+            return static_cast<int>(total_ips - 2);
         }
 
         std::string IPCalculator::getIPClass (const std::string &ip)

@@ -41,9 +41,11 @@ namespace duckdb
             }
 
             const char *ca_info = std::getenv ("CURL_CA_INFO");
+            bool ca_info_was_env = true; // Flag to track if ca_info came from env
 #if !defined(_WIN32) && !defined(__APPLE__)
             if (!ca_info)
             {
+                ca_info_was_env = false;
                 // Check for common CA certificate bundle locations on Linux
                 for (const auto *path : {
                          "/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
@@ -57,6 +59,7 @@ namespace duckdb
                     if (file_exists (path))
                     {
                         ca_info = path;
+                        LogMessage(LogLevel::DEBUG, "Auto-detected CA certificate bundle: " + std::string(ca_info));
                         break;
                     }
                 }
@@ -66,9 +69,12 @@ namespace duckdb
             curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, WriteCallback);
             if (ca_info)
             {
+                if (ca_info_was_env) {
+                    LogMessage(LogLevel::DEBUG, "Using CA certificate bundle from CURL_CA_INFO: " + std::string(ca_info));
+                }
+                // LogMessage for auto-detected is now inside the loop above.
                 // Set the custom CA certificate bundle file
                 // https://github.com/hatamiarash7/duckdb-netquack/issues/6
-                LogMessage (LogLevel::DEBUG, "Using custom CA certificate bundle: " + std::string (ca_info));
                 curl_easy_setopt (curl, CURLOPT_CAINFO, ca_info);
             }
             const char *ca_path = std::getenv ("CURL_CA_PATH");
@@ -153,23 +159,38 @@ namespace duckdb
                 std::istringstream stream (list_data);
                 std::string line;
                 con.Query ("CREATE OR REPLACE TABLE public_suffix_list (suffix VARCHAR)");
+                Appender appender(con, "public_suffix_list"); // Get an appender for the table
 
                 while (std::getline (stream, line))
                 {
                     // Skip comments and empty lines
-                    if (line.empty () || line[0] == '/' || line[0] == ' ')
+                    if (line.empty () || line[0] == '/' || line[0] == ' ') {
                         continue;
-
-                    // Replace `*.` with an empty string
-                    size_t wildcard_pos = line.find ("*.");
-                    if (wildcard_pos != std::string::npos)
-                    {
-                        line.replace (wildcard_pos, 2, "");
                     }
 
-                    // Insert the suffix into the table
-                    con.Query ("INSERT INTO public_suffix_list (suffix) VALUES ('" + line + "')");
+                    // Replace `*.` with an empty string
+                    // The current understanding is that if "*.foo.bar" is a rule, "foo.bar" is the suffix.
+                    size_t wildcard_pos = line.find("*.");
+                    if (wildcard_pos != std::string::npos) {
+                        line.replace(wildcard_pos, 2, "");
+                    }
+
+                    // Remove leading/trailing whitespace that might remain or be part of original list
+                    // Using isspace from <cctype> might be more robust for various whitespace chars
+                    // For now, using the provided list of whitespace characters.
+                    line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
+                    line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
+
+                    // Skip if line becomes empty after processing
+                    if (line.empty()) {
+                        continue;
+                    }
+
+                    appender.BeginRow();
+                    appender.Append(line); // Append the processed suffix
+                    appender.EndRow();
                 }
+                appender.Close(); // Finalize and flush the appender
             }
         }
 

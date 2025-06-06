@@ -26,7 +26,8 @@ namespace duckdb
             }
             catch (const std::exception &e)
             {
-                result_data[i] = "Error extracting extension: " + std::string (e.what ());
+                // Set NULL on error
+                FlatVector::SetNull (result, i, true);
             }
         };
     }

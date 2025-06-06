@@ -63,50 +63,69 @@ namespace duckdb
             // Construct the file name
             std::string temp_file = "tranco_list_" + std::string (date) + ".csv";
 
-            // Download the file if it doesn't exist or if force is true
-            std::ifstream file (temp_file);
-            if (force)
-            {
-                // Remove the old file if it exists
-                if (file.good ())
-                {
-                    remove (temp_file.c_str ());
+            // Need file_exists from utils.hpp - ensure it's available.
+            // #include "../utils/utils.hpp" should already be there.
+            // #include "../utils/logger.hpp" for LogMessage
+
+            bool file_needs_download = false;
+            if (force) {
+                LogMessage(LogLevel::INFO, "Force update for Tranco list: " + temp_file);
+                if (file_exists(temp_file.c_str())) {
+                    if (remove(temp_file.c_str()) != 0) {
+                        LogMessage(LogLevel::WARNING, "Failed to remove existing Tranco file during force update: " + temp_file + ". Proceeding with download attempt.");
+                    }
                 }
-                // Get the download code
-                std::string download_code = GetTrancoDownloadCode (date);
-
-                // Construct the download URL
-                std::string download_url = "https://tranco-list.eu/download/" + download_code + "/full";
-
-                LogMessage (LogLevel::INFO, "Download Tranco list: " + download_url);
-
-                // Download the CSV file to a temporary file
-                CURL *curl = CreateCurlHandler ();
-                CURLcode res;
-                FILE *file = fopen (temp_file.c_str (), "wb");
-                if (!file)
-                {
-                    curl_easy_cleanup (curl);
-                    LogMessage (LogLevel::CRITICAL, "Failed to create temporary file for Tranco list.");
-                }
-
-                curl_easy_setopt (curl, CURLOPT_URL, download_url.c_str ());
-                curl_easy_setopt (curl, CURLOPT_WRITEDATA, file);
-                res = curl_easy_perform (curl);
-                curl_easy_cleanup (curl);
-                fclose (file);
-
-                if (res != CURLE_OK)
-                {
-                    remove (temp_file.c_str ()); // Clean up the temporary file
-                    LogMessage (LogLevel::ERROR, std::string (curl_easy_strerror (res)));
-                    LogMessage (LogLevel::CRITICAL, "Failed to download Tranco list. Check logs for details.");
+                file_needs_download = true;
+            } else {
+                if (!file_exists(temp_file.c_str())) {
+                    LogMessage(LogLevel::INFO, "Tranco list " + temp_file + " not found locally.");
+                    file_needs_download = true;
+                } else {
+                    LogMessage(LogLevel::INFO, "Found existing Tranco list: " + temp_file + ". Use force=true to re-download.");
                 }
             }
 
-            if (!file.good ())
-            {
-                LogMessage (LogLevel::CRITICAL, "Tranco list `" + temp_file + "` not found. Download it first using `SELECT update_tranco(true);`");
+            if (file_needs_download) {
+                LogMessage(LogLevel::INFO, "Attempting to download Tranco list to: " + temp_file);
+                std::string download_code = GetTrancoDownloadCode(date);
+
+                if (download_code.empty()) {
+                    LogMessage(LogLevel::CRITICAL, "Failed to obtain Tranco download code for date: " + std::string(date) + ". Aborting download.");
+                    return; // Critical log would throw, but explicit return for clarity.
+                }
+
+                std::string download_url = "https://tranco-list.eu/download/" + download_code + "/full";
+                LogMessage(LogLevel::INFO, "Downloading Tranco list from: " + download_url);
+
+                CURL *curl = CreateCurlHandler(); // Assuming CreateCurlHandler is available
+                CURLcode res;
+                FILE *fp = fopen(temp_file.c_str(), "wb"); // Changed variable name from 'file' to 'fp' to avoid clash
+                if (!fp) {
+                    if(curl) curl_easy_cleanup(curl); // Cleanup curl if fp failed
+                    LogMessage(LogLevel::CRITICAL, "Failed to create temporary file for Tranco list: " + temp_file);
+                    return;
+                }
+
+                curl_easy_setopt(curl, CURLOPT_URL, download_url.c_str());
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+                res = curl_easy_perform(curl);
+
+                fclose(fp); // Close file pointer
+                curl_easy_cleanup(curl);
+
+                if (res != CURLE_OK) {
+                    remove(temp_file.c_str()); // Clean up the temporary file on download error
+                    LogMessage(LogLevel::ERROR, "CURL error downloading Tranco list: " + std::string(curl_easy_strerror(res)));
+                    LogMessage(LogLevel::CRITICAL, "Failed to download Tranco list. Check logs for details.");
+                    return;
+                }
+                LogMessage(LogLevel::INFO, "Tranco list downloaded successfully: " + temp_file);
+            }
+
+            // Final check before trying to use the file
+            if (!file_exists(temp_file.c_str())) {
+                LogMessage(LogLevel::CRITICAL, "Tranco list `" + temp_file + "` not found or download failed. If you forced update, check logs. Otherwise, try `SELECT update_tranco(true);`");
+                return;
             }
 
             // Parse the CSV data and insert into a table
@@ -163,6 +182,11 @@ namespace duckdb
             if (table_exists->RowCount () == 0)
             {
                 LogMessage (LogLevel::CRITICAL, "Tranco table not found. Download it first using `SELECT update_tranco(true);`");
+                // Add this loop to set all results to NULL and return:
+                for (idx_t i = 0; i < args.size(); i++) {
+                    FlatVector::SetNull(result, i, true);
+                }
+                return; // Exit the function early
             }
 
             // Extract the input from the arguments
@@ -181,11 +205,16 @@ namespace duckdb
                     auto query_result = con.Query (query);
                     auto rank         = query_result->RowCount () > 0 ? query_result->GetValue (0, 0) : Value ();
 
-                    result_data[i] = StringVector::AddString (result, rank.ToString ());
+                    if (rank.IsNull()) {
+                        FlatVector::SetNull(result, i, true);
+                    } else {
+                        result_data[i] = StringVector::AddString (result, rank.ToString ());
+                    }
                 }
                 catch (const std::exception &e)
                 {
-                    result_data[i] = "Error extracting tranco rank: " + std::string (e.what ());
+                    // Set NULL on error
+                    FlatVector::SetNull (result, i, true);
                 }
             }
         }
@@ -202,6 +231,11 @@ namespace duckdb
             if (table_exists->RowCount () == 0)
             {
                 LogMessage (LogLevel::CRITICAL, "Tranco table not found. Download it first using `SELECT update_tranco(true);`");
+                // Add this loop to set all results to NULL and return:
+                for (idx_t i = 0; i < args.size(); i++) {
+                    FlatVector::SetNull(result, i, true);
+                }
+                return; // Exit the function early
             }
 
             // Extract the input from the arguments
@@ -220,11 +254,16 @@ namespace duckdb
                     auto query_result = con.Query (query);
                     auto category     = query_result->RowCount () > 0 ? query_result->GetValue (0, 0) : Value ();
 
-                    result_data[i] = StringVector::AddString (result, category.ToString ());
+                    if (category.IsNull()) {
+                        FlatVector::SetNull(result, i, true);
+                    } else {
+                        result_data[i] = StringVector::AddString (result, category.ToString ());
+                    }
                 }
                 catch (const std::exception &e)
                 {
-                    result_data[i] = "Error extracting tranco category: " + std::string (e.what ());
+                    // Set NULL on error
+                    FlatVector::SetNull (result, i, true);
                 }
             }
         }

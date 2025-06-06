@@ -32,7 +32,7 @@ namespace duckdb
         ExtensionUtil::RegisterExtension (
             instance,
             "netquack",
-            { "Parsing, extracting, and analyzing domains, URIs, and paths with ease." });
+            { "Tools for parsing, analyzing, and extracting information from URLs, domains, IP addresses, and network lists (like Tranco)." });
 
         auto netquack_extract_domain_function = ScalarFunction (
             "extract_domain",
@@ -111,38 +111,38 @@ namespace duckdb
             netquack::UpdateTrancoListFunction);
         ExtensionUtil::RegisterFunction (instance, netquack_update_tranco_function);
 
-        auto get_tranco_rank_function = ScalarFunction (
+        auto netquack_get_tranco_rank_function = ScalarFunction (
             "get_tranco_rank",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             netquack::GetTrancoRankFunction);
-        ExtensionUtil::RegisterFunction (instance, get_tranco_rank_function);
+        ExtensionUtil::RegisterFunction (instance, netquack_get_tranco_rank_function);
 
-        auto get_tranco_rank_category_function = ScalarFunction (
+        auto netquack_get_tranco_rank_category_function = ScalarFunction (
             "get_tranco_rank_category",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             netquack::GetTrancoRankCategoryFunction);
-        ExtensionUtil::RegisterFunction (instance, get_tranco_rank_category_function);
+        ExtensionUtil::RegisterFunction (instance, netquack_get_tranco_rank_category_function);
 
-        auto ipcalc_function = TableFunction (
+        auto netquack_ipcalc_function = TableFunction (
             "ipcalc",
             { LogicalType::VARCHAR },
             nullptr,
             netquack::IPCalcFunc::Bind,
             nullptr,
             netquack::IPCalcFunc::InitLocal);
-        ipcalc_function.in_out_function = netquack::IPCalcFunc::Function;
-        ExtensionUtil::RegisterFunction (instance, ipcalc_function);
+        netquack_ipcalc_function.in_out_function = netquack::IPCalcFunc::Function;
+        ExtensionUtil::RegisterFunction (instance, netquack_ipcalc_function);
 
-        auto version_function = TableFunction (
+        auto netquack_version_function = TableFunction (
             "netquack_version",
             {},
             netquack::VersionFunc::Scan,
             netquack::VersionFunc::Bind,
             netquack::VersionFunc::InitGlobal,
             netquack::VersionFunc::InitLocal);
-        ExtensionUtil::RegisterFunction (instance, version_function);
+        ExtensionUtil::RegisterFunction (instance, netquack_version_function);
     }
 
     void NetquackExtension::Load (DuckDB &db)
