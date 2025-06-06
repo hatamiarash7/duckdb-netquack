@@ -25,7 +25,8 @@ namespace duckdb
             }
             catch (const std::exception &e)
             {
-                result_data[i] = "Error extracting query string: " + std::string (e.what ());
+                // Set NULL on error
+                FlatVector::SetNull (result, i, true);
             }
         };
     }
@@ -36,9 +37,13 @@ namespace duckdb
         {
             // Regex to match the query string component of a URL
             // Explanation:
-            // (?:\?|&)  - Non-capturing group to match either "?" (start of query) or "&" (query parameter separator)
-            // ([^#]+)   - Capturing group to match the query string (any characters except "#")
-            std::regex query_regex (R"((?:\?|&)([^#]+))");
+            // \?        - Matches the literal '?' character.
+            // ([^#]*)   - Capturing group:
+            //   [^#]    - Matches any character that is NOT a '#'.
+            //   *       - Matches the previous character zero or more times.
+            // This regex captures content after the first '?' up to a '#' or end of string.
+            // Does not handle query parameters in fragments.
+            std::regex query_regex (R"(\?([^#]*))");
             std::smatch query_match;
 
             // Use regex_search to find the query string in the input

@@ -32,7 +32,8 @@ namespace duckdb
             }
             catch (const std::exception &e)
             {
-                result_data[i] = "Error extracting domain: " + std::string (e.what ());
+                // Set NULL on error
+                FlatVector::SetNull (result, i, true);
             }
         }
     }
@@ -45,18 +46,26 @@ namespace duckdb
             Connection con (db);
 
             // Extract the host from the URL
-            std::regex host_regex (R"(^(?:(?:https?|ftp|rsync):\/\/|mailto:)?((?:[^\/\?:#@]+@)?([^\/\?:#]+)))");
+            // This regex captures the host, excluding protocol, path, query, fragment, and port.
+            // It explicitly excludes '/', '\s', '#', '?', ':' from the host.
+            std::regex host_regex (R"(^(?:(?:https?|ftp|rsync):\/\/)?([^\/\s#?:]+))");
             std::smatch host_match;
-            if (!std::regex_search (input, host_match, host_regex))
-            {
-                return "";
-            }
+            std::string host_str; // Use a separate string for the matched host
 
-            auto host = host_match[host_match.size () - 1].str ();
+            // Search for the host in the input string
+            // No need for searchable_input, regex_search can take input directly
+            if (std::regex_search (input, host_match, host_regex) && host_match.size () > 1)
+            {
+                host_str = host_match[1].str ();
+            }
+            else
+            {
+                return ""; // No host found
+            }
 
             // Split the host into parts
             std::vector<std::string> parts;
-            std::istringstream stream (host);
+            std::istringstream stream (host_str);
             std::string part;
             while (std::getline (stream, part, '.'))
             {
@@ -65,8 +74,29 @@ namespace duckdb
 
             // Find the longest matching public suffix
             std::string public_suffix;
-            int public_suffix_index = -1;
+            int public_suffix_index = -1; // Using -1 to indicate no valid public suffix part found yet
 
+            // Iterate through all possible suffix combinations, from shortest to longest.
+            // The goal is to find the longest known public suffix.
+            // For example, for 'a.b.c.co.uk', it will test:
+            // uk, co.uk, c.co.uk, b.c.co.uk, a.b.c.co.uk
+            // If 'co.uk' is a public suffix, it will be matched.
+            // If 'c.co.uk' is also a public suffix (e.g. *.sch.uk), that would be matched.
+            // The last and longest match is chosen by breaking after the first DB match,
+            // assuming suffixes are ordered or queried appropriately by the PSL logic.
+            // However, the original loop structure implies checking all parts and
+            // the longest one that is a PSL entry should be chosen.
+            // The current logic takes the *first* match from the right that is a PSL entry.
+            // Let's refine the comment to reflect the actual loop behavior.
+
+            // Iterate through parts of the hostname from right to left to find the longest public suffix.
+            // For 'a.b.c.co.uk', it will form candidates:
+            // 1. uk
+            // 2. co.uk
+            // 3. c.co.uk
+            // 4. b.c.co.uk
+            // 5. a.b.c.co.uk
+            // It stops at the first and longest valid suffix found in the public_suffix_list.
             for (size_t j = 0; j < parts.size (); j++)
             {
                 // Build the candidate suffix

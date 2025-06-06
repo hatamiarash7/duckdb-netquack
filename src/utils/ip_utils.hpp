@@ -28,18 +28,18 @@ namespace duckdb
 
           private:
             static bool isValidInput (const std::string &input);
-            static bool isValidIP (const std::string &ip);
-            static std::array<int, 4> parseIP (const std::string &ip);
+            static bool isValidIP (const std::string &ip); // Already effectively const
+            static std::array<int, 4> parseIP (const std::string &ip); // ip is not modified
             static std::string getSubnetMask (int maskBits);
             static std::string getWildcardMask (const std::string &subnetMask);
-            static std::string getNetworkAddress (const std::string &ip, const std::string &subnetMask, const int &maskBits);
+            static std::string getNetworkAddress (const std::string &ip, const std::string &subnetMask, int maskBits); // pass int by value
             static std::string getBroadcastAddress (const std::string &networkAddress, const std::string &wildcardMask);
             static std::string getHostMin (const std::string &networkAddress);
             static std::string getHostMax (const std::string &broadcastAddress);
             static int getHostsPerNet (int maskBits);
             static std::string getIPClass (const std::string &ip);
-            static std::string intToIP (uint32_t ip);
-            static std::string intToIP (const std::array<int, 4> &octets);
+            static std::string intToIP (uint32_t ip); // Already by value
+            static std::string intToIP (const std::array<int, 4> &octets); // octets is not modified
         };
     } // namespace netquack
 } // namespace duckdb

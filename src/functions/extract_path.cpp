@@ -15,8 +15,8 @@ namespace duckdb
 
         for (idx_t i = 0; i < args.size (); i++)
         {
+            // Paths are often case-sensitive, so we don't convert to lowercase.
             auto input = input_vector.GetValue (i).ToString ();
-            std::transform (input.begin (), input.end (), input.begin (), ::tolower);
 
             try
             {
@@ -26,7 +26,8 @@ namespace duckdb
             }
             catch (const std::exception &e)
             {
-                result_data[i] = "Error extracting path: " + std::string (e.what ());
+                // Set NULL on error
+                FlatVector::SetNull (result, i, true);
             }
         };
     }
