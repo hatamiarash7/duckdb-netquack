@@ -8,7 +8,6 @@
 #include "duckdb/common/exception.hpp"
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/function/scalar_function.hpp"
-#include "duckdb/main/extension_util.hpp"
 #include "duckdb/parser/parsed_data/create_scalar_function_info.hpp"
 #include "functions/extract_domain.hpp"
 #include "functions/extract_extension.hpp"
@@ -27,103 +26,100 @@
 namespace duckdb
 {
     // Load the extension into the database
-    static void LoadInternal (DatabaseInstance &instance)
+    static void LoadInternal (ExtensionLoader &loader)
     {
-        ExtensionUtil::RegisterExtension (
-            instance,
-            "netquack",
-            { "Parsing, extracting, and analyzing domains, URIs, and paths with ease." });
-
+        loader.SetDescription("Parsing, extracting, and analyzing domains, URIs, and paths with ease.");
+        
         auto netquack_extract_domain_function = ScalarFunction (
             "extract_domain",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             ExtractDomainFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_extract_domain_function);
+        loader.RegisterFunction (netquack_extract_domain_function);
 
         auto netquack_update_suffixes_function = ScalarFunction (
             "update_suffixes",
             {},
             LogicalType::VARCHAR,
             netquack::UpdateSuffixesFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_update_suffixes_function);
+        loader.RegisterFunction (netquack_update_suffixes_function);
 
         auto netquack_extract_path_function = ScalarFunction (
             "extract_path",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             ExtractPathFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_extract_path_function);
+        loader.RegisterFunction (netquack_extract_path_function);
 
         auto netquack_extract_schema_function = ScalarFunction (
             "extract_schema",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             ExtractSchemaFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_extract_schema_function);
+        loader.RegisterFunction (netquack_extract_schema_function);
 
         auto netquack_extract_host_function = ScalarFunction (
             "extract_host",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             ExtractHostFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_extract_host_function);
+        loader.RegisterFunction (netquack_extract_host_function);
 
         auto netquack_extract_query_string_function = ScalarFunction (
             "extract_query_string",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             ExtractQueryStringFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_extract_query_string_function);
+        loader.RegisterFunction (netquack_extract_query_string_function);
 
         auto netquack_extract_tld_function = ScalarFunction (
             "extract_tld",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             ExtractTLDFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_extract_tld_function);
+        loader.RegisterFunction (netquack_extract_tld_function);
 
         auto netquack_extract_subdomain_function = ScalarFunction (
             "extract_subdomain",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             ExtractSubDomainFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_extract_subdomain_function);
+        loader.RegisterFunction (netquack_extract_subdomain_function);
 
         auto netquack_extract_port_function = ScalarFunction (
             "extract_port",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             ExtractPortFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_extract_port_function);
+        loader.RegisterFunction (netquack_extract_port_function);
 
         auto netquack_extract_extension_function = ScalarFunction (
             "extract_extension",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             ExtractExtensionFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_extract_extension_function);
+        loader.RegisterFunction (netquack_extract_extension_function);
 
         auto netquack_update_tranco_function = ScalarFunction (
             "update_tranco",
             { LogicalType::BOOLEAN },
             LogicalType::VARCHAR,
             netquack::UpdateTrancoListFunction);
-        ExtensionUtil::RegisterFunction (instance, netquack_update_tranco_function);
+        loader.RegisterFunction (netquack_update_tranco_function);
 
         auto get_tranco_rank_function = ScalarFunction (
             "get_tranco_rank",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             netquack::GetTrancoRankFunction);
-        ExtensionUtil::RegisterFunction (instance, get_tranco_rank_function);
+                    loader.RegisterFunction (get_tranco_rank_function);
 
         auto get_tranco_rank_category_function = ScalarFunction (
             "get_tranco_rank_category",
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             netquack::GetTrancoRankCategoryFunction);
-        ExtensionUtil::RegisterFunction (instance, get_tranco_rank_category_function);
+        loader.RegisterFunction (get_tranco_rank_category_function);
 
         auto ipcalc_function = TableFunction (
             "ipcalc",
@@ -133,7 +129,7 @@ namespace duckdb
             nullptr,
             netquack::IPCalcFunc::InitLocal);
         ipcalc_function.in_out_function = netquack::IPCalcFunc::Function;
-        ExtensionUtil::RegisterFunction (instance, ipcalc_function);
+        loader.RegisterFunction (ipcalc_function);
 
         auto version_function = TableFunction (
             "netquack_version",
@@ -142,12 +138,12 @@ namespace duckdb
             netquack::VersionFunc::Bind,
             netquack::VersionFunc::InitGlobal,
             netquack::VersionFunc::InitLocal);
-        ExtensionUtil::RegisterFunction (instance, version_function);
+        loader.RegisterFunction (version_function);
     }
 
-    void NetquackExtension::Load (DuckDB &db)
+    void NetquackExtension::Load (ExtensionLoader &loader)
     {
-        LoadInternal (*db.instance);
+        LoadInternal (loader);
     }
     std::string NetquackExtension::Name ()
     {
@@ -164,20 +160,10 @@ namespace duckdb
     }
 } // namespace duckdb
 
-extern "C"
-{
-    DUCKDB_EXTENSION_API void netquack_init (duckdb::DatabaseInstance &db)
-    {
-        duckdb::DuckDB db_wrapper (db);
-        db_wrapper.LoadExtension<duckdb::NetquackExtension> ();
-    }
 
-    DUCKDB_EXTENSION_API const char *netquack_version ()
-    {
-        return duckdb::DuckDB::LibraryVersion ();
+extern "C" {
+
+    DUCKDB_CPP_EXTENSION_ENTRY(netquack, loader) {
+        duckdb::LoadInternal(loader);
     }
 }
-
-#ifndef DUCKDB_EXTENSION_MAIN
-#error DUCKDB_EXTENSION_MAIN not defined
-#endif
