@@ -37,7 +37,7 @@ namespace duckdb
             CURL *curl = curl_easy_init ();
             if (!curl)
             {
-                LogMessage (LogLevel::CRITICAL, "Failed to initialize CURL");
+                LogMessage (LogLevel::LOG_CRITICAL, "Failed to initialize CURL");
             }
 
             const char *ca_info = std::getenv ("CURL_CA_INFO");
@@ -69,14 +69,14 @@ namespace duckdb
             {
                 // Set the custom CA certificate bundle file
                 // https://github.com/hatamiarash7/duckdb-netquack/issues/6
-                LogMessage (LogLevel::DEBUG, "Using custom CA certificate bundle: " + std::string (ca_info));
+                LogMessage (LogLevel::LOG_DEBUG, "Using custom CA certificate bundle: " + std::string (ca_info));
                 curl_easy_setopt (curl, CURLOPT_CAINFO, ca_info);
             }
             const char *ca_path = std::getenv ("CURL_CA_PATH");
             if (ca_path)
             {
                 // Set the custom CA certificate directory
-                LogMessage (LogLevel::DEBUG, "Using custom CA certificate directory: " + std::string (ca_path));
+                LogMessage (LogLevel::LOG_DEBUG, "Using custom CA certificate directory: " + std::string (ca_path));
                 curl_easy_setopt (curl, CURLOPT_CAPATH, ca_path);
             }
 
@@ -108,8 +108,8 @@ namespace duckdb
 
             if (res != CURLE_OK)
             {
-                LogMessage (LogLevel::ERROR, std::string (curl_easy_strerror (res)));
-                LogMessage (LogLevel::CRITICAL, "Failed to download public suffix list. Check logs for details.");
+                LogMessage (LogLevel::LOG_ERROR, std::string (curl_easy_strerror (res)));
+                LogMessage (LogLevel::LOG_CRITICAL, "Failed to download public suffix list. Check logs for details.");
             }
 
             return readBuffer;
@@ -125,14 +125,14 @@ namespace duckdb
 
             if (table_exists->RowCount () == 0 || table_data->RowCount () <= 1 || force)
             {
-                LogMessage (LogLevel::INFO, "Loading public suffix list...");
+                LogMessage (LogLevel::LOG_INFO, "Loading public suffix list...");
                 // Download the list
                 auto list_data = DownloadPublicSuffixList ();
 
                 // Validate the downloaded data
                 if (list_data.empty ())
                 {
-                    LogMessage (LogLevel::CRITICAL, "Failed to download public suffix list: empty data received");
+                    LogMessage (LogLevel::LOG_CRITICAL, "Failed to download public suffix list: empty data received");
                 }
 
                 // Count non-comment/non-empty lines for validation
@@ -150,11 +150,11 @@ namespace duckdb
 
                 if (valid_line_count <= 1)
                 {
-                    LogMessage (LogLevel::ERROR, validation_line);
-                    LogMessage (LogLevel::CRITICAL, "Downloaded public suffix list contains no valid entries. Try again or run `SELECT update_suffixes();`.");
+                    LogMessage (LogLevel::LOG_ERROR, validation_line);
+                    LogMessage (LogLevel::LOG_CRITICAL, "Downloaded public suffix list contains no valid entries. Try again or run `SELECT update_suffixes();`.");
                 }
 
-                LogMessage (LogLevel::INFO, "Downloaded public suffix list with " + std::to_string (valid_line_count) + " valid entries");
+                LogMessage (LogLevel::LOG_INFO, "Downloaded public suffix list with " + std::to_string (valid_line_count) + " valid entries");
 
                 // Parse the list and insert into a table
                 std::istringstream stream (list_data);
