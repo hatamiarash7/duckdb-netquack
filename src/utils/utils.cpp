@@ -32,7 +32,7 @@ namespace duckdb
 #endif
         }
 
-        CURL *CreateCurlHandler ()
+        CURL *CreateCurlHandler (curl_write_callback write_callback)
         {
             CURL *curl = curl_easy_init ();
             if (!curl)
@@ -63,7 +63,8 @@ namespace duckdb
             }
 #endif
             curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L); // Follow redirects
-            curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, write_callback);
+            
             if (ca_info)
             {
                 // Set the custom CA certificate bundle file
@@ -82,15 +83,21 @@ namespace duckdb
             return curl;
         }
 
-        size_t WriteCallback (void *contents, size_t size, size_t nmemb, void *userp)
+        size_t WriteStringCallback (char *contents, size_t size, size_t nmemb, void *userp)
         {
             ((std::string *)userp)->append ((char *)contents, size * nmemb);
             return size * nmemb;
         }
 
+        size_t WriteFileCallback (char *contents, size_t size, size_t nmemb, void *userp)
+        {
+            FILE *file = (FILE *)userp;
+            return fwrite (contents, size, nmemb, file);
+        }
+
         std::string DownloadPublicSuffixList ()
         {
-            CURL *curl = CreateCurlHandler ();
+            CURL *curl = CreateCurlHandler (WriteStringCallback);
             CURLcode res;
             std::string readBuffer;
 

@@ -10,11 +10,14 @@ namespace duckdb
 {
     namespace netquack
     {
-        // Function to get a CURL handler
-        CURL *CreateCurlHandler ();
+        // Function to get a CURL handler with custom write callback
+        CURL *CreateCurlHandler (curl_write_callback write_callback);
 
-        // Function to download a file from a URL
-        size_t WriteCallback (void *contents, size_t size, size_t nmemb, void *userp);
+        // Function to write data to a string (for HTTP responses)
+        size_t WriteStringCallback (char *contents, size_t size, size_t nmemb, void *userp);
+
+        // Function to write data to a file (for file downloads)
+        size_t WriteFileCallback (char *contents, size_t size, size_t nmemb, void *userp);
 
         // Function to download the public suffix list
         std::string DownloadPublicSuffixList ();
