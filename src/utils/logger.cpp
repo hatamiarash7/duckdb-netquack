@@ -15,24 +15,24 @@ namespace duckdb
             const char *env_level = std::getenv ("LOG_LEVEL");
             if (env_level == nullptr)
             {
-                return LogLevel::INFO; // default level
+                return LogLevel::LOG_INFO; // default level
             }
 
             std::string level_str (env_level);
             if (level_str == "DEBUG")
-                return LogLevel::DEBUG;
+                return LogLevel::LOG_DEBUG;
             if (level_str == "INFO")
-                return LogLevel::INFO;
+                return LogLevel::LOG_INFO;
             if (level_str == "WARNING")
-                return LogLevel::WARNING;
+                return LogLevel::LOG_WARNING;
             if (level_str == "ERROR")
-                return LogLevel::ERROR;
+                return LogLevel::LOG_ERROR;
             if (level_str == "CRITICAL")
-                return LogLevel::CRITICAL;
+                return LogLevel::LOG_CRITICAL;
 
             std::cerr << "Unknown LOG_LEVEL environment variable value: " << level_str
                       << ". Defaulting to INFO." << std::endl;
-            return LogLevel::INFO;
+            return LogLevel::LOG_INFO;
         }
 
         std::string getCurrentTimestamp ()
@@ -57,11 +57,11 @@ namespace duckdb
             const char *level_str = "";
             switch (level)
             {
-            case LogLevel::DEBUG: level_str = "DEBUG"; break;
-            case LogLevel::INFO: level_str = "INFO"; break;
-            case LogLevel::WARNING: level_str = "WARNING"; break;
-            case LogLevel::ERROR: level_str = "ERROR"; break;
-            case LogLevel::CRITICAL: level_str = "CRITICAL"; break;
+            case LogLevel::LOG_DEBUG: level_str = "DEBUG"; break;
+            case LogLevel::LOG_INFO: level_str = "INFO"; break;
+            case LogLevel::LOG_WARNING: level_str = "WARNING"; break;
+            case LogLevel::LOG_ERROR: level_str = "ERROR"; break;
+            case LogLevel::LOG_CRITICAL: level_str = "CRITICAL"; break;
             }
 
             std::ofstream log_file ("netquack.log", std::ios_base::app);
@@ -76,13 +76,13 @@ namespace duckdb
                      << message << std::endl;
 
             // Also output to stderr for error levels
-            if (level >= LogLevel::ERROR)
+            if (level >= LogLevel::LOG_ERROR)
             {
                 std::cerr << "[" << level_str << "] " << message << std::endl;
             }
 
             // Throw exception for critical errors
-            if (level == LogLevel::CRITICAL)
+            if (level == LogLevel::LOG_CRITICAL)
             {
                 throw std::runtime_error (message);
             }
