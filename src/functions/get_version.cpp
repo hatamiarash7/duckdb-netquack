@@ -20,7 +20,7 @@ namespace duckdb
         unique_ptr<FunctionData> VersionFunc::Bind (ClientContext &context, TableFunctionBindInput &input, vector<LogicalType> &return_types, vector<string> &names)
         {
             // 0. version: version of the extension.
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType(LogicalTypeId::VARCHAR));
             names.emplace_back ("version");
             return make_uniq<TableFunctionData> ();
         }

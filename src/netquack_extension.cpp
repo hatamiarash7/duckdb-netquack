@@ -4,11 +4,8 @@
 
 #include "netquack_extension.hpp"
 
-#include "duckdb.hpp"
 #include "duckdb/common/exception.hpp"
-#include "duckdb/common/string_util.hpp"
 #include "duckdb/function/scalar_function.hpp"
-#include "duckdb/parser/parsed_data/create_scalar_function_info.hpp"
 #include "functions/extract_domain.hpp"
 #include "functions/extract_extension.hpp"
 #include "functions/extract_host.hpp"
@@ -21,7 +18,6 @@
 #include "functions/get_tranco.hpp"
 #include "functions/get_version.hpp"
 #include "functions/ipcalc.hpp"
-#include "utils/utils.hpp"
 
 namespace duckdb
 {
@@ -36,13 +32,6 @@ namespace duckdb
             LogicalType::VARCHAR,
             ExtractDomainFunction);
         loader.RegisterFunction (netquack_extract_domain_function);
-
-        auto netquack_update_suffixes_function = ScalarFunction (
-            "update_suffixes",
-            {},
-            LogicalType::VARCHAR,
-            netquack::UpdateSuffixesFunction);
-        loader.RegisterFunction (netquack_update_suffixes_function);
 
         auto netquack_extract_path_function = ScalarFunction (
             "extract_path",

@@ -8,6 +8,8 @@ This extension is designed to simplify working with domains, URIs, and web paths
 
 With Netquack, you can unlock deeper insights from your web-related datasets without the need for external tools or complex workflows.
 
+NetQuack uses ClickHouse-inspired character-by-character parsing and gperf-generated perfect hash functions for optimal performance.
+
 Table of Contents
 
 - [DuckDB Netquack Extension](#duckdb-netquack-extension)
@@ -55,9 +57,7 @@ Once installed, the [macro functions](https://duckdb.org/community_extensions/ex
 
 ### Extracting The Main Domain
 
-This function extracts the main domain from a URL. For this purpose, the extension will get all public suffixes from the [publicsuffix.org](https://publicsuffix.org/) list and extract the main domain from the URL.
-
-The download process of the public suffix list is done automatically when the function is called for the first time. After that, the list is stored in the `public_suffix_list` table to avoid downloading it again.
+This function extracts the main domain from a URL using an optimized static TLD lookup system. The extension uses Mozilla's Public Suffix List compiled into a gperf-generated perfect hash function for O(1) TLD lookups with zero collisions.
 
 ```sql
 D SELECT extract_domain('a.example.com') AS domain;
@@ -77,23 +77,7 @@ D SELECT extract_domain('https://b.a.example.com/path') AS domain;
 └─────────────┘
 ```
 
-You can use the `update_suffixes` function to update the public suffix list manually.
-
-```sql
-D SELECT update_suffixes();
-┌───────────────────┐
-│ update_suffixes() │
-│      varchar      │
-├───────────────────┤
-│ updated           │
-└───────────────────┘
-```
-
-> [!WARNING]
-> This a public service with a limited number of requests. If you call the function too many times, you may get a 403 error.  
-> `<?xml version='1.0' encoding='UTF-8'?><Error><Code>AccessDenied</Code><Message>Access denied.</Message></Error>`  
-> The list usually changes a few times per week; more frequent downloading will cause rate limiting.
-> In this case, you can download the list manually from [publicsuffix.org](https://publicsuffix.org/) and save it in the `public_suffix_list` table.
+The TLD lookup is built into the extension at compile time using the latest Mozilla Public Suffix List. No runtime downloads or database operations are required.
 
 ### Extracting The Path
 
@@ -234,7 +218,7 @@ D SELECT extract_extension('http://example.com/image.jpg') AS ext;
 
 ### Extracting The TLD (Top-Level Domain)
 
-This function extracts the top-level domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
+This function extracts the top-level domain from a URL using the optimized gperf-based public suffix lookup system. The function correctly handles multi-part TLDs (like `com.au`) using the longest-match algorithm from Mozilla's Public Suffix List.
 
 ```sql
 D SELECT extract_tld('https://example.com.ac/path/path') AS tld;
@@ -256,7 +240,7 @@ D SELECT extract_tld('a.example.com') AS tld;
 
 ### Extracting The Sub Domain
 
-This function extracts the sub-domain from a URL. This function will use the public suffix list to extract the TLD. Check the [Extracting The Main Domain](#extracting-the-main-domain) section for more information about the public suffix list.
+This function extracts the sub-domain from a URL using the optimized public suffix lookup system to correctly identify the domain boundary and extract everything before it.
 
 ```sql
 D SELECT extract_subdomain('http://a.b.example.com/path') AS dns_record;
@@ -397,6 +381,10 @@ D SELECT * FROM netquack_version();
 │ v1.4.0  │
 └─────────┘
 ```
+
+### 🛠 **Build Requirements**
+
+- **gperf required**: Perfect hash generation requires `gperf` (install via `brew install gperf` or `apt-get install gperf`)
 
 ## Debugging
 

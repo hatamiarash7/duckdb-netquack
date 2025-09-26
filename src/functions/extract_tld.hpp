@@ -12,6 +12,6 @@ namespace duckdb
     namespace netquack
     {
         // Function to extract the top-level domain from a URL
-        std::string ExtractTLD (ExpressionState &state, const std::string &input);
+        std::string ExtractTLD (const std::string &input);
     } // namespace netquack
 } // namespace duckdb

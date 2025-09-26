@@ -21,39 +21,39 @@ namespace duckdb
         unique_ptr<FunctionData> IPCalcFunc::Bind (ClientContext &context, TableFunctionBindInput &input, vector<LogicalType> &return_types, vector<string> &names)
         {
             // 0. address
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType(LogicalTypeId::VARCHAR));
             names.emplace_back ("address");
 
             // 1. netmask
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType(LogicalTypeId::VARCHAR));
             names.emplace_back ("netmask");
 
             // 2. wildcard
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType(LogicalTypeId::VARCHAR));
             names.emplace_back ("wildcard");
 
             // 3. network
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType(LogicalTypeId::VARCHAR));
             names.emplace_back ("network");
 
             // 4. hostMin
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType(LogicalTypeId::VARCHAR));
             names.emplace_back ("hostMin");
 
             // 5. hostMax
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType(LogicalTypeId::VARCHAR));
             names.emplace_back ("hostMax");
 
             // 6. broadcast
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType(LogicalTypeId::VARCHAR));
             names.emplace_back ("broadcast");
 
             // 7. hostsPerNet
-            return_types.emplace_back (LogicalType::BIGINT);
+            return_types.emplace_back (LogicalType(LogicalTypeId::BIGINT));
             names.emplace_back ("hostsPerNet");
 
             // 8. ipClass
-            return_types.emplace_back (LogicalType::VARCHAR);
+            return_types.emplace_back (LogicalType(LogicalTypeId::VARCHAR));
             names.emplace_back ("ipClass");
 
             return make_uniq<IPCalcData> ();

@@ -1,17 +1,13 @@
 // Copyright 2025 Arash Hatami
 
 #include "extract_tld.hpp"
-
-#include <regex>
-
-#include "../utils/utils.hpp"
+#include "../utils/url_helpers.hpp"
+#include "../utils/tld_lookup.hpp"
 
 namespace duckdb
 {
-    // Function to extract the top-level domain from a URL
     void ExtractTLDFunction (DataChunk &args, ExpressionState &state, Vector &result)
     {
-        // Extract the input from the arguments
         auto &input_vector = args.data[0];
         auto result_data   = FlatVector::GetData<string_t> (result);
 
@@ -22,69 +18,84 @@ namespace duckdb
 
             try
             {
-                // Extract the top-level domain using the utility function
-                auto tld       = netquack::ExtractTLD (state, input);
+                auto tld       = netquack::ExtractTLD (input);
                 result_data[i] = StringVector::AddString (result, tld);
             }
             catch (const std::exception &e)
             {
-                result_data[i] = "Error extracting tld: " + std::string (e.what ());
+                result_data[i] = StringVector::AddString (result, "Error extracting tld: " + std::string (e.what ()));
             }
         }
     }
 
     namespace netquack
     {
-        std::string ExtractTLD (ExpressionState &state, const std::string &input)
+        std::string ExtractTLD (const std::string &input)
         {
-            // Load the public suffix list if not already loaded
-            auto &db = *state.GetContext ().db;
-            netquack::LoadPublicSuffixList (db, false);
-            Connection con (db);
-
-            // Extract the host from the URL
-            std::regex host_regex (R"(^(?:(?:https?|ftp|rsync):\/\/)?([^\/\?:]+))");
-            std::smatch host_match;
-            if (!std::regex_search (input, host_match, host_regex))
-            {
+            if (input.empty())
                 return "";
-            }
 
-            auto host = host_match[1].str ();
+            const char* data = input.data();
+            size_t size = input.size();
 
-            // Split the host into parts
-            std::vector<std::string> parts;
-            std::istringstream stream (host);
-            std::string part;
-            while (std::getline (stream, part, '.'))
+            std::string_view host = getURLHost(data, size);
+
+            // If getURLHost returns empty, try treating the entire input as a hostname
+            // This handles cases like single words "com" that don't have dots
+            if (host.empty())
             {
-                parts.push_back (part);
+                // Check if the input looks like a simple hostname (no protocol, path, etc.)
+                bool has_protocol = input.find("://") != std::string::npos;
+                bool has_path = input.find('/') != std::string::npos;
+                bool has_query = input.find('?') != std::string::npos;
+                bool has_fragment = input.find('#') != std::string::npos;
+                
+                if (!has_protocol && !has_path && !has_query && !has_fragment)
+                {
+                    // Treat entire input as hostname, but strip port if present
+                    size_t colon_pos = input.find(':');
+                    size_t host_length = (colon_pos != std::string::npos) ? colon_pos : size;
+                    
+                    // Reject single characters as invalid hostnames
+                    if (host_length <= 1)
+                    {
+                        return "";
+                    }
+                    
+                    host = std::string_view(data, host_length);
+                }
+                else
+                {
+                    return "";
+                }
             }
 
-            // Find the longest matching public suffix
-            std::string public_suffix;
+            // Remove trailing dot if present
+            if (host[host.size() - 1] == '.')
+                host.remove_suffix(1);
 
-            for (size_t j = 0; j < parts.size (); j++)
+            std::string host_str(host);
+            
+            // For IPv4 addresses return empty
+            const char* last_dot = find_last_symbols_or_null<'.'>(host.data(), host.data() + host.size());
+            if (last_dot && isNumericASCII(last_dot[1]))
+                return "";
+
+            // Use the proper TLD lookup to get the effective TLD
+            std::string effective_tld = getEffectiveTLD(host_str);
+            
+            // If the effective TLD is empty, try the last part
+            if (effective_tld.empty())
             {
-                // Build the candidate suffix
-                std::string candidate;
-                for (size_t k = j; k < parts.size (); k++)
+                size_t last_dot = host_str.find_last_of('.');
+                if (last_dot != std::string::npos)
                 {
-                    candidate += (k == j ? "" : ".") + parts[k];
+                    return host_str.substr(last_dot + 1);
                 }
-
-                // Query the public suffix list
-                auto query        = "SELECT 1 FROM public_suffix_list WHERE suffix = '" + candidate + "'";
-                auto query_result = con.Query (query);
-
-                if (query_result->RowCount () > 0)
-                {
-                    public_suffix = candidate;
-                    break;
-                }
+                return host_str; // No dots, return entire string
             }
-
-            return public_suffix;
+            
+            return effective_tld;
         }
     } // namespace netquack
 } // namespace duckdb

@@ -1,15 +1,12 @@
 // Copyright 2025 Arash Hatami
 
 #include "extract_extension.hpp"
-
-#include <regex>
+#include "../utils/url_helpers.hpp"
 
 namespace duckdb
 {
-    // Function to extract the extension from a URL
     void ExtractExtensionFunction (DataChunk &args, ExpressionState &state, Vector &result)
     {
-        // Extract the input from the arguments
         auto &input_vector = args.data[0];
         auto result_data   = FlatVector::GetData<string_t> (result);
 
@@ -20,13 +17,12 @@ namespace duckdb
 
             try
             {
-                // Extract the extension using the utility function
                 auto ext       = netquack::ExtractExtension (input);
                 result_data[i] = StringVector::AddString (result, ext);
             }
             catch (const std::exception &e)
             {
-                result_data[i] = "Error extracting extension: " + std::string (e.what ());
+                result_data[i] = StringVector::AddString (result, "Error extracting extension: " + std::string (e.what ()));
             }
         };
     }
@@ -35,43 +31,60 @@ namespace duckdb
     {
         std::string ExtractExtension (const std::string &input)
         {
-            // Regex to extract valid file extensions from paths/URLs
-            // Explanation:
-            // (?<!\.)                - Negative lookbehind ensures no preceding dot (avoids "..ext")
-            // \.                     - Literal dot (extension separator)
-            // ([a-zA-Z0-9]{1,10})    - Capturing group for extension:
-            //                         - 1-10 alphanumeric chars (prevents long garbage matches)
-            // (?=[?#]|$)             - Positive lookahead for:
-            //                         - Query separator (?)
-            //                         - Fragment (#)
-            //                         - Or end of string ($)
-            //
-            // Examples matched:
-            //   /path/image.jpg      -> jpg
-            //   /doc.v12.pdf         -> pdf
-            //   /archive.tar.gz      -> gz
-            //   https://site.com/page.html?param=1 -> html
-            //
-            // Rejected cases:
-            //   /path..jpg           -> no match (double dot)
-            //   /path.               -> no match (no extension after dot)
-            //   /.hidden_file        -> no match (no alnum after dot)
-            //   /path.with.dots/file -> no match (not at end)
-            std::regex ext_regex (R"(^(?!.*\.\.)(?:.*\/)?[^\/?#]+\.([a-zA-Z0-9]{1,10})(?=[?#]|$))");
-            std::smatch ext_match;
+            if (input.empty())
+                return "";
 
-            // Use regex_search to find the extension component in the input string
-            if (std::regex_search (input, ext_match, ext_regex))
+            const char* data = input.data();
+            size_t size = input.size();
+            const char* pos = data;
+            const char* end = pos + size;
+
+            // Find the path part by looking for the first slash after protocol
+            pos = find_first_symbols<'/'>(pos, end);
+            if (pos == end)
+                return "";
+
+            bool has_subsequent_slash = pos + 1 < end && pos[1] == '/';
+            if (has_subsequent_slash)
             {
-                // Check if the extension group was matched and is not empty
-                if (ext_match.size () > 1 && ext_match[1].matched)
-                {
-                    return ext_match[1].str ();
-                }
+                // Search for next slash (start of path)
+                pos = find_first_symbols<'/'>(pos + 2, end);
+                if (pos == end)
+                    return "";
             }
 
-            // If no extension is found, return an empty string
-            return "";
+            // Now pos points to the start of the path
+            // Find the end of the path (before query or fragment)
+            const char* path_end = find_first_symbols<'?', '#'>(pos, end);
+            
+            // Find the last slash in the path to get the filename
+            const char* last_slash = find_last_symbols_or_null<'/'>(pos, path_end);
+            const char* filename_start = last_slash ? last_slash + 1 : pos;
+            
+            // Find the last dot in the filename
+            const char* last_dot = find_last_symbols_or_null<'.'>(filename_start, path_end);
+            if (!last_dot || last_dot == filename_start)
+                return "";
+            
+            // Check if there's a previous dot (avoid double dots like ..ext)
+            if (last_dot > filename_start && *(last_dot - 1) == '.')
+                return "";
+                
+            // Extract extension
+            const char* ext_start = last_dot + 1;
+            size_t ext_length = path_end - ext_start;
+            
+            // Validate extension (only alphanumeric, max 10 chars)
+            if (ext_length == 0 || ext_length > 10)
+                return "";
+                
+            for (size_t i = 0; i < ext_length; ++i)
+            {
+                if (!isAlphaNumericASCII(ext_start[i]))
+                    return "";
+            }
+            
+            return std::string(ext_start, ext_length);
         }
     } // namespace netquack
 } // namespace duckdb
