@@ -8,4 +8,5 @@ test/python/__pycache__/
 .Rhistory
 *.log
 *.csv
+public_suffix_list.dat
 !test/data/*.csv
