@@ -8,13 +8,14 @@ namespace duckdb
 {
     namespace netquack
     {
+        // Note: `LOG_` prefix is to avoid problems with DEBUG and ERROR macros
         enum class LogLevel
         {
-            DEBUG,
-            INFO,
-            WARNING,
-            ERROR,
-            CRITICAL
+            LOG_DEBUG,
+            LOG_INFO,
+            LOG_WARNING,
+            LOG_ERROR,
+            LOG_CRITICAL
         };
 
         // Function to log messages with a specified log level
