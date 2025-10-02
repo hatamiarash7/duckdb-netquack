@@ -30,6 +30,7 @@ Table of Contents
     - [IP Address Functions](#ip-address-functions)
       - [IP Calculator](#ip-calculator)
     - [Get Extension Version](#get-extension-version)
+  - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
   - [Roadmap 🗺️](#roadmap-️)
   - [Contributing 🤝](#contributing-)
@@ -382,9 +383,20 @@ D SELECT * FROM netquack_version();
 └─────────┘
 ```
 
-### 🛠 **Build Requirements**
+## Build Requirements
 
-- **gperf required**: Perfect hash generation requires `gperf` (install via `brew install gperf` or `apt-get install gperf`)
+- **A C++ compiler** that supports C++17 or later (e.g., `g++`, `clang++`).
+- **gperf**: Perfect hash generation requires `gperf`.
+- **CMake**
+- **GNU Make**
+
+```bash
+# On Debian-based systems
+sudo apt-get install gperf cmake make
+
+# On MacOS using Homebrew
+brew install gperf cmake make
+```
 
 ## Debugging
 
