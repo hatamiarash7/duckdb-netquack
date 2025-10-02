@@ -16,6 +16,7 @@
     "duckdb",
     "ELEC",
     "exloop",
+    "gperf",
     "Hostroute",
     "ipcalc",
     "Netquack",
