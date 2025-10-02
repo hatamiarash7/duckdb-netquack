@@ -1,15 +1,12 @@
 // Copyright 2025 Arash Hatami
 
 #include "extract_schema.hpp"
-
-#include <regex>
+#include <cstring>
 
 namespace duckdb
 {
-    // Function to extract the schema from a URL
     void ExtractSchemaFunction (DataChunk &args, ExpressionState &state, Vector &result)
     {
-        // Extract the input from the arguments
         auto &input_vector = args.data[0];
         auto result_data   = FlatVector::GetData<string_t> (result);
 
@@ -20,13 +17,12 @@ namespace duckdb
 
             try
             {
-                // Extract the schema using the utility function
                 auto schema    = netquack::ExtractSchema (input);
                 result_data[i] = StringVector::AddString (result, schema);
             }
             catch (const std::exception &e)
             {
-                result_data[i] = "Error extracting schema: " + std::string (e.what ());
+                result_data[i] = StringVector::AddString (result, "Error extracting schema: " + std::string (e.what ()));
             }
         };
     }
@@ -35,37 +31,39 @@ namespace duckdb
     {
         std::string ExtractSchema (const std::string &input)
         {
-            // Regex to match the schema component of a URL
-            // Explanation:
-            // ^                - Start of the string
-            // (http|https|ftp) - Capturing group for common protocols (http, https, ftp)
-            // :\/\/            - Matches "://" after the protocol
-            // |                - OR
-            // (mailto|sms|tel) - Capturing group for other protocols (mailto, sms, tel)
-            // :[^/]            - Matches ":" followed by any character except "/"
-            std::regex schema_regex (R"(^(http|https|ftp|rsync):\/\/|^(mailto|sms|tel):[^/])");
-            std::smatch schema_match;
+            if (input.empty())
+                return "";
 
-            // Use regex_search to find the schema component in the input string
-            if (std::regex_search (input, schema_match, schema_regex))
-            {
-                // Check if the schema was matched in either group
-                if (schema_match.size () > 1)
-                {
-                    if (schema_match[1].matched)
-                    {
-                        // Group 1 matches "http", "https", or "ftp"
-                        return schema_match[1].str ();
-                    }
-                    else if (schema_match[2].matched)
-                    {
-                        // Group 2 matches "mailto", "sms", or "tel"
-                        return schema_match[2].str ();
-                    }
-                }
+            const char* data = input.data();
+            size_t size = input.size();
+
+            // Check for standard URL schemes with ://
+            if (size >= 7 && strncmp(data, "http://", 7) == 0)
+                return "http";
+            if (size >= 8 && strncmp(data, "https://", 8) == 0)
+                return "https";
+            if (size >= 6 && strncmp(data, "ftp://", 6) == 0)
+                return "ftp";
+            if (size >= 8 && strncmp(data, "rsync://", 8) == 0)
+                return "rsync";
+
+            // Check for schemes with : but no // (and ensure they're not followed by //)
+            if (size >= 7 && strncmp(data, "mailto:", 7) == 0) {
+                // Reject mailto:// - only accept mailto: without //
+                if (size == 7 || (size > 7 && data[7] != '/'))
+                    return size > 7 ? "mailto" : "";  // Empty if just "mailto:"
+            }
+            if (size >= 4 && strncmp(data, "tel:", 4) == 0) {
+                // Reject tel:// - only accept tel: without //
+                if (size == 4 || (size > 4 && data[4] != '/'))
+                    return size > 4 ? "tel" : "";  // Empty if just "tel:"
+            }
+            if (size >= 4 && strncmp(data, "sms:", 4) == 0) {
+                // Reject sms:// - only accept sms: without //
+                if (size == 4 || (size > 4 && data[4] != '/'))
+                    return size > 4 ? "sms" : "";  // Empty if just "sms:"
             }
 
-            // If no schema is found, return an empty string
             return "";
         }
     } // namespace netquack

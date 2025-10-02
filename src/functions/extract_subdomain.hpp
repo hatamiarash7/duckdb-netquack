@@ -12,6 +12,6 @@ namespace duckdb
     namespace netquack
     {
         // Function to extract the sub-domain from a URL
-        std::string ExtractSubDomain (ExpressionState &state, const std::string &input);
+        std::string ExtractSubDomain (const std::string &input);
     } // namespace netquack
 } // namespace duckdb

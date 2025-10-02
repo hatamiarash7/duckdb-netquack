@@ -1,15 +1,12 @@
 // Copyright 2025 Arash Hatami
 
 #include "extract_port.hpp"
-
-#include <regex>
+#include "../utils/url_helpers.hpp"
 
 namespace duckdb
 {
-    // Function to extract the port from a URL
     void ExtractPortFunction (DataChunk &args, ExpressionState &state, Vector &result)
     {
-        // Extract the input from the arguments
         auto &input_vector = args.data[0];
         auto result_data   = FlatVector::GetData<string_t> (result);
 
@@ -20,13 +17,12 @@ namespace duckdb
 
             try
             {
-                // Extract the port using the utility function
                 auto port      = netquack::ExtractPort (input);
                 result_data[i] = StringVector::AddString (result, port);
             }
             catch (const std::exception &e)
             {
-                result_data[i] = "Error extracting port: " + std::string (e.what ());
+                result_data[i] = StringVector::AddString (result, "Error extracting port: " + std::string (e.what ()));
             }
         };
     }
@@ -35,47 +31,114 @@ namespace duckdb
     {
         std::string ExtractPort (const std::string &input)
         {
-            // Regex to match the port component of a URI/URL in all common cases
-            // Explanation:
-            // (?:^|(?<=\]|[\w.-])[:]) - Port prefix matcher (non-capturing group):
-            //   ^                     - Start of string (for non-URL cases like "localhost:8080")
-            //   |                     - OR
-            //   (?<=\]|[\w.-])        - Positive lookbehind for either:
-            //     \]                  - Closing bracket (for IPv6 addresses like "[::1]:8080")
-            //     |                   - OR
-            //     [\w.-]+             - Word chars, dots, or hyphens (for hostnames/IPv4)
-            //   [:]                   - Colon that precedes the port
-            //
-            // (\d+)                   - Capturing group for the port number (1+ digits)
-            //
-            // (?=[/\?#]|$)            - Positive lookahead ensures port is followed by:
-            //   /                     - Path separator OR
-            //   \?                    - Query separator OR
-            //   #                     - Fragment separator OR
-            //   $                     - End of string
-            //
-            // |                       - ALTERNATIVE PATTERN for auth-containing URIs:
-            // (?<=@[\w.-]+:)          - Positive lookbehind for auth patterns:
-            //   @                     - Auth separator
-            //   [\w.-]+               - Auth credentials (user:pass)
-            //   :                     - Colon before port
-            // \d+                     - Port number (1+ digits)
-            // (?=[/\?#]|$)            - Same lookahead as above
-            std::regex port_regex (R"((?:^|\]|[\w.-]+):(\d+)(?=[\/\?#]|$))");
-            std::smatch port_match;
+            if (input.empty())
+                return "";
 
-            // Use regex_search to find the port component in the input string
-            if (std::regex_search (input, port_match, port_regex))
+            const char* data = input.data();
+            size_t size = input.size();
+            const char* pos = data;
+            const char* end = pos + size;
+
+            // Skip protocol if present
+            if (size >= 2 && *pos == '/' && *(pos + 1) == '/')
             {
-                // Check if the port group was matched and is not empty
-                if (port_match.size () > 1 && port_match[1].matched)
+                pos += 2;
+            }
+            else
+            {
+                const char* scheme_end = data + std::min(size, static_cast<size_t>(16));
+                for (++pos; pos < scheme_end; ++pos)
                 {
-                    return port_match[1].str ();
+                    if (!isAlphaNumericASCII(*pos))
+                    {
+                        switch (*pos)
+                        {
+                        case '.':
+                        case '-':
+                        case '+':
+                            break;
+                        default:
+                            goto exloop;
+                        }
+                    }
+                }
+        exloop: if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos + 2) == '/')
+                    pos += 3;
+                else
+                    pos = data;
+            }
+
+            // Skip authentication if present (user:pass@)
+            const char* at_pos = nullptr;
+            for (const char* p = pos; p < end; ++p)
+            {
+                if (*p == '@')
+                {
+                    at_pos = p;
+                    break;
+                }
+                if (*p == '/' || *p == '?' || *p == '#')
+                    break;
+            }
+            
+            if (at_pos)
+            {
+                pos = at_pos + 1; // skip authentication part
+            }
+
+            // Handle IPv6 addresses in brackets [address]:port
+            bool is_ipv6 = false;
+            if (pos < end && *pos == '[')
+            {
+                is_ipv6 = true;
+                // Find the closing bracket
+                for (const char* p = pos + 1; p < end; ++p)
+                {
+                    if (*p == ']')
+                    {
+                        pos = p + 1; // Move past the closing bracket
+                        break;
+                    }
                 }
             }
 
-            // If no port is found, return an empty string
-            return "";
+            // Now find the port after the host
+            const char* port_start = nullptr;
+            for (const char* p = pos; p < end; ++p)
+            {
+                if (*p == ':')
+                {
+                    // For IPv6, we're already past the brackets, so any colon is the port
+                    // For regular hosts, check if this is a port (followed by digits)
+                    const char* next = p + 1;
+                    if (next < end && isNumericASCII(*next))
+                    {
+                        port_start = next;
+                        break;
+                    }
+                }
+                else if (*p == '/' || *p == '?' || *p == '#')
+                {
+                    break;
+                }
+            }
+
+            if (!port_start)
+                return "";
+
+            // Extract port digits
+            std::string port;
+            for (const char* p = port_start; p < end; ++p)
+            {
+                if (*p == '/' || *p == '?' || *p == '#')
+                    break;
+                if (!isNumericASCII(*p))
+                    return "";
+                
+                port += *p;
+            }
+            
+            return port;
         }
     } // namespace netquack
 } // namespace duckdb

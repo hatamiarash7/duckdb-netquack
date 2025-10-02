@@ -7,6 +7,10 @@ set(LOADABLE_EXTENSION_NAME ${TARGET_NAME}_loadable_extension)
 
 project(${TARGET_NAME})
 
+# Force C++17 standard for string_view support
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(EXTENSION_SOURCES ${EXTENSION_SOURCES})
 include_directories(src/include)
 file(GLOB_RECURSE EXTENSION_SOURCES src/*.cpp)

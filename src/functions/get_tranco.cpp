@@ -47,6 +47,7 @@ namespace duckdb
             }
 
             LogMessage (LogLevel::LOG_CRITICAL, "Failed to extract Tranco download code.");
+            return "";
         }
 
         // Function to download the Tranco list and create a table
@@ -155,7 +156,6 @@ namespace duckdb
         void GetTrancoRankFunction (DataChunk &args, ExpressionState &state, Vector &result)
         {
             auto &db = *state.GetContext ().db;
-            netquack::LoadPublicSuffixList (db, false);
             Connection con (db);
 
             auto table_exists = con.Query ("SELECT 1 FROM information_schema.tables WHERE table_name = 'tranco_list'");
@@ -194,7 +194,6 @@ namespace duckdb
         void GetTrancoRankCategoryFunction (DataChunk &args, ExpressionState &state, Vector &result)
         {
             auto &db = *state.GetContext ().db;
-            netquack::LoadPublicSuffixList (db, false);
             Connection con (db);
 
             auto table_exists = con.Query ("SELECT 1 FROM information_schema.tables WHERE table_name = 'tranco_list'");

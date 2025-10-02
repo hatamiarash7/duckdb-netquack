@@ -1,23 +1,15 @@
 // Copyright 2025 Arash Hatami
 
 #include "extract_domain.hpp"
-
-#include <regex>
-
-#include "../utils/utils.hpp"
+#include "../utils/url_helpers.hpp"
+#include "../utils/tld_lookup.hpp"
 
 namespace duckdb
 {
-    // Function to extract the domain from a URL
     void ExtractDomainFunction (DataChunk &args, ExpressionState &state, Vector &result)
     {
-        // Extract the input from the arguments
         auto &input_vector = args.data[0];
         auto result_data   = FlatVector::GetData<string_t> (result);
-
-        // Load the public suffix list if not already loaded
-        auto &db = *state.GetContext ().db;
-        netquack::LoadPublicSuffixList (db, false);
 
         for (idx_t i = 0; i < args.size (); i++)
         {
@@ -26,82 +18,193 @@ namespace duckdb
 
             try
             {
-                // Extract the domain using the utility function
-                auto domain    = netquack::ExtractDomain (state, input);
+                auto domain    = netquack::ExtractDomain (input);
                 result_data[i] = StringVector::AddString (result, domain);
             }
             catch (const std::exception &e)
             {
-                result_data[i] = "Error extracting domain: " + std::string (e.what ());
+                result_data[i] = StringVector::AddString (result, "Error extracting domain: " + std::string (e.what ()));
             }
         }
     }
 
     namespace netquack
     {
-        std::string ExtractDomain (ExpressionState &state, const std::string &input)
+        std::string ExtractDomain (const std::string &input)
         {
-            auto &db = *state.GetContext ().db;
-            Connection con (db);
+            if (input.empty())
+                return "";
 
-            // Extract the host from the URL
-            std::regex host_regex (R"(^(?:(?:https?|ftp|rsync):\/\/|mailto:)?((?:[^\/\?:#@]+@)?([^\/\?:#]+)))");
-            std::smatch host_match;
-            if (!std::regex_search (input, host_match, host_regex))
+            const char* data = input.data();
+            size_t size = input.size();
+
+            std::string_view host = getURLHost(data, size);
+
+            // Handle edge cases where standard URL parsing fails
+            if (host.empty())
+            {
+                // Handle mailto: URLs - extract domain from email address
+                if (input.length() > 7 && input.substr(0, 7) == "mailto:")
+                {
+                    std::string email_part = input.substr(7);
+                    size_t at_pos = email_part.find('@');
+                    if (at_pos != std::string::npos && at_pos + 1 < email_part.length())
+                    {
+                        std::string email_domain = email_part.substr(at_pos + 1);
+                        // Remove any trailing path/query/fragment
+                        size_t end_pos = email_domain.find_first_of("/?#");
+                        if (end_pos != std::string::npos)
+                        {
+                            email_domain = email_domain.substr(0, end_pos);
+                        }
+                        
+                        // Process the email domain directly
+                        std::string tld = getEffectiveTLD(email_domain);
+                        if (tld.empty())
+                        {
+                            return email_domain;
+                        }
+
+                        if (email_domain == tld)
+                        {
+                            return email_domain;
+                        }
+
+                        // Extract domain.tld from email domain
+                        if (email_domain.length() > tld.length() && 
+                            email_domain.substr(email_domain.length() - tld.length()) == tld)
+                        {
+                            size_t tld_start = email_domain.length() - tld.length();
+                            if (tld_start > 0 && email_domain[tld_start - 1] == '.')
+                            {
+                                size_t domain_start = email_domain.find_last_of('.', tld_start - 2);
+                                if (domain_start != std::string::npos)
+                                {
+                                    return email_domain.substr(domain_start + 1);
+                                }
+                                else
+                                {
+                                    return email_domain;
+                                }
+                            }
+                        }
+
+                        return email_domain;
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                }
+                else
+                {
+                    // Handle bare hostnames without URL structure
+                    bool has_protocol = input.find("://") != std::string::npos;
+                    bool has_path = input.find('/') != std::string::npos;
+                    bool has_query = input.find('?') != std::string::npos;
+                    bool has_fragment = input.find('#') != std::string::npos;
+                    
+                    if (!has_protocol && !has_path && !has_query && !has_fragment)
+                    {
+                        // Check for IPv6 addresses in brackets - these should return empty
+                        if (input.front() == '[' && input.back() == ']')
+                        {
+                            return "";
+                        }
+                        
+                        // Treat entire input as hostname, but strip port if present
+                        size_t colon_pos = input.find(':');
+                        size_t host_length = (colon_pos != std::string::npos) ? colon_pos : size;
+                        
+                        // Reject single characters as invalid hostnames
+                        if (host_length <= 1)
+                        {
+                            return "";
+                        }
+                        
+                        // Single-word hostnames: only accept valid TLDs (e.g., "com"), reject others (e.g., "localhost")
+                        std::string temp_host(data, host_length);
+                        if (temp_host.find('.') == std::string::npos)
+                        {
+                            // Check if it's a valid TLD (like "com"), if not reject (like "localhost")
+                            if (!isValidTLD(temp_host))
+                            {
+                                return "";
+                            }
+                            // If it's a valid TLD, return it directly
+                            return temp_host;
+                        }
+                        
+                        host = std::string_view(data, host_length);
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                }
+            }
+
+            // Remove trailing dot if present
+            if (host[host.size() - 1] == '.')
+                host.remove_suffix(1);
+
+            std::string host_str(host);
+            
+            // For IPv4 addresses return empty
+            const char* last_dot = find_last_symbols_or_null<'.'>(host.data(), host.data() + host.size());
+            if (last_dot && isNumericASCII(last_dot[1]))
+                return "";
+
+            // Apply public suffix algorithm to find longest matching TLD
+            std::string tld = getEffectiveTLD(host_str);
+            
+            // If no TLD found, return entire host (for cases like single words)
+            if (tld.empty())
+            {
+                return host_str;
+            }
+
+            // If the host is just the TLD, return it
+            if (host_str == tld)
+            {
+                return host_str;
+            }
+
+            // Count dots to understand structure
+            size_t dot_count = 0;
+            for (char c : host_str) {
+                if (c == '.') dot_count++;
+            }
+            
+            // If no dots, this is not a proper domain (like "localhost")
+            if (dot_count == 0)
             {
                 return "";
             }
 
-            auto host = host_match[host_match.size () - 1].str ();
-
-            // Split the host into parts
-            std::vector<std::string> parts;
-            std::istringstream stream (host);
-            std::string part;
-            while (std::getline (stream, part, '.'))
+            // Find where the TLD starts in the hostname
+            if (host_str.length() > tld.length() && 
+                host_str.substr(host_str.length() - tld.length()) == tld)
             {
-                parts.push_back (part);
-            }
-
-            // Find the longest matching public suffix
-            std::string public_suffix;
-            int public_suffix_index = -1;
-
-            for (size_t j = 0; j < parts.size (); j++)
-            {
-                // Build the candidate suffix
-                std::string candidate;
-                for (size_t k = j; k < parts.size (); k++)
+                // Check if there's a dot before the TLD
+                size_t tld_start = host_str.length() - tld.length();
+                if (tld_start > 0 && host_str[tld_start - 1] == '.')
                 {
-                    candidate += (k == j ? "" : ".") + parts[k];
-                }
-
-                // Query the public suffix list
-                auto query        = "SELECT 1 FROM public_suffix_list WHERE suffix = '" + candidate + "'";
-                auto query_result = con.Query (query);
-
-                if (query_result->RowCount () > 0)
-                {
-                    public_suffix       = candidate;
-                    public_suffix_index = j;
-                    break;
+                    // Find the domain part (one level before TLD)
+                    size_t domain_start = host_str.find_last_of('.', tld_start - 2);
+                    if (domain_start != std::string::npos)
+                    {
+                        return host_str.substr(domain_start + 1);
+                    }
+                    else
+                    {
+                        // No subdomain, return domain.tld
+                        return host_str;
+                    }
                 }
             }
 
-            // Determine the main domain
-            std::string domain;
-            if (!public_suffix.empty () && public_suffix_index > 0)
-            {
-                // Combine the part before the public suffix with the public suffix
-                domain = parts[public_suffix_index - 1] + "." + public_suffix;
-            }
-            else if (!public_suffix.empty ())
-            {
-                // No part before the suffix, use the public suffix only
-                domain = public_suffix;
-            }
-
-            return domain;
+            return host_str;
         }
     } // namespace netquack
 } // namespace duckdb
