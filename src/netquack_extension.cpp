@@ -25,7 +25,7 @@ namespace duckdb
     static void LoadInternal (ExtensionLoader &loader)
     {
         loader.SetDescription("Parsing, extracting, and analyzing domains, URIs, and paths with ease.");
-        
+
         auto netquack_extract_domain_function = ScalarFunction (
             "extract_domain",
             { LogicalType::VARCHAR },

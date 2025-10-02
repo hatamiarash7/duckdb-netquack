@@ -48,7 +48,7 @@ namespace duckdb
                 host.remove_suffix(1);
 
             std::string host_str(host);
-            
+
             // For IPv4 addresses return empty
             const char* last_dot = find_last_symbols_or_null<'.'>(host.data(), host.data() + host.size());
             if (last_dot && isNumericASCII(last_dot[1]))
@@ -68,7 +68,7 @@ namespace duckdb
             }
 
             // Find where the TLD starts in the hostname
-            if (host_str.length() > tld.length() && 
+            if (host_str.length() > tld.length() &&
                 host_str.substr(host_str.length() - tld.length()) == tld)
             {
                 // Check if there's a dot before the TLD

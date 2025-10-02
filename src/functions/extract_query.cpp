@@ -48,11 +48,11 @@ namespace duckdb
 
             // Find the fragment '#' character
             const char* fragment = find_first_symbols<'#'>(pos, end);
-            
+
             size_t query_size = fragment - pos;
             if (query_size == 0)
                 return "";
-                
+
             return std::string(pos, query_size);
         }
     } // namespace netquack

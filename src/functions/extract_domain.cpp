@@ -57,7 +57,7 @@ namespace duckdb
                         {
                             email_domain = email_domain.substr(0, end_pos);
                         }
-                        
+
                         // Process the email domain directly
                         std::string tld = getEffectiveTLD(email_domain);
                         if (tld.empty())
@@ -71,7 +71,7 @@ namespace duckdb
                         }
 
                         // Extract domain.tld from email domain
-                        if (email_domain.length() > tld.length() && 
+                        if (email_domain.length() > tld.length() &&
                             email_domain.substr(email_domain.length() - tld.length()) == tld)
                         {
                             size_t tld_start = email_domain.length() - tld.length();
@@ -103,7 +103,7 @@ namespace duckdb
                     bool has_path = input.find('/') != std::string::npos;
                     bool has_query = input.find('?') != std::string::npos;
                     bool has_fragment = input.find('#') != std::string::npos;
-                    
+
                     if (!has_protocol && !has_path && !has_query && !has_fragment)
                     {
                         // Check for IPv6 addresses in brackets - these should return empty
@@ -111,17 +111,17 @@ namespace duckdb
                         {
                             return "";
                         }
-                        
+
                         // Treat entire input as hostname, but strip port if present
                         size_t colon_pos = input.find(':');
                         size_t host_length = (colon_pos != std::string::npos) ? colon_pos : size;
-                        
+
                         // Reject single characters as invalid hostnames
                         if (host_length <= 1)
                         {
                             return "";
                         }
-                        
+
                         // Single-word hostnames: only accept valid TLDs (e.g., "com"), reject others (e.g., "localhost")
                         std::string temp_host(data, host_length);
                         if (temp_host.find('.') == std::string::npos)
@@ -134,7 +134,7 @@ namespace duckdb
                             // If it's a valid TLD, return it directly
                             return temp_host;
                         }
-                        
+
                         host = std::string_view(data, host_length);
                     }
                     else
@@ -149,7 +149,7 @@ namespace duckdb
                 host.remove_suffix(1);
 
             std::string host_str(host);
-            
+
             // For IPv4 addresses return empty
             const char* last_dot = find_last_symbols_or_null<'.'>(host.data(), host.data() + host.size());
             if (last_dot && isNumericASCII(last_dot[1]))
@@ -157,7 +157,7 @@ namespace duckdb
 
             // Apply public suffix algorithm to find longest matching TLD
             std::string tld = getEffectiveTLD(host_str);
-            
+
             // If no TLD found, return entire host (for cases like single words)
             if (tld.empty())
             {
@@ -175,7 +175,7 @@ namespace duckdb
             for (char c : host_str) {
                 if (c == '.') dot_count++;
             }
-            
+
             // If no dots, this is not a proper domain (like "localhost")
             if (dot_count == 0)
             {
@@ -183,7 +183,7 @@ namespace duckdb
             }
 
             // Find where the TLD starts in the hostname
-            if (host_str.length() > tld.length() && 
+            if (host_str.length() > tld.length() &&
                 host_str.substr(host_str.length() - tld.length()) == tld)
             {
                 // Check if there's a dot before the TLD

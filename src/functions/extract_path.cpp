@@ -60,10 +60,10 @@ namespace duckdb
             // Extract path without query string or fragment
             const char* query_string_or_fragment = find_first_symbols<'?', '#'>(pos, end);
             size_t path_size = query_string_or_fragment - pos;
-            
+
             if (path_size == 0)
                 return "/";
-                
+
             return std::string(pos, path_size);
         }
     } // namespace netquack

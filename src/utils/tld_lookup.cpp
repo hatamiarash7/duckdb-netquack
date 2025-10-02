@@ -24,16 +24,16 @@ namespace duckdb
 
             // Implement proper public suffix algorithm:
             // Find the longest matching public suffix
-            
+
             // First check if the entire hostname is a TLD
             if (isValidTLD(hostname))
             {
                 return hostname;
             }
-            
+
             // Try all possible suffixes and find the longest match
             std::string longest_tld;
-            
+
             for (size_t pos = 0; pos < hostname.length(); ++pos)
             {
                 if (hostname[pos] == '.')
@@ -49,20 +49,20 @@ namespace duckdb
                     }
                 }
             }
-            
+
             // If we found a valid TLD, return it
             if (!longest_tld.empty())
             {
                 return longest_tld;
             }
-            
+
             // If no valid TLD found, return the last part after the last dot
             size_t last_dot = hostname.find_last_of('.');
             if (last_dot != std::string::npos)
             {
                 return hostname.substr(last_dot + 1);
             }
-            
+
             // No dots, return entire hostname
             return hostname;
         }

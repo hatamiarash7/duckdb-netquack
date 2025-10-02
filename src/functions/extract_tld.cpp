@@ -49,19 +49,19 @@ namespace duckdb
                 bool has_path = input.find('/') != std::string::npos;
                 bool has_query = input.find('?') != std::string::npos;
                 bool has_fragment = input.find('#') != std::string::npos;
-                
+
                 if (!has_protocol && !has_path && !has_query && !has_fragment)
                 {
                     // Treat entire input as hostname, but strip port if present
                     size_t colon_pos = input.find(':');
                     size_t host_length = (colon_pos != std::string::npos) ? colon_pos : size;
-                    
+
                     // Reject single characters as invalid hostnames
                     if (host_length <= 1)
                     {
                         return "";
                     }
-                    
+
                     host = std::string_view(data, host_length);
                 }
                 else
@@ -75,7 +75,7 @@ namespace duckdb
                 host.remove_suffix(1);
 
             std::string host_str(host);
-            
+
             // For IPv4 addresses return empty
             const char* last_dot = find_last_symbols_or_null<'.'>(host.data(), host.data() + host.size());
             if (last_dot && isNumericASCII(last_dot[1]))
@@ -83,7 +83,7 @@ namespace duckdb
 
             // Use the proper TLD lookup to get the effective TLD
             std::string effective_tld = getEffectiveTLD(host_str);
-            
+
             // If the effective TLD is empty, try the last part
             if (effective_tld.empty())
             {
@@ -94,7 +94,7 @@ namespace duckdb
                 }
                 return host_str; // No dots, return entire string
             }
-            
+
             return effective_tld;
         }
     } // namespace netquack

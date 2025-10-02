@@ -59,7 +59,7 @@ namespace duckdb
 #endif
             curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L); // Follow redirects
             curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, write_callback);
-            
+
             if (ca_info)
             {
                 // Set the custom CA certificate bundle file

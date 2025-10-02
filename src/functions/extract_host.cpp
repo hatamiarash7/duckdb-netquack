@@ -38,7 +38,7 @@ namespace duckdb
             size_t size = input.size();
 
             std::string_view host = getURLHost(data, size);
-            
+
             return std::string(host);
         }
     } // namespace netquack

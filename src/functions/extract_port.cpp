@@ -80,7 +80,7 @@ namespace duckdb
                 if (*p == '/' || *p == '?' || *p == '#')
                     break;
             }
-            
+
             if (at_pos)
             {
                 pos = at_pos + 1; // skip authentication part
@@ -134,10 +134,10 @@ namespace duckdb
                     break;
                 if (!isNumericASCII(*p))
                     return "";
-                
+
                 port += *p;
             }
-            
+
             return port;
         }
     } // namespace netquack
