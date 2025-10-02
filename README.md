@@ -385,7 +385,7 @@ D SELECT * FROM netquack_version();
 
 ## Build Requirements
 
-- **A C++ compiler** that supports C++17 or later (e.g., `g++`, `clang++`).
+- **C++ compiler**: Needs C++17 or later (e.g., `g++`, `clang++`).
 - **gperf**: Perfect hash generation requires `gperf`.
 - **CMake**
 - **GNU Make**
