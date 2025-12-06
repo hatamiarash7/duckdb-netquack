@@ -1,0 +1,237 @@
+# name: test/sql/edge_cases.test
+# description: test netquack extension edge cases and special URLs
+# group: [netquack]
+
+require netquack
+
+# ---------------------------- Empty and whitespace ----------------------------
+
+query I
+SELECT extract_domain('');
+----
+(empty)
+
+query I
+SELECT extract_host('');
+----
+(empty)
+
+query I
+SELECT extract_tld('');
+----
+(empty)
+
+query I
+SELECT extract_path('');
+----
+/
+
+query I
+SELECT extract_schema('');
+----
+(empty)
+
+query I
+SELECT extract_port('');
+----
+(empty)
+
+# ---------------------------- Protocol-relative URLs ----------------------------
+
+query I
+SELECT extract_host('//example.com/path');
+----
+example.com
+
+query I
+SELECT extract_domain('//sub.example.com/path');
+----
+example.com
+
+query I
+SELECT extract_path('//example.com/path/to/resource');
+----
+/path/to/resource
+
+# ---------------------------- URLs with authentication ----------------------------
+
+query I
+SELECT extract_host('https://user:pass@example.com/path');
+----
+example.com
+
+query I
+SELECT extract_domain('https://user:pass@sub.example.com/path');
+----
+example.com
+
+query I
+SELECT extract_port('https://user:pass@example.com:8443/path');
+----
+8443
+
+query I
+SELECT extract_path('https://user:pass@example.com/path/to/resource');
+----
+/path/to/resource
+
+# ---------------------------- URLs with unusual ports ----------------------------
+
+query I
+SELECT extract_port('http://example.com:1');
+----
+1
+
+query I
+SELECT extract_port('http://example.com:65535');
+----
+65535
+
+query I
+SELECT extract_port('http://example.com:0');
+----
+0
+
+# ---------------------------- URLs with query strings and fragments ----------------------------
+
+query I
+SELECT extract_query_string('http://example.com?');
+----
+(empty)
+
+query I
+SELECT extract_query_string('http://example.com?a');
+----
+a
+
+query I
+SELECT extract_query_string('http://example.com?a=1&b=2&c=3');
+----
+a=1&b=2&c=3
+
+query I
+SELECT extract_query_string('http://example.com?a=1#fragment');
+----
+a=1
+
+query I
+SELECT extract_query_string('http://example.com#fragment?not=query');
+----
+(empty)
+
+# ---------------------------- File extensions ----------------------------
+
+query I
+SELECT extract_extension('/path/to/file.txt');
+----
+txt
+
+query I
+SELECT extract_extension('/path/to/file.TXT');
+----
+txt
+
+query I
+SELECT extract_extension('/path/to/file.tar.gz');
+----
+gz
+
+query I
+SELECT extract_extension('/path/to/.hidden');
+----
+(empty)
+
+query I
+SELECT extract_extension('/path/to/file');
+----
+(empty)
+
+query I
+SELECT extract_extension('/path/to/file.');
+----
+(empty)
+
+query I
+SELECT extract_extension('https://example.com/image.png?size=large');
+----
+png
+
+query I
+SELECT extract_extension('https://example.com/document.pdf#page=5');
+----
+pdf
+
+# ---------------------------- IDN and special characters ----------------------------
+
+query I
+SELECT extract_domain('https://xn--nxasmq5b.com');
+----
+xn--nxasmq5b.com
+
+# ---------------------------- Complex TLDs ----------------------------
+
+query I
+SELECT extract_tld('example.co.uk');
+----
+co.uk
+
+query I
+SELECT extract_domain('www.example.co.uk');
+----
+example.co.uk
+
+query I
+SELECT extract_subdomain('www.example.co.uk');
+----
+www
+
+query I
+SELECT extract_tld('example.com.br');
+----
+com.br
+
+query I
+SELECT extract_domain('shop.example.com.br');
+----
+example.com.br
+
+# ---------------------------- Bare domains ----------------------------
+
+query I
+SELECT extract_host('example.com');
+----
+example.com
+
+query I
+SELECT extract_domain('example.com');
+----
+example.com
+
+query I
+SELECT extract_tld('example.com');
+----
+com
+
+query I
+SELECT extract_path('example.com/path');
+----
+/path
+
+# ---------------------------- Multiple consecutive slashes ----------------------------
+
+query I
+SELECT extract_path('http://example.com//path//to//resource');
+----
+//path//to//resource
+
+# ---------------------------- URLs with encoded characters ----------------------------
+
+query I
+SELECT extract_path('http://example.com/path%20with%20spaces');
+----
+/path%20with%20spaces
+
+query I
+SELECT extract_query_string('http://example.com?name=John%20Doe');
+----
+name=John%20Doe
