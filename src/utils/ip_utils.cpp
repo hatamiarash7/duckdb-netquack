@@ -2,7 +2,10 @@
 
 #include "ip_utils.hpp"
 
-#include <regex>
+#include <array>
+#include <charconv>
+#include <stdexcept>
+#include <sstream>
 
 namespace duckdb
 {
@@ -25,14 +28,13 @@ namespace duckdb
             if (slashPos != std::string::npos)
             {
                 std::string maskStr = ipWithMask.substr (slashPos + 1);
-                try
-                {
-                    maskBits = std::stoi (maskStr);
-                }
-                catch (const std::exception &)
+                int parsed_mask = 0;
+                auto result = std::from_chars (maskStr.data (), maskStr.data () + maskStr.size (), parsed_mask);
+                if (result.ec != std::errc {} || result.ptr != maskStr.data () + maskStr.size ())
                 {
                     throw std::invalid_argument ("Invalid subnet mask. Must be a number between 0 and 32.");
                 }
+                maskBits = parsed_mask;
             }
 
             // Validate subnet mask
@@ -58,20 +60,28 @@ namespace duckdb
             info.hostsPerNet = getHostsPerNet (maskBits);
             info.ipClass     = getIPClass (ip);
 
-            if (maskBits != 32)
+            if (maskBits == 32)
+            {
+                // For /32, the IP itself is the only host (Hostroute)
+                info.network   = ip;
+                info.broadcast = "-";
+                info.hostMin   = "-";
+                info.hostMax   = "-";
+            }
+            else if (maskBits == 31)
+            {
+                // For /31, RFC 3021 point-to-point links (no broadcast)
+                info.network   = getNetworkAddress (ip, subnetMask, maskBits);
+                info.broadcast = "-";
+                info.hostMin   = getHostMinForP2P (info.network);
+                info.hostMax   = getHostMaxForP2P (info.network);
+            }
+            else
             {
                 info.network   = getNetworkAddress (ip, subnetMask, maskBits);
                 info.broadcast = getBroadcastAddress (info.network, wildcardMask);
                 info.hostMin   = getHostMin (info.network);
                 info.hostMax   = getHostMax (info.broadcast);
-            }
-            else
-            {
-                // For /32, the IP itself is the only host (Hostroute)
-                info.network   = ip;
-                info.broadcast = '-';
-                info.hostMin   = '-';
-                info.hostMax   = '-';
             }
 
             return info;
@@ -79,8 +89,38 @@ namespace duckdb
 
         bool IPCalculator::isValidInput (const std::string &input)
         {
-            static const std::regex pattern (R"((\d{1,3}\.){3}\d{1,3}(/\d{1,2})?)");
-            return std::regex_match (input, pattern);
+            if (input.empty () || input.length () > 18) // max: xxx.xxx.xxx.xxx/xx
+                return false;
+
+            size_t slashPos = input.find ('/');
+            std::string ip_part = (slashPos != std::string::npos) ? input.substr (0, slashPos) : input;
+
+            // Check basic structure
+            int dotCount = 0;
+            for (char c : ip_part)
+            {
+                if (c == '.')
+                    dotCount++;
+                else if (c < '0' || c > '9')
+                    return false;
+            }
+            if (dotCount != 3)
+                return false;
+
+            // Check mask part if present
+            if (slashPos != std::string::npos)
+            {
+                std::string mask_part = input.substr (slashPos + 1);
+                if (mask_part.empty () || mask_part.length () > 2)
+                    return false;
+                for (char c : mask_part)
+                {
+                    if (c < '0' || c > '9')
+                        return false;
+                }
+            }
+
+            return true;
         }
 
         bool IPCalculator::isValidIP (const std::string &ip)
@@ -111,6 +151,11 @@ namespace duckdb
 
         std::string IPCalculator::getSubnetMask (int maskBits)
         {
+            // Handle edge case for /0 (shifting by 32 is undefined behavior)
+            if (maskBits == 0)
+            {
+                return "0.0.0.0";
+            }
             uint32_t mask = 0xFFFFFFFF << (32 - maskBits);
             return intToIP (mask);
         }
@@ -126,7 +171,7 @@ namespace duckdb
             return wildcard;
         }
 
-        std::string IPCalculator::getNetworkAddress (const std::string &ip, const std::string &subnetMask, const int &maskBits)
+        std::string IPCalculator::getNetworkAddress (const std::string &ip, const std::string &subnetMask, int maskBits)
         {
             auto ipOctets   = parseIP (ip);
             auto maskOctets = parseIP (subnetMask);
@@ -164,11 +209,29 @@ namespace duckdb
             return intToIP (octets);
         }
 
-        int IPCalculator::getHostsPerNet (int maskBits)
+        std::string IPCalculator::getHostMinForP2P (const std::string &networkAddress)
+        {
+            // For /31 networks (RFC 3021), return the network address itself
+            auto octets = parseIP (networkAddress);
+            return intToIP (octets);
+        }
+
+        std::string IPCalculator::getHostMaxForP2P (const std::string &networkAddress)
+        {
+            // For /31 networks (RFC 3021), return network + 1
+            auto octets = parseIP (networkAddress);
+            octets[3] += 1;
+            return intToIP (octets);
+        }
+
+        int64_t IPCalculator::getHostsPerNet (int maskBits)
         {
             if (maskBits == 32)
                 return 1; // Special case for /32
-            return (1 << (32 - maskBits)) - 2;
+            if (maskBits == 31)
+                return 2; // RFC 3021 point-to-point links
+            // Use 64-bit arithmetic to avoid overflow for small masks like /0, /1
+            return (1LL << (32 - maskBits)) - 2;
         }
 
         std::string IPCalculator::getIPClass (const std::string &ip)
@@ -176,6 +239,8 @@ namespace duckdb
             auto octets    = parseIP (ip);
             int firstOctet = octets[0];
 
+            if (firstOctet == 0)
+                return "E"; // 0.x.x.x is reserved
             if (firstOctet >= 1 && firstOctet <= 126)
                 return "A";
             if (firstOctet == 127)
