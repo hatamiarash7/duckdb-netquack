@@ -20,6 +20,8 @@ Table of Contents
     - [Extracting The Host](#extracting-the-host)
     - [Extracting The Schema](#extracting-the-schema)
     - [Extracting The Query](#extracting-the-query)
+      - [Query String](#query-string)
+      - [Query Parameters](#query-parameters)
     - [Extracting The Port](#extracting-the-port)
     - [Extracting The File Extension](#extracting-the-file-extension)
     - [Extracting The TLD (Top-Level Domain)](#extracting-the-tld-top-level-domain)
@@ -161,7 +163,9 @@ D SELECT extract_schema('tel:+123456789') AS schema;
 
 ### Extracting The Query
 
-This function extracts the query string from a URL.
+#### Query String
+
+The `extract_query_string` function extracts the query string from a URL as a single string.
 
 ```sql
 D SELECT extract_query_string('example.com?key=value') AS query;
@@ -179,6 +183,31 @@ D SELECT extract_query_string('http://example.com.ac/path/?a=1&b=2') AS query;
 ├─────────┤
 │ a=1&b=2 │
 └─────────┘
+```
+
+#### Query Parameters
+
+The `extract_query_parameters` table function parses the query string and returns each key-value pair as a separate row. This is useful for analyzing URL parameters in a structured way.
+
+```sql
+D SELECT * FROM extract_query_parameters('http://example.com/path/?a=1&b=2');
+┌─────────┬─────────┐
+│   key   │  value  │
+│ varchar │ varchar │
+├─────────┼─────────┤
+│ a       │ 1       │
+│ b       │ 2       │
+└─────────┴─────────┘
+
+D SELECT * FROM extract_query_parameters('https://example.com/search?q=duckdb&hl=en&num=10');
+┌─────────┬─────────┐
+│   key   │  value  │
+│ varchar │ varchar │
+├─────────┼─────────┤
+│ q       │ duckdb  │
+│ hl      │ en      │
+│ num     │ 10      │
+└─────────┴─────────┘
 ```
 
 ### Extracting The Port
@@ -406,7 +435,6 @@ Also, there will be stdout errors for background tasks like CURL.
 
 ## Roadmap 🗺️
 
-- [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
 - [ ] Implement `extract_custom_format` function
 - [ ] Implement `parse_uri` function
 - [ ] Save Tranco data as Parquet

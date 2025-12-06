@@ -1,0 +1,231 @@
+# name: test/sql/extract_query_parameters.test
+# group: [netquack]
+
+require netquack
+
+# ---------------------------- Basic functionality ----------------------------
+
+# Single parameter
+query II
+SELECT * FROM extract_query_parameters('http://example.com?a=1');
+----
+a	1
+
+# Multiple parameters
+query II
+SELECT * FROM extract_query_parameters('http://example.com?a=1&b=2');
+----
+a	1
+b	2
+
+# Three parameters
+query II
+SELECT * FROM extract_query_parameters('http://example.com?a=1&b=2&c=3');
+----
+a	1
+b	2
+c	3
+
+# URL with path before query
+query II
+SELECT * FROM extract_query_parameters('http://example.com/path/to/page?key=value');
+----
+key	value
+
+# URL with path and multiple parameters
+query II
+SELECT * FROM extract_query_parameters('http://example.com.ac/path/?a=1&b=2');
+----
+a	1
+b	2
+
+# ---------------------------- Edge cases ----------------------------
+
+# No query string - should return empty result
+query II
+SELECT * FROM extract_query_parameters('http://example.com');
+----
+
+# Empty query string (just ?)
+query II
+SELECT * FROM extract_query_parameters('http://example.com?');
+----
+
+# Query string without URL scheme
+query II
+SELECT * FROM extract_query_parameters('example.com?foo=bar');
+----
+foo	bar
+
+# Parameter without value (empty value)
+query II
+SELECT * FROM extract_query_parameters('http://example.com?key=');
+----
+key	(empty)
+
+# Parameter without equals sign (key only, no value)
+query II
+SELECT * FROM extract_query_parameters('http://example.com?key');
+----
+key	(empty)
+
+# Mixed: some with values, some without
+query II
+SELECT * FROM extract_query_parameters('http://example.com?a=1&b&c=3');
+----
+a	1
+b	(empty)
+c	3
+
+# Empty key with value (skipped - empty keys are invalid)
+query II
+SELECT * FROM extract_query_parameters('http://example.com?=value');
+----
+
+# Multiple equals signs in value
+query II
+SELECT * FROM extract_query_parameters('http://example.com?equation=a=b=c');
+----
+equation	a=b=c
+
+# ---------------------------- Special characters ----------------------------
+
+# URL encoded spaces (%20)
+query II
+SELECT * FROM extract_query_parameters('http://example.com?name=John%20Doe');
+----
+name	John%20Doe
+
+# Plus sign (often used for spaces)
+query II
+SELECT * FROM extract_query_parameters('http://example.com?name=John+Doe');
+----
+name	John+Doe
+
+# Special characters in value
+query II
+SELECT * FROM extract_query_parameters('http://example.com?url=https://other.com');
+----
+url	https://other.com
+
+# Ampersand at the end (trailing)
+query II
+SELECT * FROM extract_query_parameters('http://example.com?a=1&');
+----
+a	1
+
+# Multiple ampersands (empty parameters)
+query II
+SELECT * FROM extract_query_parameters('http://example.com?a=1&&b=2');
+----
+a	1
+b	2
+
+# ---------------------------- Fragment handling ----------------------------
+
+# Query string with fragment (fragment should be excluded)
+query II
+SELECT * FROM extract_query_parameters('http://example.com?a=1#section');
+----
+a	1
+
+# Multiple parameters with fragment
+query II
+SELECT * FROM extract_query_parameters('http://example.com?a=1&b=2#section');
+----
+a	1
+b	2
+
+# Fragment before query (no query string - RFC compliant)
+query II
+SELECT * FROM extract_query_parameters('http://example.com#section?a=1');
+----
+
+# ---------------------------- Complex URLs ----------------------------
+
+# URL with port
+query II
+SELECT * FROM extract_query_parameters('http://example.com:8080?debug=true');
+----
+debug	true
+
+# URL with authentication
+query II
+SELECT * FROM extract_query_parameters('http://user:pass@example.com?token=abc');
+----
+token	abc
+
+# HTTPS URL
+query II
+SELECT * FROM extract_query_parameters('https://secure.example.com/api?key=secret&format=json');
+----
+key	secret
+format	json
+
+# File URL
+query II
+SELECT * FROM extract_query_parameters('file:///path/to/file?param=value');
+----
+param	value
+
+# ---------------------------- Real-world examples ----------------------------
+
+# Google search-like query
+query II
+SELECT * FROM extract_query_parameters('https://www.google.com/search?q=duckdb&hl=en&num=10');
+----
+q	duckdb
+hl	en
+num	10
+
+# YouTube-like video URL
+query II
+SELECT * FROM extract_query_parameters('https://www.youtube.com/watch?v=abc123&t=120');
+----
+v	abc123
+t	120
+
+# Pagination parameters
+query II
+SELECT * FROM extract_query_parameters('https://api.example.com/users?page=2&limit=50&sort=name');
+----
+page	2
+limit	50
+sort	name
+
+# OAuth-like callback
+query II
+SELECT * FROM extract_query_parameters('https://app.example.com/callback?code=auth_code_123&state=xyz');
+----
+code	auth_code_123
+state	xyz
+
+# ---------------------------- NULL handling ----------------------------
+
+# NULL input should return empty
+query II
+SELECT * FROM extract_query_parameters(NULL);
+----
+
+# ---------------------------- Using with literal values ----------------------------
+
+# Note: This table function only supports literal parameters, not column references.
+# For column-based processing, use extract_query_string() with string functions.
+
+statement ok
+CREATE TABLE urls (id INTEGER, url VARCHAR);
+
+statement ok
+INSERT INTO urls VALUES 
+    (1, 'http://example.com?a=1&b=2'),
+    (2, 'http://test.com?x=10'),
+    (3, 'http://noquery.com');
+
+# Verify table was created
+query I
+SELECT COUNT(*) FROM urls;
+----
+3
+
+statement ok
+DROP TABLE urls;

@@ -61,6 +61,15 @@ namespace duckdb
             ExtractQueryStringFunction);
         loader.RegisterFunction (netquack_extract_query_string_function);
 
+        auto extract_query_parameters_function = TableFunction (
+            "extract_query_parameters",
+            { LogicalType::VARCHAR },
+            netquack::ExtractQueryParametersFunc::Scan,
+            netquack::ExtractQueryParametersFunc::Bind,
+            netquack::ExtractQueryParametersFunc::InitGlobal,
+            netquack::ExtractQueryParametersFunc::InitLocal);
+        loader.RegisterFunction (extract_query_parameters_function);
+
         auto netquack_extract_tld_function = ScalarFunction (
             "extract_tld",
             { LogicalType::VARCHAR },
