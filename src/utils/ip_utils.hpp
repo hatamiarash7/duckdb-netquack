@@ -4,6 +4,10 @@
 
 #include "duckdb.hpp"
 
+#include <array>
+#include <cstdint>
+#include <string>
+
 namespace duckdb
 {
     namespace netquack
@@ -17,7 +21,7 @@ namespace duckdb
             std::string hostMin;
             std::string hostMax;
             std::string broadcast;
-            int hostsPerNet;
+            int64_t hostsPerNet;
             std::string ipClass;
         };
 
@@ -32,11 +36,13 @@ namespace duckdb
             static std::array<int, 4> parseIP (const std::string &ip);
             static std::string getSubnetMask (int maskBits);
             static std::string getWildcardMask (const std::string &subnetMask);
-            static std::string getNetworkAddress (const std::string &ip, const std::string &subnetMask, const int &maskBits);
+            static std::string getNetworkAddress (const std::string &ip, const std::string &subnetMask, int maskBits);
             static std::string getBroadcastAddress (const std::string &networkAddress, const std::string &wildcardMask);
             static std::string getHostMin (const std::string &networkAddress);
             static std::string getHostMax (const std::string &broadcastAddress);
-            static int getHostsPerNet (int maskBits);
+            static std::string getHostMinForP2P (const std::string &networkAddress);
+            static std::string getHostMaxForP2P (const std::string &networkAddress);
+            static int64_t getHostsPerNet (int maskBits);
             static std::string getIPClass (const std::string &ip);
             static std::string intToIP (uint32_t ip);
             static std::string intToIP (const std::array<int, 4> &octets);
