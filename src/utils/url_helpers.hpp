@@ -11,23 +11,23 @@ namespace duckdb
     {
         using Pos = const char *;
 
-        inline bool isAlphaNumericASCII(char c)
+        constexpr inline bool isAlphaNumericASCII(char c) noexcept
         {
             return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
         }
 
-        inline bool isAlphaASCII(char c)
+        constexpr inline bool isAlphaASCII(char c) noexcept
         {
             return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
         }
 
-        inline bool isNumericASCII(char c)
+        constexpr inline bool isNumericASCII(char c) noexcept
         {
             return (c >= '0' && c <= '9');
         }
 
         template<char symbol>
-        inline Pos find_first_symbols(Pos begin, Pos end)
+        inline Pos find_first_symbols(Pos begin, Pos end) noexcept
         {
             for (Pos pos = begin; pos < end; ++pos)
             {
@@ -38,7 +38,7 @@ namespace duckdb
         }
 
         template<char symbol1, char symbol2>
-        inline Pos find_first_symbols(Pos begin, Pos end)
+        inline Pos find_first_symbols(Pos begin, Pos end) noexcept
         {
             for (Pos pos = begin; pos < end; ++pos)
             {
@@ -49,7 +49,7 @@ namespace duckdb
         }
 
         template<char symbol>
-        inline Pos find_last_symbols_or_null(Pos begin, Pos end)
+        inline Pos find_last_symbols_or_null(Pos begin, Pos end) noexcept
         {
             for (Pos pos = end - 1; pos >= begin; --pos)
             {
@@ -153,13 +153,33 @@ namespace duckdb
                 case '.':
                     dot_pos = pos;
                     break;
-                case ':': // end symbols
+                case ':':
+                    // Check if this is userinfo (user:pass@host) or host:port
+                    // Look ahead for @ to determine if we're in userinfo
+                    {
+                        Pos lookahead = pos + 1;
+                        while (lookahead < end && *lookahead != '/' && *lookahead != '?' && *lookahead != '#')
+                        {
+                            if (*lookahead == '@')
+                            {
+                                // This colon is in userinfo, skip to after @
+                                pos = lookahead;
+                                start_of_host = lookahead + 1;
+                                dot_pos = nullptr;
+                                goto continue_loop;
+                            }
+                            ++lookahead;
+                        }
+                    }
+                    // No @ found, this is host:port - return host
+                    return checkAndReturnHost(pos, dot_pos, start_of_host);
                 case '/':
                 case '?':
                 case '#':
                     return checkAndReturnHost(pos, dot_pos, start_of_host);
-                case '@': // Handle user:pass@host format
+                case '@': // Handle user@host format (no password)
                     start_of_host = pos + 1;
+                    dot_pos = nullptr; // Reset dot_pos since any previous dots were in userinfo
                     break;
                 case ' ': // restricted symbols in whole URL
                 case '\t':
@@ -179,6 +199,7 @@ namespace duckdb
                 case '&':
                     return std::string_view{};
                 }
+                continue_loop:;
             }
 
             return checkAndReturnHost(pos, dot_pos, start_of_host);

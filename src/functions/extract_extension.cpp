@@ -9,10 +9,18 @@ namespace duckdb
     {
         auto &input_vector = args.data[0];
         auto result_data   = FlatVector::GetData<string_t> (result);
+        auto &result_validity = FlatVector::Validity (result);
 
         for (idx_t i = 0; i < args.size (); i++)
         {
-            auto input = input_vector.GetValue (i).ToString ();
+            auto value = input_vector.GetValue (i);
+            if (value.IsNull ())
+            {
+                result_validity.SetInvalid (i);
+                continue;
+            }
+
+            auto input = value.ToString ();
             std::transform (input.begin (), input.end (), input.begin (), ::tolower);
 
             try
@@ -24,7 +32,7 @@ namespace duckdb
             {
                 result_data[i] = StringVector::AddString (result, "Error extracting extension: " + std::string (e.what ()));
             }
-        };
+        }
     }
 
     namespace netquack

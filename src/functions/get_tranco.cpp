@@ -64,12 +64,18 @@ namespace duckdb
             // Construct the file name
             std::string temp_file = "tranco_list_" + std::string (date) + ".csv";
 
+            // Check if file exists before download
+            bool file_exists = false;
+            {
+                std::ifstream check_file (temp_file);
+                file_exists = check_file.good ();
+            }
+
             // Download the file if it doesn't exist or if force is true
-            std::ifstream file (temp_file);
             if (force)
             {
                 // Remove the old file if it exists
-                if (file.good ())
+                if (file_exists)
                 {
                     remove (temp_file.c_str ());
                 }
@@ -84,18 +90,18 @@ namespace duckdb
                 // Download the CSV file to a temporary file
                 CURL *curl = CreateCurlHandler (WriteFileCallback);
                 CURLcode res;
-                FILE *file = fopen (temp_file.c_str (), "wb");
-                if (!file)
+                FILE *download_file = fopen (temp_file.c_str (), "wb");
+                if (!download_file)
                 {
                     curl_easy_cleanup (curl);
                     LogMessage (LogLevel::LOG_CRITICAL, "Failed to create temporary file for Tranco list.");
                 }
 
                 curl_easy_setopt (curl, CURLOPT_URL, download_url.c_str ());
-                curl_easy_setopt (curl, CURLOPT_WRITEDATA, file);
+                curl_easy_setopt (curl, CURLOPT_WRITEDATA, download_file);
                 res = curl_easy_perform (curl);
                 curl_easy_cleanup (curl);
-                fclose (file);
+                fclose (download_file);
 
                 if (res != CURLE_OK)
                 {
@@ -103,9 +109,11 @@ namespace duckdb
                     LogMessage (LogLevel::LOG_ERROR, std::string (curl_easy_strerror (res)));
                     LogMessage (LogLevel::LOG_CRITICAL, "Failed to download Tranco list. Check logs for details.");
                 }
+
+                file_exists = true;
             }
 
-            if (!file.good ())
+            if (!file_exists)
             {
                 LogMessage (LogLevel::LOG_CRITICAL, "Tranco list `" + temp_file + "` not found. Download it first using `SELECT update_tranco(true);`");
             }
@@ -159,8 +167,9 @@ namespace duckdb
             Connection con (db);
 
             auto table_exists = con.Query ("SELECT 1 FROM information_schema.tables WHERE table_name = 'tranco_list'");
+            auto check_chunk = table_exists->Fetch ();
 
-            if (table_exists->RowCount () == 0)
+            if (!check_chunk || check_chunk->size () == 0)
             {
                 LogMessage (LogLevel::LOG_CRITICAL, "Tranco table not found. Download it first using `SELECT update_tranco(true);`");
             }
@@ -168,24 +177,46 @@ namespace duckdb
             // Extract the input from the arguments
             auto &input_vector = args.data[0];
             auto result_data   = FlatVector::GetData<string_t> (result);
+            auto &result_validity = FlatVector::Validity (result);
 
             for (idx_t i = 0; i < args.size (); i++)
             {
-                auto input = input_vector.GetValue (i).ToString ();
+                auto value = input_vector.GetValue (i);
+                if (value.IsNull ())
+                {
+                    result_validity.SetInvalid (i);
+                    continue;
+                }
+
+                auto input = value.ToString ();
                 std::transform (input.begin (), input.end (), input.begin (), ::tolower);
 
                 try
                 {
-                    auto query = "SELECT rank FROM tranco_list WHERE domain = '" + input + "'";
+                    auto prepared = con.Prepare ("SELECT rank FROM tranco_list WHERE domain = $1");
+                    auto query_result = prepared->Execute (input);
 
-                    auto query_result = con.Query (query);
-                    auto rank         = query_result->RowCount () > 0 ? query_result->GetValue (0, 0) : Value ();
+                    if (query_result->HasError ())
+                    {
+                        result_validity.SetInvalid (i);
+                        continue;
+                    }
 
-                    result_data[i] = StringVector::AddString (result, rank.ToString ());
+                    auto chunk = query_result->Fetch ();
+                    if (chunk && chunk->size () > 0)
+                    {
+                        auto rank = chunk->GetValue (0, 0);
+                        result_data[i] = StringVector::AddString (result, rank.ToString ());
+                    }
+                    else
+                    {
+                        // Domain not found - return NULL
+                        result_validity.SetInvalid (i);
+                    }
                 }
                 catch (const std::exception &e)
                 {
-                    result_data[i] = "Error extracting tranco rank: " + std::string (e.what ());
+                    result_data[i] = StringVector::AddString (result, "Error extracting tranco rank: " + std::string (e.what ()));
                 }
             }
         }
@@ -197,8 +228,9 @@ namespace duckdb
             Connection con (db);
 
             auto table_exists = con.Query ("SELECT 1 FROM information_schema.tables WHERE table_name = 'tranco_list'");
+            auto chunk = table_exists->Fetch ();
 
-            if (table_exists->RowCount () == 0)
+            if (!chunk || chunk->size () == 0)
             {
                 LogMessage (LogLevel::LOG_CRITICAL, "Tranco table not found. Download it first using `SELECT update_tranco(true);`");
             }
@@ -206,24 +238,46 @@ namespace duckdb
             // Extract the input from the arguments
             auto &input_vector = args.data[0];
             auto result_data   = FlatVector::GetData<string_t> (result);
+            auto &result_validity = FlatVector::Validity (result);
 
             for (idx_t i = 0; i < args.size (); i++)
             {
-                auto input = input_vector.GetValue (i).ToString ();
+                auto value = input_vector.GetValue (i);
+                if (value.IsNull ())
+                {
+                    result_validity.SetInvalid (i);
+                    continue;
+                }
+
+                auto input = value.ToString ();
                 std::transform (input.begin (), input.end (), input.begin (), ::tolower);
 
                 try
                 {
-                    auto query = "SELECT category FROM tranco_list WHERE domain = '" + input + "'";
+                    auto prepared = con.Prepare ("SELECT category FROM tranco_list WHERE domain = $1");
+                    auto query_result = prepared->Execute (input);
 
-                    auto query_result = con.Query (query);
-                    auto category     = query_result->RowCount () > 0 ? query_result->GetValue (0, 0) : Value ();
+                    if (query_result->HasError ())
+                    {
+                        result_validity.SetInvalid (i);
+                        continue;
+                    }
 
-                    result_data[i] = StringVector::AddString (result, category.ToString ());
+                    auto result_chunk = query_result->Fetch ();
+                    if (result_chunk && result_chunk->size () > 0)
+                    {
+                        auto category = result_chunk->GetValue (0, 0);
+                        result_data[i] = StringVector::AddString (result, category.ToString ());
+                    }
+                    else
+                    {
+                        // Domain not found - return NULL
+                        result_validity.SetInvalid (i);
+                    }
                 }
                 catch (const std::exception &e)
                 {
-                    result_data[i] = "Error extracting tranco category: " + std::string (e.what ());
+                    result_data[i] = StringVector::AddString (result, "Error extracting tranco category: " + std::string (e.what ()));
                 }
             }
         }

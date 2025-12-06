@@ -9,10 +9,18 @@ namespace duckdb
     {
         auto &input_vector = args.data[0];
         auto result_data   = FlatVector::GetData<string_t> (result);
+        auto &result_validity = FlatVector::Validity (result);
 
         for (idx_t i = 0; i < args.size (); i++)
         {
-            auto input = input_vector.GetValue (i).ToString ();
+            auto value = input_vector.GetValue (i);
+            if (value.IsNull ())
+            {
+                result_validity.SetInvalid (i);
+                continue;
+            }
+
+            auto input = value.ToString ();
 
             try
             {
@@ -23,7 +31,7 @@ namespace duckdb
             {
                 result_data[i] = StringVector::AddString (result, "Error extracting query string: " + std::string (e.what ()));
             }
-        };
+        }
     }
 
     namespace netquack
@@ -39,21 +47,27 @@ namespace duckdb
             const char* end = pos + size;
 
             // Find the '?' character
-            pos = find_first_symbols<'?'>(pos, end);
-            if (pos == end)
+            const char* query_start = find_first_symbols<'?'>(pos, end);
+            if (query_start == end)
+                return "";
+
+            // Find the fragment '#' character - must check from beginning
+            const char* fragment = find_first_symbols<'#'>(pos, end);
+
+            // If '#' comes before '?', then '?' is part of fragment, not query
+            if (fragment < query_start)
                 return "";
 
             // Skip the '?' character
-            ++pos;
+            ++query_start;
 
-            // Find the fragment '#' character
-            const char* fragment = find_first_symbols<'#'>(pos, end);
-
-            size_t query_size = fragment - pos;
+            // Calculate query size (up to fragment or end)
+            const char* query_end = (fragment != end) ? fragment : end;
+            size_t query_size = query_end - query_start;
             if (query_size == 0)
                 return "";
 
-            return std::string(pos, query_size);
+            return std::string(query_start, query_size);
         }
     } // namespace netquack
 } // namespace duckdb

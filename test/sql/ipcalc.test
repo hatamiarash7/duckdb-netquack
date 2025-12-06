@@ -7,6 +7,7 @@ require netquack
 statement ok
 CREATE OR REPLACE TABLE ips AS SELECT '127.0.0.1' AS ip UNION ALL SELECT '192.168.1.0/22';
 
+# Basic tests
 query IIIIIIIII
 SELECT * FROM ipcalc('127.0.0.1');
 ----
@@ -32,9 +33,78 @@ SELECT * FROM ipcalc('192.168.1.1/16');
 ----
 192.168.1.1	255.255.0.0	0.0.255.255	192.168.0.0/16	192.168.0.1	192.168.255.254	192.168.255.255	65534	C
 
+# Test Class A address
+query IIIIIIIII
+SELECT * FROM ipcalc('10.0.0.1/8');
+----
+10.0.0.1	255.0.0.0	0.255.255.255	10.0.0.0/8	10.0.0.1	10.255.255.254	10.255.255.255	16777214	A
+
+# Test Class B address
+query IIIIIIIII
+SELECT * FROM ipcalc('172.16.0.1/12');
+----
+172.16.0.1	255.240.0.0	0.15.255.255	172.16.0.0/12	172.16.0.1	172.31.255.254	172.31.255.255	1048574	B
+
+# Test Class D (Multicast) address
+query IIIIIIIII
+SELECT * FROM ipcalc('224.0.0.1/24');
+----
+224.0.0.1	255.255.255.0	0.0.0.255	224.0.0.0/24	224.0.0.1	224.0.0.254	224.0.0.255	254	D
+
+# Test Class E address
+query IIIIIIIII
+SELECT * FROM ipcalc('240.0.0.1/24');
+----
+240.0.0.1	255.255.255.0	0.0.0.255	240.0.0.0/24	240.0.0.1	240.0.0.254	240.0.0.255	254	E
+
+# Test /31 point-to-point link (RFC 3021)
+query IIIIIIIII
+SELECT * FROM ipcalc('192.168.1.0/31');
+----
+192.168.1.0	255.255.255.254	0.0.0.1	192.168.1.0/31	192.168.1.0	192.168.1.1	-	2	C
+
+# Test /30 network (smallest usable subnet)
+query IIIIIIIII
+SELECT * FROM ipcalc('192.168.1.0/30');
+----
+192.168.1.0	255.255.255.252	0.0.0.3	192.168.1.0/30	192.168.1.1	192.168.1.2	192.168.1.3	2	C
+
+# Test /0 network (entire Internet)
+query IIIIIIIII
+SELECT * FROM ipcalc('0.0.0.0/0');
+----
+0.0.0.0	0.0.0.0	255.255.255.255	0.0.0.0/0	0.0.0.1	255.255.255.254	255.255.255.255	4294967294	E
+
+# Error cases
+statement error
+SELECT * FROM ipcalc('invalid');
+----
+Invalid input format
+
+statement error
+SELECT * FROM ipcalc('256.256.256.256');
+----
+Invalid IP address
+
+statement error
+SELECT * FROM ipcalc('192.168.1.1/33');
+----
+Subnet mask must be between 0 and 32
+
+statement error
+SELECT * FROM ipcalc('192.168.1.1/-1');
+----
+Invalid input format
+
+statement error
+SELECT * FROM ipcalc('');
+----
+Invalid input format
+
 # TODO: There is a problem with this test for DuckDB CI. Need to investigate further.
 # query II
 # SELECT i.IP, ( SELECT hostsPerNet FROM ipcalc(i.IP) ) AS hostsPerNet FROM ips AS i;
 # ----
 # 127.0.0.1	254
 # 192.168.1.0/22	1022
+

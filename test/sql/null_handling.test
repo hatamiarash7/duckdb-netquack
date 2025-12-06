@@ -1,0 +1,109 @@
+# name: test/sql/null_handling.test
+# description: test netquack extension NULL handling for all functions
+# group: [netquack]
+
+require netquack
+
+# Test NULL handling for extract_domain
+query I
+SELECT extract_domain(NULL);
+----
+NULL
+
+# Test NULL handling for extract_tld
+query I
+SELECT extract_tld(NULL);
+----
+NULL
+
+# Test NULL handling for extract_subdomain
+query I
+SELECT extract_subdomain(NULL);
+----
+NULL
+
+# Test NULL handling for extract_host
+query I
+SELECT extract_host(NULL);
+----
+NULL
+
+# Test NULL handling for extract_path
+query I
+SELECT extract_path(NULL);
+----
+NULL
+
+# Test NULL handling for extract_schema
+query I
+SELECT extract_schema(NULL);
+----
+NULL
+
+# Test NULL handling for extract_port
+query I
+SELECT extract_port(NULL);
+----
+NULL
+
+# Test NULL handling for extract_query_string
+query I
+SELECT extract_query_string(NULL);
+----
+NULL
+
+# Test NULL handling for extract_extension
+query I
+SELECT extract_extension(NULL);
+----
+NULL
+
+# Test NULL values in a table
+statement ok
+CREATE TABLE test_nulls (url VARCHAR);
+
+statement ok
+INSERT INTO test_nulls VALUES (NULL), ('https://example.com'), (NULL), ('http://test.org/path');
+
+query I
+SELECT extract_domain(url) FROM test_nulls;
+----
+NULL
+example.com
+NULL
+test.org
+
+query I
+SELECT extract_tld(url) FROM test_nulls;
+----
+NULL
+com
+NULL
+org
+
+query I
+SELECT extract_host(url) FROM test_nulls;
+----
+NULL
+example.com
+NULL
+test.org
+
+query I
+SELECT extract_path(url) FROM test_nulls;
+----
+NULL
+/
+NULL
+/path
+
+query I
+SELECT extract_schema(url) FROM test_nulls;
+----
+NULL
+https
+NULL
+http
+
+statement ok
+DROP TABLE test_nulls;
