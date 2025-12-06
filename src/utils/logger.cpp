@@ -5,11 +5,15 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 
 namespace duckdb
 {
     namespace netquack
     {
+        // Thread-safe mutex for logging
+        static std::mutex log_mutex;
+
         LogLevel getLogLevelFromEnv ()
         {
             const char *env_level = std::getenv ("LOG_LEVEL");
@@ -38,9 +42,14 @@ namespace duckdb
         std::string getCurrentTimestamp ()
         {
             auto now = std::time (nullptr);
-            auto tm  = *std::localtime (&now);
+            std::tm tm_buf{};
+#ifdef _WIN32
+            localtime_s (&tm_buf, &now);
+#else
+            localtime_r (&now, &tm_buf);
+#endif
             std::ostringstream oss;
-            oss << std::put_time (&tm, "%Y-%m-%d %H:%M:%S");
+            oss << std::put_time (&tm_buf, "%Y-%m-%d %H:%M:%S");
             return oss.str ();
         }
 
@@ -64,16 +73,16 @@ namespace duckdb
             case LogLevel::LOG_CRITICAL: level_str = "CRITICAL"; break;
             }
 
-            std::ofstream log_file ("netquack.log", std::ios_base::app);
-            if (!log_file.is_open ())
-            {
-                std::cerr << "Failed to open log file!" << std::endl;
-                return;
-            }
+            // Lock for thread safety
+            std::lock_guard<std::mutex> lock (log_mutex);
 
-            log_file << "[" << getCurrentTimestamp () << "] "
-                     << level_str << " - "
-                     << message << std::endl;
+            std::ofstream log_file ("netquack.log", std::ios_base::app);
+            if (log_file.is_open ())
+            {
+                log_file << "[" << getCurrentTimestamp () << "] "
+                         << level_str << " - "
+                         << message << std::endl;
+            }
 
             // Also output to stderr for error levels
             if (level >= LogLevel::LOG_ERROR)
