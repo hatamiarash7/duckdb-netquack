@@ -172,13 +172,13 @@ D SELECT extract_query_string('example.com?key=value') AS query;
 │ key=value │
 └───────────┘
 
-D SELECT extract_query_string('http://example.com.ac/path/?a=1&b=2&') AS query;
-┌──────────┐
-│  query   │
-│ varchar  │
-├──────────┤
-│ a=1&b=2& │
-└──────────┘
+D SELECT extract_query_string('http://example.com.ac/path/?a=1&b=2') AS query;
+┌─────────┐
+│  query  │
+│ varchar │
+├─────────┤
+│ a=1&b=2 │
+└─────────┘
 ```
 
 ### Extracting The Port
