@@ -66,14 +66,13 @@ namespace duckdb
 
         OperatorResultType IPCalcFunc::Function (ExecutionContext &context, TableFunctionInput &data_p, DataChunk &input, DataChunk &output)
         {
+            auto &local_state = data_p.local_state->Cast<IPCalcLocalState> ();
+
             // Check done
-            if (((IPCalcLocalState &)*data_p.local_state).done)
+            if (local_state.done)
             {
                 return OperatorResultType::NEED_MORE_INPUT;
             }
-
-            auto &data        = data_p.bind_data->Cast<IPCalcData> ();
-            auto &local_state = (IPCalcLocalState &)*data_p.local_state;
 
             auto ip = input.data[0].GetValue (0).GetValue<string> ();
 
