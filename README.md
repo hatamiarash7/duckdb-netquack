@@ -43,6 +43,7 @@ Table of Contents
 **netquack** is distributed as a [DuckDB Community Extension](https://duckdb.org/community_extensions/) and can be installed using SQL:
 
 ```sql
+SET allow_community_extensions = true;
 INSTALL netquack FROM community;
 LOAD netquack;
 ```
