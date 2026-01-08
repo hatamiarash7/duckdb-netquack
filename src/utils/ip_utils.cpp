@@ -4,8 +4,8 @@
 
 #include <array>
 #include <charconv>
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
 
 namespace duckdb
 {
@@ -28,9 +28,9 @@ namespace duckdb
             if (slashPos != std::string::npos)
             {
                 std::string maskStr = ipWithMask.substr (slashPos + 1);
-                int parsed_mask = 0;
-                auto result = std::from_chars (maskStr.data (), maskStr.data () + maskStr.size (), parsed_mask);
-                if (result.ec != std::errc {} || result.ptr != maskStr.data () + maskStr.size ())
+                int parsed_mask     = 0;
+                auto result         = std::from_chars (maskStr.data (), maskStr.data () + maskStr.size (), parsed_mask);
+                if (result.ec != std::errc{} || result.ptr != maskStr.data () + maskStr.size ())
                 {
                     throw std::invalid_argument ("Invalid subnet mask. Must be a number between 0 and 32.");
                 }
@@ -90,9 +90,11 @@ namespace duckdb
         bool IPCalculator::isValidInput (const std::string &input)
         {
             if (input.empty () || input.length () > 18) // max: xxx.xxx.xxx.xxx/xx
+            {
                 return false;
+            }
 
-            size_t slashPos = input.find ('/');
+            size_t slashPos     = input.find ('/');
             std::string ip_part = (slashPos != std::string::npos) ? input.substr (0, slashPos) : input;
 
             // Check basic structure
@@ -100,23 +102,33 @@ namespace duckdb
             for (char c : ip_part)
             {
                 if (c == '.')
+                {
                     dotCount++;
+                }
                 else if (c < '0' || c > '9')
+                {
                     return false;
+                }
             }
             if (dotCount != 3)
+            {
                 return false;
+            }
 
             // Check mask part if present
             if (slashPos != std::string::npos)
             {
                 std::string mask_part = input.substr (slashPos + 1);
                 if (mask_part.empty () || mask_part.length () > 2)
+                {
                     return false;
+                }
                 for (char c : mask_part)
                 {
                     if (c < '0' || c > '9')
+                    {
                         return false;
+                    }
                 }
             }
 
@@ -227,9 +239,13 @@ namespace duckdb
         int64_t IPCalculator::getHostsPerNet (int maskBits)
         {
             if (maskBits == 32)
+            {
                 return 1; // Special case for /32
+            }
             if (maskBits == 31)
+            {
                 return 2; // RFC 3021 point-to-point links
+            }
             // Use 64-bit arithmetic to avoid overflow for small masks like /0, /1
             return (1LL << (32 - maskBits)) - 2;
         }
@@ -240,17 +256,29 @@ namespace duckdb
             int firstOctet = octets[0];
 
             if (firstOctet == 0)
+            {
                 return "E"; // 0.x.x.x is reserved
+            }
             if (firstOctet >= 1 && firstOctet <= 126)
+            {
                 return "A";
+            }
             if (firstOctet == 127)
+            {
                 return "A, Loopback";
+            }
             if (firstOctet >= 128 && firstOctet <= 191)
+            {
                 return "B";
+            }
             if (firstOctet >= 192 && firstOctet <= 223)
+            {
                 return "C";
+            }
             if (firstOctet >= 224 && firstOctet <= 239)
+            {
                 return "D";
+            }
             return "E";
         }
 

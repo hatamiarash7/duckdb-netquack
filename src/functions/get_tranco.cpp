@@ -167,7 +167,7 @@ namespace duckdb
             Connection con (db);
 
             auto table_exists = con.Query ("SELECT 1 FROM information_schema.tables WHERE table_name = 'tranco_list'");
-            auto check_chunk = table_exists->Fetch ();
+            auto check_chunk  = table_exists->Fetch ();
 
             if (!check_chunk || check_chunk->size () == 0)
             {
@@ -175,8 +175,8 @@ namespace duckdb
             }
 
             // Extract the input from the arguments
-            auto &input_vector = args.data[0];
-            auto result_data   = FlatVector::GetData<string_t> (result);
+            auto &input_vector    = args.data[0];
+            auto result_data      = FlatVector::GetData<string_t> (result);
             auto &result_validity = FlatVector::Validity (result);
 
             for (idx_t i = 0; i < args.size (); i++)
@@ -193,7 +193,7 @@ namespace duckdb
 
                 try
                 {
-                    auto prepared = con.Prepare ("SELECT rank FROM tranco_list WHERE domain = $1");
+                    auto prepared     = con.Prepare ("SELECT rank FROM tranco_list WHERE domain = $1");
                     auto query_result = prepared->Execute (input);
 
                     if (query_result->HasError ())
@@ -205,7 +205,7 @@ namespace duckdb
                     auto chunk = query_result->Fetch ();
                     if (chunk && chunk->size () > 0)
                     {
-                        auto rank = chunk->GetValue (0, 0);
+                        auto rank      = chunk->GetValue (0, 0);
                         result_data[i] = StringVector::AddString (result, rank.ToString ());
                     }
                     else
@@ -228,7 +228,7 @@ namespace duckdb
             Connection con (db);
 
             auto table_exists = con.Query ("SELECT 1 FROM information_schema.tables WHERE table_name = 'tranco_list'");
-            auto chunk = table_exists->Fetch ();
+            auto chunk        = table_exists->Fetch ();
 
             if (!chunk || chunk->size () == 0)
             {
@@ -236,8 +236,8 @@ namespace duckdb
             }
 
             // Extract the input from the arguments
-            auto &input_vector = args.data[0];
-            auto result_data   = FlatVector::GetData<string_t> (result);
+            auto &input_vector    = args.data[0];
+            auto result_data      = FlatVector::GetData<string_t> (result);
             auto &result_validity = FlatVector::Validity (result);
 
             for (idx_t i = 0; i < args.size (); i++)
@@ -254,7 +254,7 @@ namespace duckdb
 
                 try
                 {
-                    auto prepared = con.Prepare ("SELECT category FROM tranco_list WHERE domain = $1");
+                    auto prepared     = con.Prepare ("SELECT category FROM tranco_list WHERE domain = $1");
                     auto query_result = prepared->Execute (input);
 
                     if (query_result->HasError ())
@@ -266,7 +266,7 @@ namespace duckdb
                     auto result_chunk = query_result->Fetch ();
                     if (result_chunk && result_chunk->size () > 0)
                     {
-                        auto category = result_chunk->GetValue (0, 0);
+                        auto category  = result_chunk->GetValue (0, 0);
                         result_data[i] = StringVector::AddString (result, category.ToString ());
                     }
                     else

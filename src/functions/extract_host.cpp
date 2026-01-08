@@ -1,14 +1,15 @@
 // Copyright 2025 Arash Hatami
 
 #include "extract_host.hpp"
+
 #include "../utils/url_helpers.hpp"
 
 namespace duckdb
 {
     void ExtractHostFunction (DataChunk &args, ExpressionState &state, Vector &result)
     {
-        auto &input_vector = args.data[0];
-        auto result_data   = FlatVector::GetData<string_t> (result);
+        auto &input_vector    = args.data[0];
+        auto result_data      = FlatVector::GetData<string_t> (result);
         auto &result_validity = FlatVector::Validity (result);
 
         for (idx_t i = 0; i < args.size (); i++)
@@ -39,15 +40,17 @@ namespace duckdb
     {
         std::string ExtractHost (const std::string &input)
         {
-            if (input.empty())
+            if (input.empty ())
+            {
                 return "";
+            }
 
-            const char* data = input.data();
-            size_t size = input.size();
+            const char *data = input.data ();
+            size_t size      = input.size ();
 
-            std::string_view host = getURLHost(data, size);
+            std::string_view host = getURLHost (data, size);
 
-            return std::string(host);
+            return std::string (host);
         }
     } // namespace netquack
 } // namespace duckdb

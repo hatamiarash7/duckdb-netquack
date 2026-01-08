@@ -24,15 +24,25 @@ namespace duckdb
 
             std::string level_str (env_level);
             if (level_str == "DEBUG")
+            {
                 return LogLevel::LOG_DEBUG;
+            }
             if (level_str == "INFO")
+            {
                 return LogLevel::LOG_INFO;
+            }
             if (level_str == "WARNING")
+            {
                 return LogLevel::LOG_WARNING;
+            }
             if (level_str == "ERROR")
+            {
                 return LogLevel::LOG_ERROR;
+            }
             if (level_str == "CRITICAL")
+            {
                 return LogLevel::LOG_CRITICAL;
+            }
 
             std::cerr << "Unknown LOG_LEVEL environment variable value: " << level_str
                       << ". Defaulting to INFO." << std::endl;

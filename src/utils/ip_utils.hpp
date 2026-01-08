@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "duckdb.hpp"
-
 #include <array>
 #include <cstdint>
 #include <string>
+
+#include "duckdb.hpp"
 
 namespace duckdb
 {

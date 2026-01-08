@@ -24,7 +24,7 @@ namespace duckdb
     // Load the extension into the database
     static void LoadInternal (ExtensionLoader &loader)
     {
-        loader.SetDescription("Parsing, extracting, and analyzing domains, URIs, and paths with ease.");
+        loader.SetDescription ("Parsing, extracting, and analyzing domains, URIs, and paths with ease.");
 
         auto netquack_extract_domain_function = ScalarFunction (
             "extract_domain",
@@ -110,7 +110,7 @@ namespace duckdb
             { LogicalType::VARCHAR },
             LogicalType::VARCHAR,
             netquack::GetTrancoRankFunction);
-                    loader.RegisterFunction (get_tranco_rank_function);
+        loader.RegisterFunction (get_tranco_rank_function);
 
         auto get_tranco_rank_category_function = ScalarFunction (
             "get_tranco_rank_category",
@@ -159,9 +159,10 @@ namespace duckdb
 } // namespace duckdb
 
 
-extern "C" {
-
-    DUCKDB_CPP_EXTENSION_ENTRY(netquack, loader) {
-        duckdb::LoadInternal(loader);
+extern "C"
+{
+    DUCKDB_CPP_EXTENSION_ENTRY (netquack, loader)
+    {
+        duckdb::LoadInternal (loader);
     }
 }
