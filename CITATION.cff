@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Hatami"
+    given-names: "Arash"
+    orcid: "https://orcid.org/0009-0005-3008-3411"
+title: "DuckDB Netquack Extension"
+date-released: 2025-02-09
+url: "https://github.com/hatamiarash7/duckdb-netquack"
