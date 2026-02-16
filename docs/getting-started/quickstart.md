@@ -47,3 +47,9 @@ If you previously installed the extension, upgrade using the FORCE command
 FORCE INSTALL netquack FROM community;
 LOAD netquack;
 ```
+
+Also, you can check for any available updates for the extension using this command:
+
+```sql
+UPDATE EXTENSIONS (netquack);
+```

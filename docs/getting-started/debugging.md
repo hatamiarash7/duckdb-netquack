@@ -24,3 +24,17 @@ layout:
 The debugging process for DuckDB extensions is not an easy job. For Netquack, we have created a log file in the current directory. The log file is named `netquack.log` and contains all the logs for the extension. You can use this file to debug your code.
 
 Also, there will be stdout errors for background tasks like CURL.
+
+## Get Extension Version
+
+You can use the `netquack_version` function to get the extension version.
+
+```sql
+D SELECT * FROM netquack_version();
+┌─────────┐
+│ version │
+│ varchar │
+├─────────┤
+│ v1.8.1  │
+└─────────┘
+```

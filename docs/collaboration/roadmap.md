@@ -21,9 +21,9 @@ layout:
 
 # Roadmap
 
-* [ ] Create a `TableFunction` for `extract_query_parameters` that return each key-value pair as a row.
+* [ ] Implement `extract_custom_format` function
+* [ ] Implement `parse_uri` function
 * [ ] Save Tranco data as Parquet
-* [ ] Create a Rank category for Tranco ( `top1k` , `top5k`, `top10k`, `top100k`, `top500k`, `top1m` )
 * [ ] Implement GeoIP functionality
-* [ ] Add new functions to work with IPs
 * [ ] Return default value for `get_tranco_rank`
+* [ ] Support internationalized domain names (IDNs)
