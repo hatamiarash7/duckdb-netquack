@@ -4,14 +4,12 @@
 
 #include "duckdb.hpp"
 
-namespace duckdb
-{
-    // Function to extract the sub-domain from a URL
-    void ExtractSubDomainFunction (DataChunk &args, ExpressionState &state, Vector &result);
+namespace duckdb {
+// Function to extract the sub-domain from a URL
+void ExtractSubDomainFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
-    namespace netquack
-    {
-        // Function to extract the sub-domain from a URL
-        std::string ExtractSubDomain (const std::string &input);
-    } // namespace netquack
+namespace netquack {
+// Function to extract the sub-domain from a URL
+std::string ExtractSubDomain(const std::string &input);
+} // namespace netquack
 } // namespace duckdb

@@ -4,53 +4,43 @@
 
 #include "../utils/url_helpers.hpp"
 
-namespace duckdb
-{
-    void ExtractHostFunction (DataChunk &args, ExpressionState &state, Vector &result)
-    {
-        auto &input_vector    = args.data[0];
-        auto result_data      = FlatVector::GetData<string_t> (result);
-        auto &result_validity = FlatVector::Validity (result);
+namespace duckdb {
+void ExtractHostFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+	auto &input_vector = args.data[0];
+	auto result_data = FlatVector::GetData<string_t>(result);
+	auto &result_validity = FlatVector::Validity(result);
 
-        for (idx_t i = 0; i < args.size (); i++)
-        {
-            auto value = input_vector.GetValue (i);
-            if (value.IsNull ())
-            {
-                result_validity.SetInvalid (i);
-                continue;
-            }
+	for (idx_t i = 0; i < args.size(); i++) {
+		auto value = input_vector.GetValue(i);
+		if (value.IsNull()) {
+			result_validity.SetInvalid(i);
+			continue;
+		}
 
-            auto input = value.ToString ();
-            std::transform (input.begin (), input.end (), input.begin (), ::tolower);
+		auto input = value.ToString();
+		std::transform(input.begin(), input.end(), input.begin(), ::tolower);
 
-            try
-            {
-                auto host      = netquack::ExtractHost (input);
-                result_data[i] = StringVector::AddString (result, host);
-            }
-            catch (const std::exception &e)
-            {
-                result_data[i] = StringVector::AddString (result, "Error extracting host: " + std::string (e.what ()));
-            }
-        }
-    }
+		try {
+			auto host = netquack::ExtractHost(input);
+			result_data[i] = StringVector::AddString(result, host);
+		} catch (const std::exception &e) {
+			result_data[i] = StringVector::AddString(result, "Error extracting host: " + std::string(e.what()));
+		}
+	}
+}
 
-    namespace netquack
-    {
-        std::string ExtractHost (const std::string &input)
-        {
-            if (input.empty ())
-            {
-                return "";
-            }
+namespace netquack {
+std::string ExtractHost(const std::string &input) {
+	if (input.empty()) {
+		return "";
+	}
 
-            const char *data = input.data ();
-            size_t size      = input.size ();
+	const char *data = input.data();
+	size_t size = input.size();
 
-            std::string_view host = getURLHost (data, size);
+	std::string_view host = getURLHost(data, size);
 
-            return std::string (host);
-        }
-    } // namespace netquack
+	return std::string(host);
+}
+} // namespace netquack
 } // namespace duckdb
