@@ -35,7 +35,7 @@ LogLevel getLogLevelFromEnv() {
 		return LogLevel::LOG_CRITICAL;
 	}
 
-	std::cerr << "Unknown LOG_LEVEL environment variable value: " << level_str << ". Defaulting to INFO." << std::endl;
+	std::cerr << "Unknown LOG_LEVEL environment variable value: " << level_str << ". Defaulting to INFO." << '\n';
 	return LogLevel::LOG_INFO;
 }
 
@@ -84,12 +84,12 @@ void LogMessage(LogLevel level, const std::string &message) {
 
 	std::ofstream log_file("netquack.log", std::ios_base::app);
 	if (log_file.is_open()) {
-		log_file << "[" << getCurrentTimestamp() << "] " << level_str << " - " << message << std::endl;
+		log_file << "[" << getCurrentTimestamp() << "] " << level_str << " - " << message << '\n';
 	}
 
 	// Also output to stderr for error levels
 	if (level >= LogLevel::LOG_ERROR) {
-		std::cerr << "[" << level_str << "] " << message << std::endl;
+		std::cerr << "[" << level_str << "] " << message << '\n';
 	}
 
 	// Throw exception for critical errors
