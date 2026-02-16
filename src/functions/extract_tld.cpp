@@ -57,16 +57,12 @@ std::string ExtractTLD(const std::string &input) {
 
 			// Reject single characters as invalid hostnames
 			if (host_length <= 1) {
-				{
-					return "";
-				}
+				{ return ""; }
 			}
 
 			host = std::string_view(data, host_length);
 		} else {
-			{
-				return "";
-			}
+			{ return ""; }
 		}
 	}
 

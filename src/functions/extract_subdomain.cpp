@@ -61,16 +61,12 @@ std::string ExtractSubDomain(const std::string &input) {
 	// Get the effective TLD
 	std::string tld = getEffectiveTLD(host_str);
 	if (tld.empty()) {
-		{
-			return "";
-		} // No TLD found
+		{ return ""; } // No TLD found
 	}
 
 	// If the host is just the TLD, no subdomain
 	if (host_str == tld) {
-		{
-			return "";
-		}
+		{ return ""; }
 	}
 
 	// Find where the TLD starts in the hostname
@@ -85,16 +81,12 @@ std::string ExtractSubDomain(const std::string &input) {
 				return host_str.substr(0, domain_start);
 			} else {
 				// No subdomain, just domain.tld
-				{
-					return "";
-				}
+				{ return ""; }
 			}
 		}
 	}
 
-	{
-		return "";
-	}
+	{ return ""; }
 }
 } // namespace netquack
 } // namespace duckdb
