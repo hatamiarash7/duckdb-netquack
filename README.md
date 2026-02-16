@@ -55,6 +55,12 @@ FORCE INSTALL netquack FROM community;
 LOAD netquack;
 ```
 
+Also, you can check for any available updates for the extension using this command:
+
+```sql
+UPDATE EXTENSIONS (netquack);
+```
+
 ## Usage Examples 📚
 
 Once installed, the [macro functions](https://duckdb.org/community_extensions/extensions/netquack.html#added-functions) provided by the extension can be used just like built-in functions.
