@@ -1,6 +1,6 @@
 # name: test/sql/ipcalc.test
 # description: test netquack extension ipcalc function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

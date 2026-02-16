@@ -1,6 +1,6 @@
 # name: test/sql/extract_query.test
 # description: test netquack extension extract_query_string function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

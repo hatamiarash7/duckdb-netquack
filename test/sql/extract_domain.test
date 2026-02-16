@@ -1,6 +1,6 @@
 # name: test/sql/extract_domain.test
 # description: test netquack extension extract_domain function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

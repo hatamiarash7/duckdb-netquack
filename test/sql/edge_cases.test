@@ -1,6 +1,6 @@
 # name: test/sql/edge_cases.test
 # description: test netquack extension edge cases and special URLs
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

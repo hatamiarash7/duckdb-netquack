@@ -1,6 +1,6 @@
 # name: test/sql/null_handling.test
 # description: test netquack extension NULL handling for all functions
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

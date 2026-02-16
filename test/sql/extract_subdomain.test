@@ -1,6 +1,6 @@
 # name: test/sql/extract_subdomain.test
 # description: test netquack extension extract_subdomain function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

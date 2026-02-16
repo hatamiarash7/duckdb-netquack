@@ -1,6 +1,6 @@
 # name: test/sql/extract_path.test
 # description: test netquack extension extract_path function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

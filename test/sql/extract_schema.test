@@ -1,6 +1,6 @@
 # name: test/sql/extract_schema.test
 # description: test netquack extension extract_schema function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

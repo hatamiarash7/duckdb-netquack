@@ -1,6 +1,6 @@
 # name: test/sql/extract_extension.test
 # description: Test netquack extension extract_extension function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

@@ -1,6 +1,6 @@
 # name: test/sql/extract_tld.test
 # description: test netquack extension extract_tld function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

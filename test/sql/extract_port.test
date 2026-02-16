@@ -1,6 +1,6 @@
 # name: test/sql/extract_port.test
 # description: test netquack extension extract_port function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

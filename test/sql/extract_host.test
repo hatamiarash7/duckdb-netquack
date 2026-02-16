@@ -1,6 +1,6 @@
 # name: test/sql/extract_host.test
 # description: test netquack extension extract_host function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 

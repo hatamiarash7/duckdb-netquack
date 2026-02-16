@@ -1,6 +1,6 @@
 # name: test/sql/version.test
 # description: test netquack extension version function
-# group: [netquack]
+# group: [sql]
 
 require netquack
 
