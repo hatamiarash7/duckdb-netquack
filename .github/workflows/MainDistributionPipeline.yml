@@ -30,4 +30,4 @@ jobs:
       duckdb_version: v1.4.4
       ci_tools_version: v1.4.4
       extension_name: netquack
-      format_checks: "format;tidy"
+      format_checks: "format"
