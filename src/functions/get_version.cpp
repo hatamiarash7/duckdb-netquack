@@ -33,7 +33,8 @@ unique_ptr<GlobalTableFunctionState> VersionFunc::InitGlobal(ClientContext &cont
 
 void VersionFunc::Scan(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {
 	// Check done
-	if (((VersionLocalState &)*data_p.local_state).done) {
+	auto &local_state = dynamic_cast<VersionLocalState &>(*data_p.local_state);
+	if (local_state.done) {
 		return;
 	}
 
@@ -41,7 +42,6 @@ void VersionFunc::Scan(ClientContext &context, TableFunctionInput &data_p, DataC
 	// Set version
 	output.data[0].SetValue(0, "v1.8.1");
 	// Set done
-	auto &local_state = (VersionLocalState &)*data_p.local_state;
 	local_state.done = true;
 }
 } // namespace netquack
