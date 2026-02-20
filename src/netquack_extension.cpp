@@ -17,6 +17,7 @@
 #include "functions/extract_tld.hpp"
 #include "functions/get_tranco.hpp"
 #include "functions/get_version.hpp"
+#include "functions/ip_functions.hpp"
 #include "functions/ipcalc.hpp"
 
 namespace duckdb {
@@ -83,6 +84,26 @@ static void LoadInternal(ExtensionLoader &loader) {
 	                                     netquack::IPCalcFunc::InitLocal);
 	ipcalc_function.in_out_function = netquack::IPCalcFunc::Function;
 	loader.RegisterFunction(ipcalc_function);
+
+	auto is_valid_ip_function =
+	    ScalarFunction("is_valid_ip", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsValidIPFunction);
+	loader.RegisterFunction(is_valid_ip_function);
+
+	auto is_private_ip_function =
+	    ScalarFunction("is_private_ip", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsPrivateIPFunction);
+	loader.RegisterFunction(is_private_ip_function);
+
+	auto ip_to_int_function =
+	    ScalarFunction("ip_to_int", {LogicalType::VARCHAR}, LogicalType::UBIGINT, IPToIntFunction);
+	loader.RegisterFunction(ip_to_int_function);
+
+	auto int_to_ip_function =
+	    ScalarFunction("int_to_ip", {LogicalType::UBIGINT}, LogicalType::VARCHAR, IntToIPFunction);
+	loader.RegisterFunction(int_to_ip_function);
+
+	auto ip_version_function =
+	    ScalarFunction("ip_version", {LogicalType::VARCHAR}, LogicalType::TINYINT, IPVersionFunction);
+	loader.RegisterFunction(ip_version_function);
 
 	auto version_function =
 	    TableFunction("netquack_version", {}, netquack::VersionFunc::Scan, netquack::VersionFunc::Bind,

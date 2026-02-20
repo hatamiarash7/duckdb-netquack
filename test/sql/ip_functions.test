@@ -1,0 +1,783 @@
+# name: test/sql/ip_functions.test
+# description: test netquack IP utility functions (is_valid_ip, is_private_ip, ip_to_int, int_to_ip, ip_version)
+# group: [sql]
+
+require netquack
+
+# ===========================================================================
+# is_valid_ip - IPv4
+# ===========================================================================
+
+# Valid IPv4 addresses
+query I
+SELECT is_valid_ip('192.168.1.1');
+----
+true
+
+query I
+SELECT is_valid_ip('0.0.0.0');
+----
+true
+
+query I
+SELECT is_valid_ip('255.255.255.255');
+----
+true
+
+query I
+SELECT is_valid_ip('10.0.0.1');
+----
+true
+
+query I
+SELECT is_valid_ip('127.0.0.1');
+----
+true
+
+query I
+SELECT is_valid_ip('1.2.3.4');
+----
+true
+
+# Invalid IPv4 addresses
+query I
+SELECT is_valid_ip('256.1.1.1');
+----
+false
+
+query I
+SELECT is_valid_ip('1.2.3.256');
+----
+false
+
+query I
+SELECT is_valid_ip('1.2.3');
+----
+false
+
+query I
+SELECT is_valid_ip('1.2.3.4.5');
+----
+false
+
+query I
+SELECT is_valid_ip('');
+----
+false
+
+query I
+SELECT is_valid_ip('abc.def.ghi.jkl');
+----
+false
+
+query I
+SELECT is_valid_ip('192.168.1.');
+----
+false
+
+query I
+SELECT is_valid_ip('.192.168.1.1');
+----
+false
+
+query I
+SELECT is_valid_ip('192.168.01.1');
+----
+false
+
+query I
+SELECT is_valid_ip('192.168.1.1/24');
+----
+false
+
+query I
+SELECT is_valid_ip('hello world');
+----
+false
+
+query I
+SELECT is_valid_ip('192.168.1.1:80');
+----
+false
+
+# ===========================================================================
+# is_valid_ip - IPv6
+# ===========================================================================
+
+# Valid IPv6 addresses
+query I
+SELECT is_valid_ip('::1');
+----
+true
+
+query I
+SELECT is_valid_ip('::');
+----
+true
+
+query I
+SELECT is_valid_ip('2001:0db8:85a3:0000:0000:8a2e:0370:7334');
+----
+true
+
+query I
+SELECT is_valid_ip('2001:db8:85a3::8a2e:370:7334');
+----
+true
+
+query I
+SELECT is_valid_ip('fe80::1');
+----
+true
+
+query I
+SELECT is_valid_ip('ff02::1');
+----
+true
+
+query I
+SELECT is_valid_ip('::ffff:192.168.1.1');
+----
+true
+
+query I
+SELECT is_valid_ip('[::1]');
+----
+true
+
+query I
+SELECT is_valid_ip('2001:db8::');
+----
+true
+
+# Invalid IPv6 addresses
+query I
+SELECT is_valid_ip('2001:db8:85a3::8a2e::7334');
+----
+false
+
+query I
+SELECT is_valid_ip('2001:db8:85a3:0000:0000:8a2e:0370:7334:extra');
+----
+false
+
+query I
+SELECT is_valid_ip('2001:xyz::1');
+----
+false
+
+query I
+SELECT is_valid_ip('::gggg');
+----
+false
+
+query I
+SELECT is_valid_ip('12345::1');
+----
+false
+
+# NULL handling
+query I
+SELECT is_valid_ip(NULL);
+----
+NULL
+
+# ===========================================================================
+# ip_version
+# ===========================================================================
+
+# IPv4
+query I
+SELECT ip_version('192.168.1.1');
+----
+4
+
+query I
+SELECT ip_version('10.0.0.1');
+----
+4
+
+query I
+SELECT ip_version('0.0.0.0');
+----
+4
+
+query I
+SELECT ip_version('255.255.255.255');
+----
+4
+
+# IPv6
+query I
+SELECT ip_version('::1');
+----
+6
+
+query I
+SELECT ip_version('2001:db8::1');
+----
+6
+
+query I
+SELECT ip_version('fe80::1');
+----
+6
+
+query I
+SELECT ip_version('::ffff:192.168.1.1');
+----
+6
+
+query I
+SELECT ip_version('::');
+----
+6
+
+# Invalid - returns NULL
+query I
+SELECT ip_version('not-an-ip');
+----
+NULL
+
+query I
+SELECT ip_version('');
+----
+NULL
+
+query I
+SELECT ip_version(NULL);
+----
+NULL
+
+query I
+SELECT ip_version('192.168.1.1/24');
+----
+NULL
+
+# ===========================================================================
+# ip_to_int - IPv4 to integer conversion
+# ===========================================================================
+
+query I
+SELECT ip_to_int('0.0.0.0');
+----
+0
+
+query I
+SELECT ip_to_int('0.0.0.1');
+----
+1
+
+query I
+SELECT ip_to_int('0.0.1.0');
+----
+256
+
+query I
+SELECT ip_to_int('0.1.0.0');
+----
+65536
+
+query I
+SELECT ip_to_int('1.0.0.0');
+----
+16777216
+
+query I
+SELECT ip_to_int('192.168.1.1');
+----
+3232235777
+
+query I
+SELECT ip_to_int('10.0.0.1');
+----
+167772161
+
+query I
+SELECT ip_to_int('127.0.0.1');
+----
+2130706433
+
+query I
+SELECT ip_to_int('255.255.255.255');
+----
+4294967295
+
+query I
+SELECT ip_to_int('172.16.0.1');
+----
+2886729729
+
+# Invalid or IPv6 returns NULL
+query I
+SELECT ip_to_int('not-an-ip');
+----
+NULL
+
+query I
+SELECT ip_to_int('::1');
+----
+NULL
+
+query I
+SELECT ip_to_int(NULL);
+----
+NULL
+
+# ===========================================================================
+# int_to_ip - Integer to IPv4 conversion
+# ===========================================================================
+
+query I
+SELECT int_to_ip(0::UBIGINT);
+----
+0.0.0.0
+
+query I
+SELECT int_to_ip(1::UBIGINT);
+----
+0.0.0.1
+
+query I
+SELECT int_to_ip(256::UBIGINT);
+----
+0.0.1.0
+
+query I
+SELECT int_to_ip(65536::UBIGINT);
+----
+0.1.0.0
+
+query I
+SELECT int_to_ip(16777216::UBIGINT);
+----
+1.0.0.0
+
+query I
+SELECT int_to_ip(3232235777::UBIGINT);
+----
+192.168.1.1
+
+query I
+SELECT int_to_ip(2130706433::UBIGINT);
+----
+127.0.0.1
+
+query I
+SELECT int_to_ip(4294967295::UBIGINT);
+----
+255.255.255.255
+
+query I
+SELECT int_to_ip(167772161::UBIGINT);
+----
+10.0.0.1
+
+# Out of IPv4 range returns NULL
+query I
+SELECT int_to_ip(4294967296::UBIGINT);
+----
+NULL
+
+query I
+SELECT int_to_ip(NULL::UBIGINT);
+----
+NULL
+
+# ===========================================================================
+# Roundtrip: ip_to_int -> int_to_ip
+# ===========================================================================
+
+query I
+SELECT int_to_ip(ip_to_int('192.168.1.1'));
+----
+192.168.1.1
+
+query I
+SELECT int_to_ip(ip_to_int('10.0.0.1'));
+----
+10.0.0.1
+
+query I
+SELECT int_to_ip(ip_to_int('255.255.255.255'));
+----
+255.255.255.255
+
+query I
+SELECT int_to_ip(ip_to_int('0.0.0.0'));
+----
+0.0.0.0
+
+query I
+SELECT ip_to_int(int_to_ip(3232235777::UBIGINT));
+----
+3232235777
+
+# ===========================================================================
+# is_private_ip - IPv4 private/reserved ranges
+# ===========================================================================
+
+# RFC 1918 - 10.0.0.0/8
+query I
+SELECT is_private_ip('10.0.0.0');
+----
+true
+
+query I
+SELECT is_private_ip('10.255.255.255');
+----
+true
+
+query I
+SELECT is_private_ip('10.128.42.5');
+----
+true
+
+# RFC 1918 - 172.16.0.0/12
+query I
+SELECT is_private_ip('172.16.0.0');
+----
+true
+
+query I
+SELECT is_private_ip('172.31.255.255');
+----
+true
+
+query I
+SELECT is_private_ip('172.20.10.1');
+----
+true
+
+# Boundary: just outside 172.16.0.0/12
+query I
+SELECT is_private_ip('172.15.255.255');
+----
+false
+
+query I
+SELECT is_private_ip('172.32.0.0');
+----
+false
+
+# RFC 1918 - 192.168.0.0/16
+query I
+SELECT is_private_ip('192.168.0.0');
+----
+true
+
+query I
+SELECT is_private_ip('192.168.255.255');
+----
+true
+
+query I
+SELECT is_private_ip('192.168.1.100');
+----
+true
+
+# Loopback - 127.0.0.0/8
+query I
+SELECT is_private_ip('127.0.0.1');
+----
+true
+
+query I
+SELECT is_private_ip('127.255.255.255');
+----
+true
+
+# Link-local - 169.254.0.0/16
+query I
+SELECT is_private_ip('169.254.0.1');
+----
+true
+
+query I
+SELECT is_private_ip('169.254.255.255');
+----
+true
+
+# Current network - 0.0.0.0/8
+query I
+SELECT is_private_ip('0.0.0.0');
+----
+true
+
+query I
+SELECT is_private_ip('0.255.255.255');
+----
+true
+
+# Carrier-grade NAT - 100.64.0.0/10
+query I
+SELECT is_private_ip('100.64.0.0');
+----
+true
+
+query I
+SELECT is_private_ip('100.127.255.255');
+----
+true
+
+# Boundary: just outside CGNAT
+query I
+SELECT is_private_ip('100.63.255.255');
+----
+false
+
+query I
+SELECT is_private_ip('100.128.0.0');
+----
+false
+
+# Documentation ranges (TEST-NET)
+query I
+SELECT is_private_ip('192.0.2.1');
+----
+true
+
+query I
+SELECT is_private_ip('198.51.100.1');
+----
+true
+
+query I
+SELECT is_private_ip('203.0.113.1');
+----
+true
+
+# Benchmarking - 198.18.0.0/15
+query I
+SELECT is_private_ip('198.18.0.0');
+----
+true
+
+query I
+SELECT is_private_ip('198.19.255.255');
+----
+true
+
+# Multicast - 224.0.0.0/4
+query I
+SELECT is_private_ip('224.0.0.1');
+----
+true
+
+query I
+SELECT is_private_ip('239.255.255.255');
+----
+true
+
+# Reserved for future use - 240.0.0.0/4
+query I
+SELECT is_private_ip('240.0.0.1');
+----
+true
+
+query I
+SELECT is_private_ip('255.255.255.254');
+----
+true
+
+# Broadcast
+query I
+SELECT is_private_ip('255.255.255.255');
+----
+true
+
+# Public IPs - should return false
+query I
+SELECT is_private_ip('8.8.8.8');
+----
+false
+
+query I
+SELECT is_private_ip('1.1.1.1');
+----
+false
+
+query I
+SELECT is_private_ip('142.250.80.46');
+----
+false
+
+query I
+SELECT is_private_ip('104.16.132.229');
+----
+false
+
+query I
+SELECT is_private_ip('54.239.28.85');
+----
+false
+
+# ===========================================================================
+# is_private_ip - IPv6 private/reserved ranges
+# ===========================================================================
+
+# Loopback
+query I
+SELECT is_private_ip('::1');
+----
+true
+
+# Unspecified
+query I
+SELECT is_private_ip('::');
+----
+true
+
+# Link-local fe80::/10
+query I
+SELECT is_private_ip('fe80::1');
+----
+true
+
+query I
+SELECT is_private_ip('fe80::abcd:1234');
+----
+true
+
+# Unique local address fc00::/7
+query I
+SELECT is_private_ip('fc00::1');
+----
+true
+
+query I
+SELECT is_private_ip('fd00::1');
+----
+true
+
+query I
+SELECT is_private_ip('fdab:cdef::1');
+----
+true
+
+# Multicast ff00::/8
+query I
+SELECT is_private_ip('ff02::1');
+----
+true
+
+query I
+SELECT is_private_ip('ff05::2');
+----
+true
+
+# Documentation 2001:db8::/32
+query I
+SELECT is_private_ip('2001:db8::1');
+----
+true
+
+query I
+SELECT is_private_ip('2001:db8:1234::5678');
+----
+true
+
+# Public IPv6 - should return false
+query I
+SELECT is_private_ip('2607:f8b0:4004:800::200e');
+----
+false
+
+query I
+SELECT is_private_ip('2001:4860:4860::8888');
+----
+false
+
+# NULL and invalid
+query I
+SELECT is_private_ip(NULL);
+----
+NULL
+
+query I
+SELECT is_private_ip('invalid');
+----
+NULL
+
+query I
+SELECT is_private_ip('');
+----
+NULL
+
+# ===========================================================================
+# Table usage - use with columns
+# ===========================================================================
+
+statement ok
+CREATE OR REPLACE TABLE test_ips AS
+    SELECT '192.168.1.1' AS ip UNION ALL
+    SELECT '10.0.0.1' UNION ALL
+    SELECT '8.8.8.8' UNION ALL
+    SELECT '::1' UNION ALL
+    SELECT 'invalid' UNION ALL
+    SELECT '2001:db8::1';
+
+query II
+SELECT ip, is_valid_ip(ip) FROM test_ips ORDER BY ip;
+----
+10.0.0.1	true
+192.168.1.1	true
+2001:db8::1	true
+8.8.8.8	true
+::1	true
+invalid	false
+
+query II
+SELECT ip, ip_version(ip) FROM test_ips WHERE is_valid_ip(ip) ORDER BY ip;
+----
+10.0.0.1	4
+192.168.1.1	4
+2001:db8::1	6
+8.8.8.8	4
+::1	6
+
+query II
+SELECT ip, is_private_ip(ip) FROM test_ips WHERE is_valid_ip(ip) ORDER BY ip;
+----
+10.0.0.1	true
+192.168.1.1	true
+2001:db8::1	true
+8.8.8.8	false
+::1	true
+
+# Filter only public IPv4 addresses
+query I
+SELECT ip FROM test_ips WHERE is_valid_ip(ip) AND ip_version(ip) = 4 AND NOT is_private_ip(ip) ORDER BY ip;
+----
+8.8.8.8
+
+# ip_to_int with table
+statement ok
+CREATE OR REPLACE TABLE ipv4_ips AS
+    SELECT '192.168.1.1' AS ip UNION ALL
+    SELECT '10.0.0.1' UNION ALL
+    SELECT '8.8.8.8' UNION ALL
+    SELECT '172.16.0.1';
+
+query II
+SELECT ip, ip_to_int(ip) FROM ipv4_ips ORDER BY ip_to_int(ip);
+----
+8.8.8.8	134744072
+10.0.0.1	167772161
+172.16.0.1	2886729729
+192.168.1.1	3232235777
+
+# Sorting by integer representation
+query I
+SELECT ip FROM ipv4_ips ORDER BY ip_to_int(ip);
+----
+8.8.8.8
+10.0.0.1
+172.16.0.1
+192.168.1.1
+
+statement ok
+DROP TABLE test_ips;
+
+statement ok
+DROP TABLE ipv4_ips;

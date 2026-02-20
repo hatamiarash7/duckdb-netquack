@@ -28,6 +28,10 @@
 
 * [IP Address](ip-address/README.md)
   * [IP Calculator](ip-address/ip-calculator.md)
+  * [Validate IP Address](ip-address/is-valid-ip.md)
+  * [Check Private IP](ip-address/is-private-ip.md)
+  * [IP Version](ip-address/ip-version.md)
+  * [IP to Integer / Integer to IP](ip-address/ip-to-int.md)
 
 ## Collaboration
 
