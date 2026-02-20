@@ -565,19 +565,34 @@ D SELECT int_to_ip('3232235777');
 └─────────────────────────┘
 ```
 
-These functions are useful for sorting IPs numerically or performing range comparisons:
+These functions are useful for sorting IPs numerically or performing range comparisons.
+
+**Sort IPs numerically** instead of lexicographically:
 
 ```sql
-D SELECT ip, ip_to_int(ip) FROM ipv4_ips ORDER BY ip_to_int(ip);
-┌─────────────┬───────────────┐
-│     ip      │ ip_to_int(ip) │
-│   varchar   │    uint64     │
-├─────────────┼───────────────┤
-│ 8.8.8.8     │     134744072 │
-│ 10.0.0.1    │     167772161 │
-│ 172.16.0.1  │    2886729729 │
-│ 192.168.1.1 │    3232235777 │
-└─────────────┴───────────────┘
+D SELECT ip FROM my_ips ORDER BY ip_to_int(ip);
+┌─────────────┐
+│     ip      │
+│   varchar   │
+├─────────────┤
+│ 8.8.8.8     │
+│ 10.0.0.1    │
+│ 192.168.1.1 │
+└─────────────┘
+```
+
+**Range queries** using integer comparison:
+
+```sql
+D SELECT ip
+  FROM my_ips
+  WHERE ip_to_int(ip) BETWEEN ip_to_int('10.0.0.0') AND ip_to_int('10.255.255.255');
+┌──────────┐
+│    ip    │
+│ varchar  │
+├──────────┤
+│ 10.0.0.1 │
+└──────────┘
 ```
 
 ### Get Extension Version

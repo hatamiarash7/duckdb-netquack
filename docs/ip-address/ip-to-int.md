@@ -22,28 +22,31 @@ Converts an IPv4 address string to a `UBIGINT` (unsigned 64-bit integer, but the
 
 ```sql
 D SELECT ip_to_int('192.168.1.1');
-┌───────────────────────────┐
-│ ip_to_int('192.168.1.1')  │
-│          uint64           │
-├───────────────────────────┤
-│ 3232235777                │
-└───────────────────────────┘
+┌──────────────────────────┐
+│ ip_to_int('192.168.1.1') │
+│          uint64          │
+├──────────────────────────┤
+│        3232235777        │
+│      (3.23 billion)      │
+└──────────────────────────┘
 
 D SELECT ip_to_int('10.0.0.1');
 ┌───────────────────────┐
 │ ip_to_int('10.0.0.1') │
 │        uint64         │
 ├───────────────────────┤
-│ 167772161             │
+│       167772161       │
+│   (167.77 million)    │
 └───────────────────────┘
 
 D SELECT ip_to_int('255.255.255.255');
-┌───────────────────────────────────┐
-│ ip_to_int('255.255.255.255')      │
-│             uint64                │
-├───────────────────────────────────┤
-│ 4294967295                        │
-└───────────────────────────────────┘
+┌──────────────────────────────┐
+│ ip_to_int('255.255.255.255') │
+│            uint64            │
+├──────────────────────────────┤
+│          4294967295          │
+│        (4.29 billion)        │
+└──────────────────────────────┘
 ```
 
 ## int\_to\_ip
@@ -52,20 +55,28 @@ Converts a `UBIGINT` integer back to an IPv4 dotted-quad string. Returns `NULL` 
 
 ```sql
 D SELECT int_to_ip(3232235777::UBIGINT);
-┌──────────────────────────────────┐
-│ int_to_ip(3232235777::UBIGINT)   │
-│            varchar               │
-├──────────────────────────────────┤
-│ 192.168.1.1                      │
-└──────────────────────────────────┘
+┌────────────────────────────────────────┐
+│ int_to_ip(CAST(3232235777 AS UBIGINT)) │
+│                varchar                 │
+├────────────────────────────────────────┤
+│ 192.168.1.1                            │
+└────────────────────────────────────────┘
 
 D SELECT int_to_ip(0::UBIGINT);
-┌──────────────────────┐
-│ int_to_ip(0::UBIGINT)│
-│       varchar        │
-├──────────────────────┤
-│ 0.0.0.0              │
-└──────────────────────┘
+┌───────────────────────────────┐
+│ int_to_ip(CAST(0 AS UBIGINT)) │
+│            varchar            │
+├───────────────────────────────┤
+│ 0.0.0.0                       │
+└───────────────────────────────┘
+
+D SELECT int_to_ip('3232235777');
+┌─────────────────────────┐
+│ int_to_ip('3232235777') │
+│         varchar         │
+├─────────────────────────┤
+│ 192.168.1.1             │
+└─────────────────────────┘
 ```
 
 ## Roundtrip
@@ -73,7 +84,7 @@ D SELECT int_to_ip(0::UBIGINT);
 The two functions are inverses of each other:
 
 ```sql
-D SELECT int_to_ip(ip_to_int('192.168.1.1'));
+D SELECT int_to_ip(ip_to_int('192.168.1.1')) AS result;
 ┌─────────────┐
 │   result    │
 │   varchar   │
@@ -87,14 +98,13 @@ D SELECT int_to_ip(ip_to_int('192.168.1.1'));
 **Sort IPs numerically** instead of lexicographically:
 
 ```sql
-D SELECT ip FROM ips ORDER BY ip_to_int(ip);
+D SELECT ip FROM my_ips ORDER BY ip_to_int(ip);
 ┌─────────────┐
 │     ip      │
 │   varchar   │
 ├─────────────┤
 │ 8.8.8.8     │
 │ 10.0.0.1    │
-│ 172.16.0.1  │
 │ 192.168.1.1 │
 └─────────────┘
 ```
@@ -102,6 +112,13 @@ D SELECT ip FROM ips ORDER BY ip_to_int(ip);
 **Range queries** using integer comparison:
 
 ```sql
-D SELECT ip FROM ips
+D SELECT ip
+  FROM my_ips
   WHERE ip_to_int(ip) BETWEEN ip_to_int('10.0.0.0') AND ip_to_int('10.255.255.255');
+┌──────────┐
+│    ip    │
+│ varchar  │
+├──────────┤
+│ 10.0.0.1 │
+└──────────┘
 ```
