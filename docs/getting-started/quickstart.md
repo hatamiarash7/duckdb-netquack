@@ -29,7 +29,9 @@ The compatibility between Netquack and DuckDB varies across versions.
 
 | Version of Netquack | Version of DuckDB |
 | ------------------- | ----------------- |
-| v1.0.0              | v1.2.0            |
+| v1.8.1              | v1.4.4            |
+| v1.8.0              | v1.4.4            |
+| v1.4.0              | v1.4.0            |
 
 ### Install Netquack
 
