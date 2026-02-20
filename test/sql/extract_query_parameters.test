@@ -207,10 +207,7 @@ query II
 SELECT * FROM extract_query_parameters(NULL);
 ----
 
-# ---------------------------- Using with literal values ----------------------------
-
-# Note: This table function only supports literal parameters, not column references.
-# For column-based processing, use extract_query_string() with string functions.
+# ---------------------------- Using with tables (lateral join) ----------------------------
 
 statement ok
 CREATE TABLE urls (id INTEGER, url VARCHAR);
@@ -221,11 +218,34 @@ INSERT INTO urls VALUES
     (2, 'http://test.com?x=10'),
     (3, 'http://noquery.com');
 
-# Verify table was created
-query I
-SELECT COUNT(*) FROM urls;
+# Lateral join - extract parameters from column values
+query III
+SELECT u.id, p.key, p.value 
+FROM urls u, extract_query_parameters(u.url) p
+ORDER BY u.id, p.key;
 ----
-3
+1	a	1
+1	b	2
+2	x	10
+
+# Lateral join with explicit LATERAL keyword
+query III
+SELECT u.id, p.key, p.value 
+FROM urls u, LATERAL extract_query_parameters(u.url) p
+ORDER BY u.id, p.key;
+----
+1	a	1
+1	b	2
+2	x	10
+
+# URLs with no query parameters are excluded (no rows for id=3)
+query I
+SELECT DISTINCT u.id 
+FROM urls u, extract_query_parameters(u.url) p
+ORDER BY u.id;
+----
+1
+2
 
 statement ok
 DROP TABLE urls;

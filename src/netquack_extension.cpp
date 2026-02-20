@@ -44,10 +44,10 @@ static void LoadInternal(ExtensionLoader &loader) {
 	                                                             LogicalType::VARCHAR, ExtractQueryStringFunction);
 	loader.RegisterFunction(netquack_extract_query_string_function);
 
-	auto extract_query_parameters_function =
-	    TableFunction("extract_query_parameters", {LogicalType::VARCHAR}, netquack::ExtractQueryParametersFunc::Scan,
-	                  netquack::ExtractQueryParametersFunc::Bind, netquack::ExtractQueryParametersFunc::InitGlobal,
-	                  netquack::ExtractQueryParametersFunc::InitLocal);
+	auto extract_query_parameters_function = TableFunction("extract_query_parameters", {LogicalType::VARCHAR}, nullptr,
+	                                                       netquack::ExtractQueryParametersFunc::Bind, nullptr,
+	                                                       netquack::ExtractQueryParametersFunc::InitLocal);
+	extract_query_parameters_function.in_out_function = netquack::ExtractQueryParametersFunc::Function;
 	loader.RegisterFunction(extract_query_parameters_function);
 
 	auto netquack_extract_tld_function =
