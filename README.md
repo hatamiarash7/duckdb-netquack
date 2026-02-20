@@ -31,6 +31,10 @@ Table of Contents
       - [Get Tranco Ranking](#get-tranco-ranking)
     - [IP Address Functions](#ip-address-functions)
       - [IP Calculator](#ip-calculator)
+      - [Validate IP Address](#validate-ip-address)
+      - [Check Private IP](#check-private-ip)
+      - [IP Version](#ip-version)
+      - [IP to Integer / Integer to IP](#ip-to-integer--integer-to-ip)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -427,6 +431,155 @@ D SELECT i.IP,
 └────────────────┴───────┘
 ```
 
+#### Validate IP Address
+
+The `is_valid_ip` function checks whether a string is a valid IPv4 or IPv6 address. Returns a `BOOLEAN`.
+
+```sql
+D SELECT is_valid_ip('192.168.1.1');
+┌────────────────────────────┐
+│ is_valid_ip('192.168.1.1') │
+│          boolean           │
+├────────────────────────────┤
+│ true                       │
+└────────────────────────────┘
+
+D SELECT is_valid_ip('2001:db8::1');
+┌────────────────────────────┐
+│ is_valid_ip('2001:db8::1') │
+│          boolean           │
+├────────────────────────────┤
+│ true                       │
+└────────────────────────────┘
+
+D SELECT is_valid_ip('not-an-ip');
+┌──────────────────────────┐
+│ is_valid_ip('not-an-ip') │
+│         boolean          │
+├──────────────────────────┤
+│ false                    │
+└──────────────────────────┘
+```
+
+#### Check Private IP
+
+The `is_private_ip` function checks whether an IP address belongs to a private or reserved range. Supports both IPv4 and IPv6. Returns `NULL` for invalid addresses.
+
+IPv4 ranges covered:
+
+- RFC 1918 (10/8, 172.16/12, 192.168/16)
+- loopback (127/8)
+- link-local (169.254/16)
+- carrier-grade NAT (100.64/10)
+- documentation (TEST-NET)
+- benchmarking (198.18/15)
+- multicast (224/4)
+- reserved (240/4)
+
+IPv6 ranges covered:
+
+- loopback (::1)
+- unspecified (::)
+- link-local (fe80::/10)
+- ULA (fc00::/7)
+- multicast (ff00::/8)
+- documentation (2001:db8::/32)
+- discard (100::/64)
+
+```sql
+D SELECT is_private_ip('192.168.1.1');
+┌──────────────────────────────┐
+│ is_private_ip('192.168.1.1') │
+│           boolean            │
+├──────────────────────────────┤
+│ true                         │
+└──────────────────────────────┘
+
+D SELECT is_private_ip('8.8.8.8');
+┌──────────────────────────┐
+│ is_private_ip('8.8.8.8') │
+│         boolean          │
+├──────────────────────────┤
+│ false                    │
+└──────────────────────────┘
+
+D SELECT is_private_ip('fe80::c028:8eff:fe34:6e5f');
+┌────────────────────────────────────────────┐
+│ is_private_ip('fe80::c028:8eff:fe34:6e5f') │
+│                  boolean                   │
+├────────────────────────────────────────────┤
+│ true                                       │
+└────────────────────────────────────────────┘
+```
+
+#### IP Version
+
+The `ip_version` function returns `4` for IPv4, `6` for IPv6, or `NULL` for invalid addresses.
+
+```sql
+D SELECT ip_version('192.168.1.1');
+┌───────────────────────────┐
+│ ip_version('192.168.1.1') │
+│           int8            │
+├───────────────────────────┤
+│             4             │
+└───────────────────────────┘
+
+D SELECT ip_version('::1');
+┌───────────────────┐
+│ ip_version('::1') │
+│       int8        │
+├───────────────────┤
+│         6         │
+└───────────────────┘
+```
+
+#### IP to Integer / Integer to IP
+
+The `ip_to_int` function converts an IPv4 address to its 32-bit unsigned integer representation. The `int_to_ip` function converts back. Returns `NULL` for invalid or IPv6 input (IPv6 requires 128-bit support).
+
+```sql
+D SELECT ip_to_int('192.168.1.1');
+┌──────────────────────────┐
+│ ip_to_int('192.168.1.1') │
+│          uint64          │
+├──────────────────────────┤
+│        3232235777        │
+│      (3.23 billion)      │
+└──────────────────────────┘
+
+D SELECT int_to_ip(3232235777::UBIGINT);
+┌────────────────────────────────────────┐
+│ int_to_ip(CAST(3232235777 AS UBIGINT)) │
+│                varchar                 │
+├────────────────────────────────────────┤
+│ 192.168.1.1                            │
+└────────────────────────────────────────┘
+
+D SELECT int_to_ip('3232235777');
+┌─────────────────────────┐
+│ int_to_ip('3232235777') │
+│         varchar         │
+├─────────────────────────┤
+│ 192.168.1.1             │
+└─────────────────────────┘
+```
+
+These functions are useful for sorting IPs numerically or performing range comparisons:
+
+```sql
+D SELECT ip, ip_to_int(ip) FROM ipv4_ips ORDER BY ip_to_int(ip);
+┌─────────────┬───────────────┐
+│     ip      │ ip_to_int(ip) │
+│   varchar   │    uint64     │
+├─────────────┼───────────────┤
+│ 8.8.8.8     │     134744072 │
+│ 10.0.0.1    │     167772161 │
+│ 172.16.0.1  │    2886729729 │
+│ 192.168.1.1 │    3232235777 │
+└─────────────┴───────────────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -437,7 +590,7 @@ D SELECT * FROM netquack_version();
 │ version │
 │ varchar │
 ├─────────┤
-│ v1.8.1  │
+│ v1.9.0  │
 └─────────┘
 ```
 
@@ -473,11 +626,7 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `normalize_url` function - Canonicalize URLs (lowercase scheme/host, remove default ports, sort query params, remove trailing slashes)
 - [ ] Implement `is_valid_url` function - Return whether a string is a well-formed URL
 - [ ] Implement `url_encode` / `url_decode` functions - Standalone percent-encoding and decoding
-- [ ] Implement `is_valid_ip` function - Return whether a string is a valid IPv4 or IPv6 address
-- [ ] Implement `is_private_ip` function - Check if an IP is in a private/reserved range (RFC 1918, loopback, link-local)
-- [ ] Implement `ip_to_int` / `int_to_ip` functions - Convert between dotted-quad notation and integer representation
 - [ ] Implement `ip_in_range` function - Check if an IP falls within a given CIDR block
-- [ ] Implement `ip_version` function - Return `4` or `6` for the IP version of a given address
 - [ ] Support internationalized domain names (IDNs)
 - [ ] Implement `punycode_encode` / `punycode_decode` functions - Convert internationalized domain names to/from ASCII-compatible encoding
 - [ ] Implement `is_valid_domain` function - Validate a domain name against RFC rules
