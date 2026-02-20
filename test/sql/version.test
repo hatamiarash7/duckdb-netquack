@@ -8,4 +8,4 @@ require netquack
 query I
 SELECT * FROM netquack_version();
 ----
-v1.8.1
+v1.8.2

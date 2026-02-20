@@ -117,20 +117,15 @@ static std::vector<std::pair<std::string, std::string>> ParseQueryParameters(con
 	return params;
 }
 
-// Data structure to hold the parsed query parameters
-struct ExtractQueryParametersData : public TableFunctionData {
-	std::string url;
+// Bind data (no state needed at bind time for in-out functions)
+struct ExtractQueryParametersData : public TableFunctionData {};
+
+// Local state to track parsed parameters and current output position
+struct ExtractQueryParametersLocalState : public LocalTableFunctionState {
 	std::vector<std::pair<std::string, std::string>> parameters;
-};
-
-// Global state to track scanning position
-struct ExtractQueryParametersGlobalState : public GlobalTableFunctionState {
 	idx_t current_idx = 0;
-	std::mutex lock;
+	bool done = false;
 };
-
-// Local state (not used but required)
-struct ExtractQueryParametersLocalState : public LocalTableFunctionState {};
 
 unique_ptr<FunctionData> ExtractQueryParametersFunc::Bind(ClientContext &context, TableFunctionBindInput &input,
                                                           vector<LogicalType> &return_types, vector<string> &names) {
@@ -141,22 +136,7 @@ unique_ptr<FunctionData> ExtractQueryParametersFunc::Bind(ClientContext &context
 	return_types.emplace_back(LogicalType(LogicalTypeId::VARCHAR));
 	names.emplace_back("value");
 
-	auto result = make_uniq<ExtractQueryParametersData>();
-
-	// Get the URL from input
-	if (!input.inputs.empty() && !input.inputs[0].IsNull()) {
-		result->url = input.inputs[0].GetValue<string>();
-		// Extract query string and parse parameters
-		std::string query_string = ExtractQueryString(result->url);
-		result->parameters = ParseQueryParameters(query_string);
-	}
-
-	return std::move(result);
-}
-
-unique_ptr<GlobalTableFunctionState> ExtractQueryParametersFunc::InitGlobal(ClientContext &context,
-                                                                            TableFunctionInitInput &input) {
-	return make_uniq<ExtractQueryParametersGlobalState>();
+	return make_uniq<ExtractQueryParametersData>();
 }
 
 unique_ptr<LocalTableFunctionState> ExtractQueryParametersFunc::InitLocal(ExecutionContext &context,
@@ -165,26 +145,69 @@ unique_ptr<LocalTableFunctionState> ExtractQueryParametersFunc::InitLocal(Execut
 	return make_uniq<ExtractQueryParametersLocalState>();
 }
 
-void ExtractQueryParametersFunc::Scan(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {
-	auto &data = data_p.bind_data->CastNoConst<ExtractQueryParametersData>();
-	auto &global_state = data_p.global_state->Cast<ExtractQueryParametersGlobalState>();
+OperatorResultType ExtractQueryParametersFunc::Function(ExecutionContext &context, TableFunctionInput &data_p,
+                                                        DataChunk &input, DataChunk &output) {
+	auto &local_state = data_p.local_state->Cast<ExtractQueryParametersLocalState>();
 
-	idx_t count = 0;
-	idx_t max_count = STANDARD_VECTOR_SIZE;
-
-	lock_guard<mutex> guard(global_state.lock);
-
-	while (global_state.current_idx < data.parameters.size() && count < max_count) {
-		auto &param = data.parameters[global_state.current_idx];
-
-		output.data[0].SetValue(count, Value(param.first));
-		output.data[1].SetValue(count, Value(param.second));
-
-		++global_state.current_idx;
-		++count;
+	// Already finished outputting for this input row — request next input
+	if (local_state.done) {
+		local_state.done = false;
+		local_state.parameters.clear();
+		local_state.current_idx = 0;
+		return OperatorResultType::NEED_MORE_INPUT;
 	}
 
+	// If we have remaining parameters from a previous HAVE_MORE_OUTPUT, continue outputting
+	if (!local_state.parameters.empty() && local_state.current_idx < local_state.parameters.size()) {
+		idx_t count = 0;
+		while (local_state.current_idx < local_state.parameters.size() && count < STANDARD_VECTOR_SIZE) {
+			auto &param = local_state.parameters[local_state.current_idx];
+			output.data[0].SetValue(count, Value(param.first));
+			output.data[1].SetValue(count, Value(param.second));
+			++local_state.current_idx;
+			++count;
+		}
+		output.SetCardinality(count);
+
+		if (local_state.current_idx >= local_state.parameters.size()) {
+			local_state.done = true;
+		}
+		return OperatorResultType::HAVE_MORE_OUTPUT;
+	}
+
+	// Parse the URL from the input chunk
+	auto url_value = input.data[0].GetValue(0);
+	if (url_value.IsNull()) {
+		output.SetCardinality(0);
+		return OperatorResultType::NEED_MORE_INPUT;
+	}
+
+	auto url = url_value.GetValue<string>();
+	std::string query_string = ExtractQueryString(url);
+	local_state.parameters = ParseQueryParameters(query_string);
+	local_state.current_idx = 0;
+
+	if (local_state.parameters.empty()) {
+		output.SetCardinality(0);
+		return OperatorResultType::NEED_MORE_INPUT;
+	}
+
+	// Output as many parameters as we can
+	idx_t count = 0;
+	while (local_state.current_idx < local_state.parameters.size() && count < STANDARD_VECTOR_SIZE) {
+		auto &param = local_state.parameters[local_state.current_idx];
+		output.data[0].SetValue(count, Value(param.first));
+		output.data[1].SetValue(count, Value(param.second));
+		++local_state.current_idx;
+		++count;
+	}
 	output.SetCardinality(count);
+
+	if (local_state.current_idx >= local_state.parameters.size()) {
+		// All parameters output — mark done so next call requests new input
+		local_state.done = true;
+	}
+	return OperatorResultType::HAVE_MORE_OUTPUT;
 }
 } // namespace netquack
 } // namespace duckdb

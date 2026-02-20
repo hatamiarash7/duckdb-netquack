@@ -59,4 +59,26 @@ D SELECT * FROM extract_query_parameters('https://example.com/search?q=duckdb&hl
 │ hl      │ en      │
 │ num     │ 10      │
 └─────────┴─────────┘
+
+D SELECT m.media_url,
+  e.key,
+  e.value
+FROM instagram_posts m,
+  LATERAL extract_query_parameters(m.media_url) e
+ORDER BY m.id;
+
+┌───────────────────────────────────────────────────────────────────────────────────────────┬────────────┬───────────┐
+│                                         media_url                                         │    key     │   value   │
+│                                          varchar                                          │  varchar   │  varchar  │
+├───────────────────────────────────────────────────────────────────────────────────────────┼────────────┼───────────┤
+│ https://cdn.instagram.com/media/abc123.jpg?utm_source=instagram&utm_medium=social&id=1001 │ id         │ 1001      │
+│ https://cdn.instagram.com/media/abc123.jpg?utm_source=instagram&utm_medium=social&id=1001 │ utm_medium │ social    │
+│ https://cdn.instagram.com/media/abc123.jpg?utm_source=instagram&utm_medium=social&id=1001 │ utm_source │ instagram │
+│ https://cdn.instagram.com/media/def456.jpg?quality=hd&format=webp&user=arash              │ user       │ arash     │
+│ https://cdn.instagram.com/media/def456.jpg?quality=hd&format=webp&user=arash              │ format     │ webp      │
+│ https://cdn.instagram.com/media/def456.jpg?quality=hd&format=webp&user=arash              │ quality    │ hd        │
+│ https://cdn.instagram.com/media/ghi789.mp4?autoplay=true&loop=false&session_id=xyz987     │ session_id │ xyz987    │
+│ https://cdn.instagram.com/media/ghi789.mp4?autoplay=true&loop=false&session_id=xyz987     │ loop       │ false     │
+│ https://cdn.instagram.com/media/ghi789.mp4?autoplay=true&loop=false&session_id=xyz987     │ autoplay   │ true      │
+└───────────────────────────────────────────────────────────────────────────────────────────┴────────────┴───────────┘
 ```

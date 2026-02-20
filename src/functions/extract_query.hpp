@@ -12,14 +12,14 @@ namespace netquack {
 // Function to extract the query string from a URL
 std::string ExtractQueryString(const std::string &input);
 
-// Table function to extract query parameters as key-value pairs
+// Table function to extract query parameters as key-value pairs (supports lateral joins)
 struct ExtractQueryParametersFunc {
 	static unique_ptr<FunctionData> Bind(ClientContext &context, TableFunctionBindInput &input,
 	                                     vector<LogicalType> &return_types, vector<string> &names);
-	static unique_ptr<GlobalTableFunctionState> InitGlobal(ClientContext &context, TableFunctionInitInput &input);
 	static unique_ptr<LocalTableFunctionState> InitLocal(ExecutionContext &context, TableFunctionInitInput &input,
 	                                                     GlobalTableFunctionState *global_state_p);
-	static void Scan(ClientContext &context, TableFunctionInput &data_p, DataChunk &output);
+	static OperatorResultType Function(ExecutionContext &context, TableFunctionInput &data_p, DataChunk &input,
+	                                   DataChunk &output);
 };
 } // namespace netquack
 } // namespace duckdb
