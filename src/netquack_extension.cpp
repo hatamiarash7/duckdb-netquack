@@ -7,6 +7,7 @@
 #include "duckdb/common/exception.hpp"
 #include "duckdb/function/scalar_function.hpp"
 #include "functions/extract_domain.hpp"
+#include "functions/domain_depth.hpp"
 #include "functions/extract_extension.hpp"
 #include "functions/extract_fragment.hpp"
 #include "functions/extract_host.hpp"
@@ -110,6 +111,10 @@ static void LoadInternal(ExtensionLoader &loader) {
 	auto netquack_extract_fragment_function =
 	    ScalarFunction("extract_fragment", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractFragmentFunction);
 	loader.RegisterFunction(netquack_extract_fragment_function);
+
+	auto domain_depth_function =
+	    ScalarFunction("domain_depth", {LogicalType::VARCHAR}, LogicalType::INTEGER, DomainDepthFunction);
+	loader.RegisterFunction(domain_depth_function);
 
 	auto normalize_url_function =
 	    ScalarFunction("normalize_url", {LogicalType::VARCHAR}, LogicalType::VARCHAR, NormalizeURLFunction);

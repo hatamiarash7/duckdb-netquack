@@ -37,6 +37,7 @@ Table of Contents
       - [IP Version](#ip-version)
       - [IP to Integer / Integer to IP](#ip-to-integer--integer-to-ip)
     - [Normalize URL](#normalize-url)
+    - [Domain Depth](#domain-depth)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -669,6 +670,36 @@ GROUP BY normalized
 HAVING cnt > 1;
 ```
 
+### Domain Depth
+
+The `domain_depth` function returns the number of dot-separated levels in a domain. It extracts the host from a URL and counts the labels. Returns `0` for IP addresses and invalid input, `NULL` for `NULL`.
+
+```sql
+D SELECT domain_depth('example.com') AS depth;
+┌───────┐
+│ depth │
+│ int32 │
+├───────┤
+│   2   │
+└───────┘
+
+D SELECT domain_depth('https://www.example.com/page') AS depth;
+┌───────┐
+│ depth │
+│ int32 │
+├───────┤
+│   3   │
+└───────┘
+
+D SELECT domain_depth('http://a.b.c.example.co.uk/page') AS depth;
+┌───────┐
+│ depth │
+│ int32 │
+├───────┤
+│   6   │
+└───────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -717,7 +748,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Support internationalized domain names (IDNs)
 - [ ] Implement `punycode_encode` / `punycode_decode` functions - Convert internationalized domain names to/from ASCII-compatible encoding
 - [ ] Implement `is_valid_domain` function - Validate a domain name against RFC rules
-- [ ] Implement `domain_depth` function - Return the number of levels in a domain
 - [ ] Implement `base64_encode` / `base64_decode` functions - Encode and decode Base64 strings
 - [ ] Implement `extract_path_segments` table function - Split a URL path into individual segment rows
 
