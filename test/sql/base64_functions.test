@@ -1,0 +1,324 @@
+# name: test/sql/base64_functions.test
+# description: test netquack base64_encode and base64_decode
+# group: [sql]
+
+require netquack
+
+# === Basic base64_encode Tests ===
+
+# Simple string encoding
+query I
+SELECT base64_encode('Hello World');
+----
+SGVsbG8gV29ybGQ=
+
+# Single character
+query I
+SELECT base64_encode('A');
+----
+QQ==
+
+# Two characters (2-byte remainder → 1 padding)
+query I
+SELECT base64_encode('AB');
+----
+QUI=
+
+# Three characters (no padding needed)
+query I
+SELECT base64_encode('ABC');
+----
+QUJD
+
+# Four characters
+query I
+SELECT base64_encode('ABCD');
+----
+QUJDRA==
+
+# Empty string
+query I
+SELECT base64_encode('');
+----
+(empty)
+
+# NULL returns NULL
+query I
+SELECT base64_encode(NULL);
+----
+NULL
+
+# Numbers
+query I
+SELECT base64_encode('12345');
+----
+MTIzNDU=
+
+# Special characters
+query I
+SELECT base64_encode('Hello, World!');
+----
+SGVsbG8sIFdvcmxkIQ==
+
+# URL-like string
+query I
+SELECT base64_encode('https://example.com/path?q=1&r=2#frag');
+----
+aHR0cHM6Ly9leGFtcGxlLmNvbS9wYXRoP3E9MSZyPTIjZnJhZw==
+
+# String with spaces
+query I
+SELECT base64_encode('  spaces  ');
+----
+ICBzcGFjZXMgIA==
+
+# String with newlines
+query I
+SELECT base64_encode('line1' || chr(10) || 'line2');
+----
+bGluZTEKbGluZTI=
+
+# String with tabs
+query I
+SELECT base64_encode('col1' || chr(9) || 'col2');
+----
+Y29sMQljb2wy
+
+# All printable ASCII
+query I
+SELECT base64_encode('!"#$%&''()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~');
+----
+ISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fg==
+
+# Unicode characters
+query I
+SELECT base64_encode('café');
+----
+Y2Fmw6k=
+
+# Emoji
+query I
+SELECT base64_encode('👋🌍');
+----
+8J+Ri/CfjI0=
+
+# === Basic base64_decode Tests ===
+
+# Simple string decoding
+query I
+SELECT base64_decode('SGVsbG8gV29ybGQ=');
+----
+Hello World
+
+# Single character (2 padding)
+query I
+SELECT base64_decode('QQ==');
+----
+A
+
+# Two characters (1 padding)
+query I
+SELECT base64_decode('QUI=');
+----
+AB
+
+# Three characters (no padding)
+query I
+SELECT base64_decode('QUJD');
+----
+ABC
+
+# Empty string
+query I
+SELECT base64_decode('');
+----
+(empty)
+
+# NULL returns NULL
+query I
+SELECT base64_decode(NULL);
+----
+NULL
+
+# Decode URL-like string
+query I
+SELECT base64_decode('aHR0cHM6Ly9leGFtcGxlLmNvbS9wYXRoP3E9MSZyPTIjZnJhZw==');
+----
+https://example.com/path?q=1&r=2#frag
+
+# Decode Unicode
+query I
+SELECT base64_decode('Y2Fmw6k=');
+----
+café
+
+# === Round-trip Tests ===
+
+# Encode then decode should return original
+query I
+SELECT base64_decode(base64_encode('Hello World'));
+----
+Hello World
+
+query I
+SELECT base64_decode(base64_encode(''));
+----
+(empty)
+
+query I
+SELECT base64_decode(base64_encode('Special chars: !@#$%^&*()'));
+----
+Special chars: !@#$%^&*()
+
+query I
+SELECT base64_decode(base64_encode('https://example.com/path?query=value&other=123#fragment'));
+----
+https://example.com/path?query=value&other=123#fragment
+
+query I
+SELECT base64_decode(base64_encode('café ☕ 日本語'));
+----
+café ☕ 日本語
+
+# Single byte round-trip
+query I
+SELECT base64_decode(base64_encode('x'));
+----
+x
+
+# Two byte round-trip
+query I
+SELECT base64_decode(base64_encode('xy'));
+----
+xy
+
+# Three byte round-trip (exact multiple)
+query I
+SELECT base64_decode(base64_encode('xyz'));
+----
+xyz
+
+# === Invalid base64_decode Input ===
+
+# Invalid characters
+query I
+SELECT base64_decode('!!!');
+----
+INVALID_BASE64
+
+# Invalid length (not multiple of 4)
+query I
+SELECT base64_decode('QQ');
+----
+INVALID_BASE64
+
+# Invalid padding position
+query I
+SELECT base64_decode('Q===');
+----
+INVALID_BASE64
+
+# === Whitespace Handling in Decode ===
+
+# Base64 with leading/trailing spaces should still decode
+query I
+SELECT base64_decode('  SGVsbG8gV29ybGQ=  ');
+----
+Hello World
+
+# Base64 with newlines (common in PEM-like formats)
+query I
+SELECT base64_decode('QUJD' || chr(10) || 'REVG');
+----
+ABCDEF
+
+# === Table Usage Tests ===
+
+statement ok
+CREATE OR REPLACE TABLE test_base64 AS SELECT * FROM (VALUES ('Hello'), ('World'), ('DuckDB'), (''), (NULL)) AS t(val);
+
+query II
+SELECT val, base64_encode(val) FROM test_base64;
+----
+Hello	SGVsbG8=
+World	V29ybGQ=
+DuckDB	RHVja0RC
+(empty)	(empty)
+NULL	NULL
+
+query II
+SELECT val, base64_decode(base64_encode(val)) AS roundtrip FROM test_base64;
+----
+Hello	Hello
+World	World
+DuckDB	DuckDB
+(empty)	(empty)
+NULL	NULL
+
+statement ok
+DROP TABLE test_base64;
+
+# === Encoded Data Table Test ===
+
+statement ok
+CREATE OR REPLACE TABLE encoded_data AS SELECT * FROM (VALUES ('SGVsbG8='), ('V29ybGQ='), ('RHVja0RC'), (''), (NULL)) AS t(encoded);
+
+query II
+SELECT encoded, base64_decode(encoded) FROM encoded_data;
+----
+SGVsbG8=	Hello
+V29ybGQ=	World
+RHVja0RC	DuckDB
+(empty)	(empty)
+NULL	NULL
+
+statement ok
+DROP TABLE encoded_data;
+
+# === GROUP BY Test ===
+
+statement ok
+CREATE OR REPLACE TABLE urls_base64 (category VARCHAR, data VARCHAR);
+
+statement ok
+INSERT INTO urls_base64 VALUES
+    ('greet', 'Hello'),
+    ('greet', 'Hi'),
+    ('tech', 'DuckDB'),
+    ('tech', 'SQL');
+
+query II
+SELECT category, COUNT(*) AS cnt FROM urls_base64 GROUP BY category ORDER BY category;
+----
+greet	2
+tech	2
+
+query III
+SELECT category, data, base64_encode(data) AS encoded FROM urls_base64 ORDER BY category, data;
+----
+greet	Hello	SGVsbG8=
+greet	Hi	SGk=
+tech	DuckDB	RHVja0RC
+tech	SQL	U1FM
+
+statement ok
+DROP TABLE urls_base64;
+
+# === Long String Test ===
+
+query I
+SELECT base64_encode('The quick brown fox jumps over the lazy dog');
+----
+VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZw==
+
+query I
+SELECT base64_decode('VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZw==');
+----
+The quick brown fox jumps over the lazy dog
+
+# === Binary-like Content ===
+
+query I
+SELECT base64_encode(chr(0) || chr(1) || chr(255));
+----
+AAHDvw==

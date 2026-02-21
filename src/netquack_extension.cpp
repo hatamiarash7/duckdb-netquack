@@ -6,6 +6,7 @@
 
 #include "duckdb/common/exception.hpp"
 #include "duckdb/function/scalar_function.hpp"
+#include "functions/base64_functions.hpp"
 #include "functions/extract_domain.hpp"
 #include "functions/domain_depth.hpp"
 #include "functions/extract_extension.hpp"
