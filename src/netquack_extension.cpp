@@ -19,6 +19,7 @@
 #include "functions/get_version.hpp"
 #include "functions/ip_functions.hpp"
 #include "functions/ipcalc.hpp"
+#include "functions/normalize_url.hpp"
 
 namespace duckdb {
 // Load the extension into the database
@@ -104,6 +105,10 @@ static void LoadInternal(ExtensionLoader &loader) {
 	auto ip_version_function =
 	    ScalarFunction("ip_version", {LogicalType::VARCHAR}, LogicalType::TINYINT, IPVersionFunction);
 	loader.RegisterFunction(ip_version_function);
+
+	auto normalize_url_function =
+	    ScalarFunction("normalize_url", {LogicalType::VARCHAR}, LogicalType::VARCHAR, NormalizeURLFunction);
+	loader.RegisterFunction(normalize_url_function);
 
 	auto version_function =
 	    TableFunction("netquack_version", {}, netquack::VersionFunc::Scan, netquack::VersionFunc::Bind,

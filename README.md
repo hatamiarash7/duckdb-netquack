@@ -35,6 +35,7 @@ Table of Contents
       - [Check Private IP](#check-private-ip)
       - [IP Version](#ip-version)
       - [IP to Integer / Integer to IP](#ip-to-integer--integer-to-ip)
+    - [Normalize URL](#normalize-url)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -595,6 +596,46 @@ D SELECT ip
 └──────────┘
 ```
 
+### Normalize URL
+
+The `normalize_url` function canonicalizes a URL by applying RFC 3986 normalizations: scheme/host lowercasing, default port removal (80/443/21), trailing slash removal, dot segment resolution, query parameter sorting, fragment removal, and percent-encoding normalization.
+
+```sql
+D SELECT normalize_url('HTTP://WWW.EXAMPLE.COM:80/a/b/../c/?z=1&a=2#frag') AS url;
+┌────────────────────────────────────┐
+│                url                 │
+│              varchar               │
+├────────────────────────────────────┤
+│ http://www.example.com/a/c?a=2&z=1 │
+└────────────────────────────────────┘
+
+D SELECT normalize_url('HTTPS://Example.Com:443/path/./to/../page?b=2&a=1#section') AS url;
+┌───────────────────────────────────────┐
+│                  url                  │
+│                varchar                │
+├───────────────────────────────────────┤
+│ https://example.com/path/page?a=1&b=2 │
+└───────────────────────────────────────┘
+
+D SELECT normalize_url('http://example.com/%7Euser') AS url;
+┌──────────────────────────┐
+│           url            │
+│         varchar          │
+├──────────────────────────┤
+│ http://example.com/~user │
+└──────────────────────────┘
+```
+
+This is especially useful for deduplicating URLs that differ only in formatting:
+
+```sql
+D SELECT normalize_url(url) AS normalized,
+  count(*) AS cnt
+FROM urls
+GROUP BY normalized
+HAVING cnt > 1;
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -638,7 +679,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement GeoIP functionality
 - [ ] Return default value for `get_tranco_rank`
 - [ ] Implement `extract_fragment` function - Extract the fragment (`#section`) from a URL
-- [ ] Implement `normalize_url` function - Canonicalize URLs (lowercase scheme/host, remove default ports, sort query params, remove trailing slashes)
 - [ ] Implement `is_valid_url` function - Return whether a string is a well-formed URL
 - [ ] Implement `url_encode` / `url_decode` functions - Standalone percent-encoding and decoding
 - [ ] Implement `ip_in_range` function - Check if an IP falls within a given CIDR block

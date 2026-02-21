@@ -20,6 +20,7 @@
 * [Extract Schema](functions/extract-schema.md)
 * [Extract Query](functions/extract-query.md)
 * [Extract TLD](functions/extract-tld.md)
+* [Normalize URL](functions/normalize-url.md)
 * [Tranco](functions/tranco/README.md)
   * [Get Tranco Rank](functions/tranco/get-tranco-rank.md)
   * [Download / Update Tranco](functions/tranco/download-update-tranco.md)
