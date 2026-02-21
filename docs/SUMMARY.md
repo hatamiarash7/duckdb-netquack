@@ -23,6 +23,7 @@
 * [Extract Fragment](functions/extract-fragment.md)
 * [Normalize URL](functions/normalize-url.md)
 * [Domain Depth](functions/domain-depth.md)
+* [Base64 Encode / Decode](functions/base64-functions.md)
 * [Tranco](functions/tranco/README.md)
   * [Get Tranco Rank](functions/tranco/get-tranco-rank.md)
   * [Download / Update Tranco](functions/tranco/download-update-tranco.md)
