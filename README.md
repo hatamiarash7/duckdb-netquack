@@ -26,6 +26,7 @@ Table of Contents
     - [Extracting The File Extension](#extracting-the-file-extension)
     - [Extracting The TLD (Top-Level Domain)](#extracting-the-tld-top-level-domain)
     - [Extracting The Sub Domain](#extracting-the-sub-domain)
+    - [Extracting The Fragment](#extracting-the-fragment)
     - [Get Tranco Rank](#get-tranco-rank)
       - [Update Tranco List](#update-tranco-list)
       - [Get Tranco Ranking](#get-tranco-ranking)
@@ -323,6 +324,38 @@ D SELECT extract_subdomain('test.example.com.ac') AS dns_record;
 │ test       │
 └────────────┘
 ```
+
+### Extracting The Fragment
+
+The `extract_fragment` function extracts the fragment (the part after `#`) from a URL. Fragments are commonly used for page anchors, SPA routing, and deep linking.
+
+```sql
+D SELECT extract_fragment('http://example.com/page#section') AS fragment;
+┌──────────┐
+│ fragment │
+│ varchar  │
+├──────────┤
+│ section  │
+└──────────┘
+
+D SELECT extract_fragment('http://example.com/path?q=1#results') AS fragment;
+┌──────────┐
+│ fragment │
+│ varchar  │
+├──────────┤
+│ results  │
+└──────────┘
+
+D SELECT extract_fragment('http://example.com/#/users/123/profile') AS fragment;
+┌────────────────────┐
+│      fragment      │
+│      varchar       │
+├────────────────────┤
+│ /users/123/profile │
+└────────────────────┘
+```
+
+Returns an empty string when no fragment is present, and `NULL` for `NULL` input.
 
 ### Get Tranco Rank
 
@@ -678,7 +711,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Save Tranco data as Parquet
 - [ ] Implement GeoIP functionality
 - [ ] Return default value for `get_tranco_rank`
-- [ ] Implement `extract_fragment` function - Extract the fragment (`#section`) from a URL
 - [ ] Implement `is_valid_url` function - Return whether a string is a well-formed URL
 - [ ] Implement `url_encode` / `url_decode` functions - Standalone percent-encoding and decoding
 - [ ] Implement `ip_in_range` function - Check if an IP falls within a given CIDR block
