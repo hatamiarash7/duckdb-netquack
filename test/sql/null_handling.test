@@ -58,6 +58,12 @@ SELECT extract_extension(NULL);
 ----
 NULL
 
+# Test NULL handling for extract_fragment
+query I
+SELECT extract_fragment(NULL);
+----
+NULL
+
 # Test NULL values in a table
 statement ok
 CREATE TABLE test_nulls (url VARCHAR);

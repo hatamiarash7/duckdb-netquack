@@ -1,0 +1,283 @@
+# name: test/sql/extract_fragment.test
+# description: test netquack extract_fragment function
+# group: [sql]
+
+require netquack
+
+# ===========================================================================
+# Basic fragment extraction
+# ===========================================================================
+
+query I
+SELECT extract_fragment('http://example.com/path#section');
+----
+section
+
+query I
+SELECT extract_fragment('http://example.com/path#top');
+----
+top
+
+query I
+SELECT extract_fragment('https://example.com/page#introduction');
+----
+introduction
+
+# ===========================================================================
+# Fragment with various URL components
+# ===========================================================================
+
+# Fragment after query string
+query I
+SELECT extract_fragment('http://example.com/path?q=1&a=2#results');
+----
+results
+
+# Fragment after port
+query I
+SELECT extract_fragment('http://example.com:8080/path#section');
+----
+section
+
+# Fragment on root URL
+query I
+SELECT extract_fragment('http://example.com#top');
+----
+top
+
+# Fragment on URL with port and no path
+query I
+SELECT extract_fragment('http://example.com:3000#dashboard');
+----
+dashboard
+
+# Fragment with userinfo
+query I
+SELECT extract_fragment('http://user:pass@example.com/path#info');
+----
+info
+
+# ===========================================================================
+# Complex fragment values
+# ===========================================================================
+
+# Fragment with slashes (anchor navigation)
+query I
+SELECT extract_fragment('http://example.com/page#/section/subsection');
+----
+/section/subsection
+
+# Fragment with equals and ampersands (SPA routing)
+query I
+SELECT extract_fragment('http://example.com/#route=home&tab=1');
+----
+route=home&tab=1
+
+# Fragment with encoded characters
+query I
+SELECT extract_fragment('http://example.com/page#section%20one');
+----
+section%20one
+
+# Fragment with unicode-like percent encoding
+query I
+SELECT extract_fragment('http://example.com/page#caf%C3%A9');
+----
+caf%C3%A9
+
+# Fragment with hyphens and underscores
+query I
+SELECT extract_fragment('http://example.com/page#my-section_2');
+----
+my-section_2
+
+# Fragment with dots
+query I
+SELECT extract_fragment('http://example.com/page#v1.2.3');
+----
+v1.2.3
+
+# Fragment with numbers only
+query I
+SELECT extract_fragment('http://example.com/page#42');
+----
+42
+
+# Fragment with mixed case
+query I
+SELECT extract_fragment('http://example.com/page#SectionTitle');
+----
+SectionTitle
+
+# ===========================================================================
+# SPA / client-side routing fragments
+# ===========================================================================
+
+query I
+SELECT extract_fragment('http://example.com/#/users/123/profile');
+----
+/users/123/profile
+
+query I
+SELECT extract_fragment('http://example.com/#!page=home');
+----
+!page=home
+
+query I
+SELECT extract_fragment('http://example.com/#/search?q=test&page=2');
+----
+/search?q=test&page=2
+
+# ===========================================================================
+# No fragment present
+# ===========================================================================
+
+query I
+SELECT extract_fragment('http://example.com/path');
+----
+(empty)
+
+query I
+SELECT extract_fragment('http://example.com/path?q=1');
+----
+(empty)
+
+query I
+SELECT extract_fragment('http://example.com');
+----
+(empty)
+
+query I
+SELECT extract_fragment('http://example.com:8080/path?key=value');
+----
+(empty)
+
+# ===========================================================================
+# Empty fragment (trailing #)
+# ===========================================================================
+
+query I
+SELECT extract_fragment('http://example.com/path#');
+----
+(empty)
+
+query I
+SELECT extract_fragment('http://example.com#');
+----
+(empty)
+
+query I
+SELECT extract_fragment('http://example.com/path?q=1#');
+----
+(empty)
+
+# ===========================================================================
+# Multiple # characters
+# ===========================================================================
+
+# Only first # starts the fragment; everything after is part of it
+query I
+SELECT extract_fragment('http://example.com/path#frag#ment');
+----
+frag#ment
+
+query I
+SELECT extract_fragment('http://example.com/#a#b#c');
+----
+a#b#c
+
+# ===========================================================================
+# Edge cases
+# ===========================================================================
+
+# Empty string
+query I
+SELECT extract_fragment('');
+----
+(empty)
+
+# NULL
+query I
+SELECT extract_fragment(NULL);
+----
+NULL
+
+# Just a hash
+query I
+SELECT extract_fragment('#');
+----
+(empty)
+
+# Just a hash with content (no URL)
+query I
+SELECT extract_fragment('#section');
+----
+section
+
+# No scheme
+query I
+SELECT extract_fragment('example.com/page#frag');
+----
+frag
+
+# Only fragment
+query I
+SELECT extract_fragment('#/route/page');
+----
+/route/page
+
+# Whitespace in fragment
+query I
+SELECT extract_fragment('http://example.com/page#hello world');
+----
+hello world
+
+# Fragment with special characters
+query I
+SELECT extract_fragment('http://example.com/page#a+b=c&d');
+----
+a+b=c&d
+
+# FTP URL with fragment
+query I
+SELECT extract_fragment('ftp://files.example.com/pub/readme#top');
+----
+top
+
+# IPv6 URL with fragment
+query I
+SELECT extract_fragment('http://[::1]:8080/path#section');
+----
+section
+
+# ===========================================================================
+# Table usage
+# ===========================================================================
+
+statement ok
+CREATE OR REPLACE TABLE fragment_test AS
+    SELECT 'http://example.com/page#section1' AS url UNION ALL
+    SELECT 'http://example.com/page#section2' UNION ALL
+    SELECT 'http://example.com/page' UNION ALL
+    SELECT 'http://example.com/other#section1' UNION ALL
+    SELECT NULL;
+
+query II
+SELECT url, extract_fragment(url) AS fragment FROM fragment_test ORDER BY url;
+----
+http://example.com/other#section1	section1
+http://example.com/page	(empty)
+http://example.com/page#section1	section1
+http://example.com/page#section2	section2
+NULL	NULL
+
+# Count by fragment
+query II
+SELECT extract_fragment(url) AS frag, count(*) AS cnt FROM fragment_test WHERE url IS NOT NULL GROUP BY frag ORDER BY cnt DESC, frag;
+----
+section1	2
+(empty)	1
+section2	1
+
+statement ok
+DROP TABLE fragment_test;

@@ -8,6 +8,7 @@
 #include "duckdb/function/scalar_function.hpp"
 #include "functions/extract_domain.hpp"
 #include "functions/extract_extension.hpp"
+#include "functions/extract_fragment.hpp"
 #include "functions/extract_host.hpp"
 #include "functions/extract_path.hpp"
 #include "functions/extract_port.hpp"
@@ -105,6 +106,10 @@ static void LoadInternal(ExtensionLoader &loader) {
 	auto ip_version_function =
 	    ScalarFunction("ip_version", {LogicalType::VARCHAR}, LogicalType::TINYINT, IPVersionFunction);
 	loader.RegisterFunction(ip_version_function);
+
+	auto netquack_extract_fragment_function =
+	    ScalarFunction("extract_fragment", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractFragmentFunction);
+	loader.RegisterFunction(netquack_extract_fragment_function);
 
 	auto normalize_url_function =
 	    ScalarFunction("normalize_url", {LogicalType::VARCHAR}, LogicalType::VARCHAR, NormalizeURLFunction);
