@@ -1,0 +1,241 @@
+# name: test/sql/is_valid_url.test
+# description: test netquack is_valid_url
+# group: [sql]
+
+require netquack
+
+# === Basic Valid URLs ===
+
+query I
+SELECT is_valid_url('https://example.com');
+----
+true
+
+query I
+SELECT is_valid_url('http://example.com');
+----
+true
+
+query I
+SELECT is_valid_url('https://example.com/path');
+----
+true
+
+query I
+SELECT is_valid_url('https://example.com/path?q=1');
+----
+true
+
+query I
+SELECT is_valid_url('https://example.com/path?q=1#frag');
+----
+true
+
+query I
+SELECT is_valid_url('https://example.com:8080');
+----
+true
+
+query I
+SELECT is_valid_url('https://example.com:8080/path');
+----
+true
+
+query I
+SELECT is_valid_url('ftp://files.example.com/doc.pdf');
+----
+true
+
+query I
+SELECT is_valid_url('http://localhost');
+----
+true
+
+query I
+SELECT is_valid_url('http://localhost:3000');
+----
+true
+
+# === URLs with Userinfo ===
+
+query I
+SELECT is_valid_url('https://user:pass@example.com/path');
+----
+true
+
+query I
+SELECT is_valid_url('https://user@example.com');
+----
+true
+
+# === URLs with IP Addresses ===
+
+query I
+SELECT is_valid_url('https://192.168.1.1');
+----
+true
+
+query I
+SELECT is_valid_url('https://192.168.1.1:443/');
+----
+true
+
+query I
+SELECT is_valid_url('https://[::1]:8080/path');
+----
+true
+
+query I
+SELECT is_valid_url('http://[2001:db8::1]/page');
+----
+true
+
+# === Various Schemes ===
+
+query I
+SELECT is_valid_url('custom+scheme://example.com');
+----
+true
+
+query I
+SELECT is_valid_url('my-app://deeplink/page');
+----
+true
+
+# === Invalid URLs ===
+
+# No scheme
+query I
+SELECT is_valid_url('example.com');
+----
+false
+
+# Missing ://
+query I
+SELECT is_valid_url('https:example.com');
+----
+false
+
+# Empty string
+query I
+SELECT is_valid_url('');
+----
+false
+
+# NULL returns NULL
+query I
+SELECT is_valid_url(NULL);
+----
+NULL
+
+# Plain text
+query I
+SELECT is_valid_url('not a url');
+----
+false
+
+# Just a scheme
+query I
+SELECT is_valid_url('https://');
+----
+false
+
+# Scheme starting with digit
+query I
+SELECT is_valid_url('3https://example.com');
+----
+false
+
+# Bad port (non-numeric)
+query I
+SELECT is_valid_url('https://example.com:abc/');
+----
+false
+
+# Empty port
+query I
+SELECT is_valid_url('https://example.com:/path');
+----
+false
+
+# Spaces in host
+query I
+SELECT is_valid_url('https://exam ple.com');
+----
+false
+
+# Empty host after userinfo
+query I
+SELECT is_valid_url('https://user@/path');
+----
+false
+
+# Invalid host characters
+query I
+SELECT is_valid_url('https://exa!mple.com');
+----
+false
+
+# Unclosed IPv6 bracket
+query I
+SELECT is_valid_url('https://[::1/path');
+----
+false
+
+# Mailto (no authority - URI, not URL)
+query I
+SELECT is_valid_url('mailto:user@example.com');
+----
+false
+
+# Invalid IPv4 in URL
+query I
+SELECT is_valid_url('https://999.999.999.999');
+----
+false
+
+# Host with consecutive dots
+query I
+SELECT is_valid_url('https://example..com/path');
+----
+false
+
+# Host label starts with hyphen
+query I
+SELECT is_valid_url('https://-example.com');
+----
+false
+
+# === Table Usage ===
+
+statement ok
+CREATE OR REPLACE TABLE test_urls (url VARCHAR);
+
+statement ok
+INSERT INTO test_urls VALUES
+    ('https://example.com'),
+    ('http://localhost:3000/api'),
+    ('not-a-url'),
+    ('ftp://files.example.com'),
+    (''),
+    (NULL);
+
+query II
+SELECT url, is_valid_url(url) FROM test_urls;
+----
+https://example.com	true
+http://localhost:3000/api	true
+not-a-url	false
+ftp://files.example.com	true
+(empty)	false
+NULL	NULL
+
+# Count valid vs invalid
+query II
+SELECT is_valid_url(url) AS valid, COUNT(*) AS cnt FROM test_urls WHERE url IS NOT NULL GROUP BY valid ORDER BY valid;
+----
+false	2
+true	3
+
+statement ok
+DROP TABLE test_urls;

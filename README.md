@@ -39,6 +39,8 @@ Table of Contents
     - [Normalize URL](#normalize-url)
     - [Domain Depth](#domain-depth)
     - [Base64 Encode / Decode](#base64-encode--decode)
+    - [Validate URL](#validate-url)
+    - [Validate Domain](#validate-domain)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -731,6 +733,66 @@ D SELECT base64_decode(base64_encode('https://example.com')) AS roundtrip;
 └─────────────────────┘
 ```
 
+### Validate URL
+
+The `is_valid_url` function checks whether a string is a well-formed URL. A valid URL must have a scheme (e.g., `http`, `https`, `ftp`), the `://` separator, and a non-empty host. Returns a `BOOLEAN`, `NULL` for `NULL` input.
+
+```sql
+D SELECT is_valid_url('https://example.com') AS valid;
+┌─────────┐
+│  valid  │
+│ boolean │
+├─────────┤
+│ true    │
+└─────────┘
+
+D SELECT is_valid_url('example.com') AS valid;
+┌─────────┐
+│  valid  │
+│ boolean │
+├─────────┤
+│ false   │
+└─────────┘
+
+D SELECT is_valid_url('https://[::1]:8080/path') AS valid;
+┌─────────┐
+│  valid  │
+│ boolean │
+├─────────┤
+│ true    │
+└─────────┘
+```
+
+### Validate Domain
+
+The `is_valid_domain` function validates a domain name against RFC 1035 / RFC 1123 rules. Requires at least two labels, alphanumeric and hyphens only (no start/end with hyphen), max 63 chars per label, max 253 chars total, and a non-numeric TLD. Returns a `BOOLEAN`, `NULL` for `NULL` input.
+
+```sql
+D SELECT is_valid_domain('example.com') AS valid;
+┌─────────┐
+│  valid  │
+│ boolean │
+├─────────┤
+│ true    │
+└─────────┘
+
+D SELECT is_valid_domain('sub.example.co.uk') AS valid;
+┌─────────┐
+│  valid  │
+│ boolean │
+├─────────┤
+│ true    │
+└─────────┘
+
+D SELECT is_valid_domain('localhost') AS valid;
+┌─────────┐
+│  valid  │
+│ boolean │
+├─────────┤
+│ false   │
+└─────────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -773,12 +835,10 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Save Tranco data as Parquet
 - [ ] Implement GeoIP functionality
 - [ ] Return default value for `get_tranco_rank`
-- [ ] Implement `is_valid_url` function - Return whether a string is a well-formed URL
 - [ ] Implement `url_encode` / `url_decode` functions - Standalone percent-encoding and decoding
 - [ ] Implement `ip_in_range` function - Check if an IP falls within a given CIDR block
 - [ ] Support internationalized domain names (IDNs)
 - [ ] Implement `punycode_encode` / `punycode_decode` functions - Convert internationalized domain names to/from ASCII-compatible encoding
-- [ ] Implement `is_valid_domain` function - Validate a domain name against RFC rules
 - [ ] Implement `extract_path_segments` table function - Split a URL path into individual segment rows
 
 ## Contributing 🤝

@@ -23,6 +23,7 @@
 #include "functions/ip_functions.hpp"
 #include "functions/ipcalc.hpp"
 #include "functions/normalize_url.hpp"
+#include "functions/validation_functions.hpp"
 
 namespace duckdb {
 // Load the extension into the database
@@ -128,6 +129,14 @@ static void LoadInternal(ExtensionLoader &loader) {
 	auto base64_decode_function =
 	    ScalarFunction("base64_decode", {LogicalType::VARCHAR}, LogicalType::VARCHAR, Base64DecodeFunction);
 	loader.RegisterFunction(base64_decode_function);
+
+	auto is_valid_url_function =
+	    ScalarFunction("is_valid_url", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsValidURLFunction);
+	loader.RegisterFunction(is_valid_url_function);
+
+	auto is_valid_domain_function =
+	    ScalarFunction("is_valid_domain", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsValidDomainFunction);
+	loader.RegisterFunction(is_valid_domain_function);
 
 	auto version_function =
 	    TableFunction("netquack_version", {}, netquack::VersionFunc::Scan, netquack::VersionFunc::Bind,

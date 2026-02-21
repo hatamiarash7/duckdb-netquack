@@ -82,6 +82,18 @@ SELECT base64_decode(NULL);
 ----
 NULL
 
+# Test NULL handling for is_valid_url
+query I
+SELECT is_valid_url(NULL);
+----
+NULL
+
+# Test NULL handling for is_valid_domain
+query I
+SELECT is_valid_domain(NULL);
+----
+NULL
+
 # Test NULL values in a table
 statement ok
 CREATE TABLE test_nulls (url VARCHAR);
