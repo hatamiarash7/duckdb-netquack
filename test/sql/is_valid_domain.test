@@ -1,0 +1,238 @@
+# name: test/sql/is_valid_domain.test
+# description: test netquack is_valid_domain
+# group: [sql]
+
+require netquack
+
+# === Basic Valid Domains ===
+
+query I
+SELECT is_valid_domain('example.com');
+----
+true
+
+query I
+SELECT is_valid_domain('www.example.com');
+----
+true
+
+query I
+SELECT is_valid_domain('sub.example.co.uk');
+----
+true
+
+query I
+SELECT is_valid_domain('a.b');
+----
+true
+
+query I
+SELECT is_valid_domain('my-domain.com');
+----
+true
+
+query I
+SELECT is_valid_domain('a.b.c.d.e.f.example.com');
+----
+true
+
+# Trailing dot (FQDN notation)
+query I
+SELECT is_valid_domain('example.com.');
+----
+true
+
+# Punycode domain
+query I
+SELECT is_valid_domain('xn--nxasmq6b.com');
+----
+true
+
+# Single-character labels
+query I
+SELECT is_valid_domain('a.b.c');
+----
+true
+
+# Numeric labels (non-TLD)
+query I
+SELECT is_valid_domain('123.example.com');
+----
+true
+
+# Hyphens in the middle
+query I
+SELECT is_valid_domain('my--domain.com');
+----
+true
+
+# === Invalid Domains ===
+
+# Empty string
+query I
+SELECT is_valid_domain('');
+----
+false
+
+# NULL returns NULL
+query I
+SELECT is_valid_domain(NULL);
+----
+NULL
+
+# Single label (no dot)
+query I
+SELECT is_valid_domain('localhost');
+----
+false
+
+# Leading dot
+query I
+SELECT is_valid_domain('.example.com');
+----
+false
+
+# Consecutive dots
+query I
+SELECT is_valid_domain('example..com');
+----
+false
+
+# Label starts with hyphen
+query I
+SELECT is_valid_domain('-example.com');
+----
+false
+
+# Label ends with hyphen
+query I
+SELECT is_valid_domain('example-.com');
+----
+false
+
+# Space in domain
+query I
+SELECT is_valid_domain('exam ple.com');
+----
+false
+
+# Special characters
+query I
+SELECT is_valid_domain('exa!mple.com');
+----
+false
+
+query I
+SELECT is_valid_domain('example@com');
+----
+false
+
+query I
+SELECT is_valid_domain('example_domain.com');
+----
+false
+
+# IP address (not a domain)
+query I
+SELECT is_valid_domain('192.168.1.1');
+----
+false
+
+# All-numeric TLD
+query I
+SELECT is_valid_domain('example.123');
+----
+false
+
+# Label too long (64 chars)
+query I
+SELECT is_valid_domain('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com');
+----
+false
+
+# Label exactly 63 chars (valid)
+query I
+SELECT is_valid_domain('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com');
+----
+true
+
+# URL with scheme (not a bare domain)
+query I
+SELECT is_valid_domain('https://example.com');
+----
+false
+
+# URL with path
+query I
+SELECT is_valid_domain('example.com/path');
+----
+false
+
+# Domain with port
+query I
+SELECT is_valid_domain('example.com:8080');
+----
+false
+
+# Trailing spaces
+query I
+SELECT is_valid_domain('example.com ');
+----
+false
+
+# Just dots
+query I
+SELECT is_valid_domain('...');
+----
+false
+
+query I
+SELECT is_valid_domain('.');
+----
+false
+
+# === Table Usage ===
+
+statement ok
+CREATE OR REPLACE TABLE test_domains (domain VARCHAR);
+
+statement ok
+INSERT INTO test_domains VALUES
+    ('example.com'),
+    ('www.google.com'),
+    ('localhost'),
+    ('invalid..domain'),
+    ('-bad.com'),
+    ('sub.example.co.uk'),
+    (''),
+    (NULL);
+
+query II
+SELECT domain, is_valid_domain(domain) FROM test_domains;
+----
+example.com	true
+www.google.com	true
+localhost	false
+invalid..domain	false
+-bad.com	false
+sub.example.co.uk	true
+(empty)	false
+NULL	NULL
+
+# Count valid vs invalid
+query II
+SELECT is_valid_domain(domain) AS valid, COUNT(*) AS cnt FROM test_domains WHERE domain IS NOT NULL GROUP BY valid ORDER BY valid;
+----
+false	4
+true	3
+
+statement ok
+DROP TABLE test_domains;
+
+# === Combined with Other Functions ===
+
+# Extract domain then validate
+query I
+SELECT is_valid_domain(extract_domain('https://www.example.com/path'));
+----
+true
