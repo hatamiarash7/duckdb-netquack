@@ -803,7 +803,7 @@ D SELECT * FROM netquack_version();
 │ version │
 │ varchar │
 ├─────────┤
-│ v1.9.0  │
+│ v1.10.0 │
 └─────────┘
 ```
 
