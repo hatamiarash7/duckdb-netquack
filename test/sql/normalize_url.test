@@ -1,0 +1,366 @@
+# name: test/sql/normalize_url.test
+# description: test netquack normalize_url function
+# group: [sql]
+
+require netquack
+
+# ===========================================================================
+# Scheme normalization (lowercase)
+# ===========================================================================
+
+query I
+SELECT normalize_url('HTTP://Example.COM/path');
+----
+http://example.com/path
+
+query I
+SELECT normalize_url('HTTPS://EXAMPLE.COM/');
+----
+https://example.com
+
+query I
+SELECT normalize_url('FTP://Files.Example.Org/pub');
+----
+ftp://files.example.org/pub
+
+query I
+SELECT normalize_url('HtTpS://MiXeD.CaSe.OrG/PaTh');
+----
+https://mixed.case.org/PaTh
+
+# ===========================================================================
+# Host normalization (lowercase)
+# ===========================================================================
+
+query I
+SELECT normalize_url('http://WWW.GOOGLE.COM/search');
+----
+http://www.google.com/search
+
+query I
+SELECT normalize_url('https://Sub.Domain.EXAMPLE.com/page');
+----
+https://sub.domain.example.com/page
+
+# Trailing dot removal from host
+query I
+SELECT normalize_url('http://example.com./path');
+----
+http://example.com/path
+
+# ===========================================================================
+# Default port removal
+# ===========================================================================
+
+# HTTP default port 80
+query I
+SELECT normalize_url('http://example.com:80/path');
+----
+http://example.com/path
+
+# HTTPS default port 443
+query I
+SELECT normalize_url('https://example.com:443/path');
+----
+https://example.com/path
+
+# FTP default port 21
+query I
+SELECT normalize_url('ftp://example.com:21/pub');
+----
+ftp://example.com/pub
+
+# Non-default ports are preserved
+query I
+SELECT normalize_url('http://example.com:8080/path');
+----
+http://example.com:8080/path
+
+query I
+SELECT normalize_url('https://example.com:8443/path');
+----
+https://example.com:8443/path
+
+query I
+SELECT normalize_url('http://example.com:443/path');
+----
+http://example.com:443/path
+
+query I
+SELECT normalize_url('https://example.com:80/path');
+----
+https://example.com:80/path
+
+# ===========================================================================
+# Trailing slash removal
+# ===========================================================================
+
+query I
+SELECT normalize_url('http://example.com/');
+----
+http://example.com
+
+query I
+SELECT normalize_url('http://example.com/path/');
+----
+http://example.com/path
+
+query I
+SELECT normalize_url('http://example.com/path///');
+----
+http://example.com/path
+
+# Root path stays as single /
+query I
+SELECT normalize_url('http://example.com');
+----
+http://example.com
+
+# ===========================================================================
+# Query parameter sorting
+# ===========================================================================
+
+query I
+SELECT normalize_url('http://example.com/path?z=1&a=2&m=3');
+----
+http://example.com/path?a=2&m=3&z=1
+
+query I
+SELECT normalize_url('http://example.com/?c=3&b=2&a=1');
+----
+http://example.com?a=1&b=2&c=3
+
+query I
+SELECT normalize_url('http://example.com/search?q=hello&lang=en&page=1');
+----
+http://example.com/search?lang=en&page=1&q=hello
+
+# Single parameter stays as-is
+query I
+SELECT normalize_url('http://example.com/path?q=test');
+----
+http://example.com/path?q=test
+
+# Empty query is dropped
+query I
+SELECT normalize_url('http://example.com/path?');
+----
+http://example.com/path
+
+# ===========================================================================
+# Fragment removal
+# ===========================================================================
+
+query I
+SELECT normalize_url('http://example.com/path#section');
+----
+http://example.com/path
+
+query I
+SELECT normalize_url('http://example.com/path?q=1#top');
+----
+http://example.com/path?q=1
+
+query I
+SELECT normalize_url('http://example.com/#fragment');
+----
+http://example.com
+
+# ===========================================================================
+# Dot segment removal (path normalization)
+# ===========================================================================
+
+query I
+SELECT normalize_url('http://example.com/a/b/../c');
+----
+http://example.com/a/c
+
+query I
+SELECT normalize_url('http://example.com/a/./b/./c');
+----
+http://example.com/a/b/c
+
+query I
+SELECT normalize_url('http://example.com/a/b/c/../../d');
+----
+http://example.com/a/d
+
+query I
+SELECT normalize_url('http://example.com/../a');
+----
+http://example.com/a
+
+query I
+SELECT normalize_url('http://example.com/./a');
+----
+http://example.com/a
+
+# ===========================================================================
+# Percent encoding normalization
+# ===========================================================================
+
+# Unreserved characters should be decoded
+query I
+SELECT normalize_url('http://example.com/%7Euser');
+----
+http://example.com/~user
+
+query I
+SELECT normalize_url('http://example.com/path%2Dwith%2Ddashes');
+----
+http://example.com/path-with-dashes
+
+# Reserved characters stay encoded (with uppercase hex)
+query I
+SELECT normalize_url('http://example.com/path%2fto%2fpage');
+----
+http://example.com/path%2Fto%2Fpage
+
+# Uppercase hex normalization
+query I
+SELECT normalize_url('http://example.com/path%2a');
+----
+http://example.com/path%2A
+
+# ===========================================================================
+# Userinfo preservation
+# ===========================================================================
+
+query I
+SELECT normalize_url('http://user:pass@example.com/path');
+----
+http://user:pass@example.com/path
+
+query I
+SELECT normalize_url('http://user@example.com/path');
+----
+http://user@example.com/path
+
+query I
+SELECT normalize_url('http://user:pass@EXAMPLE.COM:80/path');
+----
+http://user:pass@example.com/path
+
+# ===========================================================================
+# IPv6 host handling
+# ===========================================================================
+
+query I
+SELECT normalize_url('http://[::1]:80/path');
+----
+http://[::1]/path
+
+query I
+SELECT normalize_url('http://[::1]:8080/path');
+----
+http://[::1]:8080/path
+
+query I
+SELECT normalize_url('http://[2001:db8::1]/path');
+----
+http://[2001:db8::1]/path
+
+# ===========================================================================
+# Combined normalizations
+# ===========================================================================
+
+query I
+SELECT normalize_url('HTTP://WWW.EXAMPLE.COM:80/a/b/../c/?z=1&a=2#frag');
+----
+http://www.example.com/a/c?a=2&z=1
+
+query I
+SELECT normalize_url('HTTPS://Example.Com:443/path/./to/../page?b=2&a=1#section');
+----
+https://example.com/path/page?a=1&b=2
+
+query I
+SELECT normalize_url('http://EXAMPLE.COM.:80/%7Euser/./profile/../about?sort=name&dir=asc#top');
+----
+http://example.com/~user/about?dir=asc&sort=name
+
+# ===========================================================================
+# Edge cases
+# ===========================================================================
+
+# Empty string
+query I
+SELECT normalize_url('');
+----
+(empty)
+
+# NULL
+query I
+SELECT normalize_url(NULL);
+----
+NULL
+
+# No scheme - returned as-is
+query I
+SELECT normalize_url('example.com/path');
+----
+example.com/path
+
+# Just a scheme
+query I
+SELECT normalize_url('http://');
+----
+http://
+
+# Whitespace trimming
+query I
+SELECT normalize_url('  http://example.com/path  ');
+----
+http://example.com/path
+
+# Path with no trailing content
+query I
+SELECT normalize_url('http://example.com');
+----
+http://example.com
+
+# Query with empty values
+query I
+SELECT normalize_url('http://example.com/?key=&other=val');
+----
+http://example.com?key=&other=val
+
+# URL with port and no path
+query I
+SELECT normalize_url('http://example.com:8080');
+----
+http://example.com:8080
+
+# Already normalized URL should not change
+query I
+SELECT normalize_url('https://example.com/path?a=1&b=2');
+----
+https://example.com/path?a=1&b=2
+
+# ===========================================================================
+# Table usage
+# ===========================================================================
+
+statement ok
+CREATE OR REPLACE TABLE urls AS
+    SELECT 'HTTP://Example.COM:80/Path?z=1&a=2#frag' AS url UNION ALL
+    SELECT 'https://TEST.org:443/a/../b' UNION ALL
+    SELECT 'http://example.com/path';
+
+query II
+SELECT url, normalize_url(url) AS normalized FROM urls ORDER BY normalized;
+----
+HTTP://Example.COM:80/Path?z=1&a=2#frag	http://example.com/Path?a=2&z=1
+http://example.com/path	http://example.com/path
+https://TEST.org:443/a/../b	https://test.org/b
+
+# Deduplication use case: find duplicate URLs
+query I
+SELECT normalize_url(url) AS normalized FROM urls GROUP BY normalized HAVING count(*) = 1 ORDER BY normalized;
+----
+http://example.com/Path?a=2&z=1
+http://example.com/path
+https://test.org/b
+
+statement ok
+DROP TABLE urls;
