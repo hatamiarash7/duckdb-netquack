@@ -38,6 +38,7 @@ Table of Contents
       - [IP to Integer / Integer to IP](#ip-to-integer--integer-to-ip)
     - [Normalize URL](#normalize-url)
     - [Domain Depth](#domain-depth)
+    - [Base64 Encode / Decode](#base64-encode--decode)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -700,6 +701,36 @@ D SELECT domain_depth('http://a.b.c.example.co.uk/page') AS depth;
 └───────┘
 ```
 
+### Base64 Encode / Decode
+
+The `base64_encode` function encodes a string into Base64 format. The `base64_decode` function decodes a Base64-encoded string back to its original form.
+
+```sql
+D SELECT base64_encode('Hello World') AS encoded;
+┌──────────────────┐
+│     encoded      │
+│     varchar      │
+├──────────────────┤
+│ SGVsbG8gV29ybGQ= │
+└──────────────────┘
+
+D SELECT base64_decode('SGVsbG8gV29ybGQ=') AS decoded;
+┌─────────────┐
+│   decoded   │
+│   varchar   │
+├─────────────┤
+│ Hello World │
+└─────────────┘
+
+D SELECT base64_decode(base64_encode('https://example.com')) AS roundtrip;
+┌─────────────────────┐
+│      roundtrip      │
+│       varchar       │
+├─────────────────────┤
+│ https://example.com │
+└─────────────────────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -748,7 +779,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Support internationalized domain names (IDNs)
 - [ ] Implement `punycode_encode` / `punycode_decode` functions - Convert internationalized domain names to/from ASCII-compatible encoding
 - [ ] Implement `is_valid_domain` function - Validate a domain name against RFC rules
-- [ ] Implement `base64_encode` / `base64_decode` functions - Encode and decode Base64 strings
 - [ ] Implement `extract_path_segments` table function - Split a URL path into individual segment rows
 
 ## Contributing 🤝
