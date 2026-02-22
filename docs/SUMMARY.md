@@ -26,6 +26,7 @@
 * [Base64 Encode / Decode](functions/base64-functions.md)
 * [Validate URL](functions/is-valid-url.md)
 * [Validate Domain](functions/is-valid-domain.md)
+* [Extract Path Segments](functions/extract-path-segments.md)
 * [Tranco](functions/tranco/README.md)
   * [Get Tranco Rank](functions/tranco/get-tranco-rank.md)
   * [Download / Update Tranco](functions/tranco/download-update-tranco.md)

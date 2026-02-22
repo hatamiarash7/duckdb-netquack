@@ -1,0 +1,221 @@
+# name: test/sql/extract_path_segments.test
+# description: test netquack extract_path_segments table function
+# group: [sql]
+
+require netquack
+
+# === Basic URL with Path ===
+
+query II
+SELECT * FROM extract_path_segments('https://example.com/path/to/page');
+----
+1	path
+2	to
+3	page
+
+# Single segment
+query II
+SELECT * FROM extract_path_segments('https://example.com/page');
+----
+1	page
+
+# Many segments
+query II
+SELECT * FROM extract_path_segments('https://example.com/a/b/c/d/e');
+----
+1	a
+2	b
+3	c
+4	d
+5	e
+
+# === URL with Query and Fragment ===
+
+# Path stops at query string
+query II
+SELECT * FROM extract_path_segments('https://example.com/path/to/page?q=1&r=2');
+----
+1	path
+2	to
+3	page
+
+# Path stops at fragment
+query II
+SELECT * FROM extract_path_segments('https://example.com/path/to/file.html#section');
+----
+1	path
+2	to
+3	file.html
+
+# Path stops at query before fragment
+query II
+SELECT * FROM extract_path_segments('https://example.com/a/b?x=1#frag');
+----
+1	a
+2	b
+
+# === Bare Domain with Path ===
+
+query II
+SELECT * FROM extract_path_segments('example.com/a/b/c');
+----
+1	a
+2	b
+3	c
+
+# === Standalone Path ===
+
+query II
+SELECT segment_index, segment FROM extract_path_segments('/api/v2/users/123/posts');
+----
+1	api
+2	v2
+3	users
+4	123
+5	posts
+
+# === File Extension in Path ===
+
+query II
+SELECT * FROM extract_path_segments('https://cdn.example.com/assets/images/logo.png');
+----
+1	assets
+2	images
+3	logo.png
+
+# === Empty / No Path Cases ===
+
+# Root path only
+query II
+SELECT * FROM extract_path_segments('https://example.com/');
+----
+
+# No path at all
+query II
+SELECT * FROM extract_path_segments('https://example.com');
+----
+
+# Empty string
+query II
+SELECT * FROM extract_path_segments('');
+----
+
+# NULL returns 0 rows
+query II
+SELECT * FROM extract_path_segments(NULL);
+----
+
+# === Trailing Slash ===
+
+query II
+SELECT * FROM extract_path_segments('https://example.com/path/to/');
+----
+1	path
+2	to
+
+# === Double Slashes in Path ===
+
+query II
+SELECT * FROM extract_path_segments('https://example.com/path//double');
+----
+1	path
+2	double
+
+# === URL with Port ===
+
+query II
+SELECT * FROM extract_path_segments('https://example.com:8080/api/data');
+----
+1	api
+2	data
+
+# === URL with Userinfo ===
+
+query II
+SELECT * FROM extract_path_segments('https://user:pass@example.com/dashboard/settings');
+----
+1	dashboard
+2	settings
+
+# === Protocol-relative URL ===
+
+query II
+SELECT * FROM extract_path_segments('//example.com/assets/main.js');
+----
+1	assets
+2	main.js
+
+# === Encoded Characters in Path ===
+
+query II
+SELECT * FROM extract_path_segments('https://example.com/path%20with%20spaces/file');
+----
+1	path%20with%20spaces
+2	file
+
+# === Table Usage ===
+
+statement ok
+CREATE OR REPLACE TABLE test_urls (url VARCHAR);
+
+statement ok
+INSERT INTO test_urls VALUES
+    ('https://example.com/a/b/c'),
+    ('https://test.org/x/y'),
+    ('https://empty.com/'),
+    (NULL);
+
+query III
+SELECT u.url, s.segment_index, s.segment
+FROM test_urls u, LATERAL extract_path_segments(u.url) s
+ORDER BY u.url, s.segment_index;
+----
+https://example.com/a/b/c	1	a
+https://example.com/a/b/c	2	b
+https://example.com/a/b/c	3	c
+https://test.org/x/y	1	x
+https://test.org/x/y	2	y
+
+statement ok
+DROP TABLE test_urls;
+
+# === Count Segments per URL ===
+
+statement ok
+CREATE OR REPLACE TABLE urls_depth (url VARCHAR);
+
+statement ok
+INSERT INTO urls_depth VALUES
+    ('https://example.com/a/b/c'),
+    ('https://test.org/x'),
+    ('https://deep.com/1/2/3/4/5');
+
+query II
+SELECT u.url, COUNT(*) AS segment_count
+FROM urls_depth u, LATERAL extract_path_segments(u.url) s
+GROUP BY u.url
+ORDER BY segment_count;
+----
+https://test.org/x	1
+https://example.com/a/b/c	3
+https://deep.com/1/2/3/4/5	5
+
+statement ok
+DROP TABLE urls_depth;
+
+# === API-style Paths ===
+
+query II
+SELECT * FROM extract_path_segments('https://api.example.com/v3/users/42/repos');
+----
+1	v3
+2	users
+3	42
+4	repos
+
+# === Single Segment with Query ===
+
+query II
+SELECT * FROM extract_path_segments('https://example.com/search?q=duckdb');
+----
+1	search

@@ -13,6 +13,7 @@
 #include "functions/extract_fragment.hpp"
 #include "functions/extract_host.hpp"
 #include "functions/extract_path.hpp"
+#include "functions/extract_path_segments.hpp"
 #include "functions/extract_port.hpp"
 #include "functions/extract_query.hpp"
 #include "functions/extract_schema.hpp"
@@ -137,6 +138,12 @@ static void LoadInternal(ExtensionLoader &loader) {
 	auto is_valid_domain_function =
 	    ScalarFunction("is_valid_domain", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsValidDomainFunction);
 	loader.RegisterFunction(is_valid_domain_function);
+
+	auto extract_path_segments_function =
+	    TableFunction("extract_path_segments", {LogicalType::VARCHAR}, nullptr, netquack::ExtractPathSegmentsFunc::Bind,
+	                  nullptr, netquack::ExtractPathSegmentsFunc::InitLocal);
+	extract_path_segments_function.in_out_function = netquack::ExtractPathSegmentsFunc::Function;
+	loader.RegisterFunction(extract_path_segments_function);
 
 	auto version_function =
 	    TableFunction("netquack_version", {}, netquack::VersionFunc::Scan, netquack::VersionFunc::Bind,
