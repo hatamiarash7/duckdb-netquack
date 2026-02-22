@@ -41,6 +41,7 @@ Table of Contents
     - [Base64 Encode / Decode](#base64-encode--decode)
     - [Validate URL](#validate-url)
     - [Validate Domain](#validate-domain)
+    - [Extract Path Segments](#extract-path-segments)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -793,6 +794,44 @@ D SELECT is_valid_domain('localhost') AS valid;
 └─────────┘
 ```
 
+### Extract Path Segments
+
+The `extract_path_segments` table function splits a URL path into individual segment rows. Each row contains a 1-based `segment_index` and the `segment` string. Returns 0 rows for `NULL`, empty, or root-only paths.
+
+```sql
+D SELECT * FROM extract_path_segments('https://example.com/path/to/page?q=1');
+┌───────────────┬─────────┐
+│ segment_index │ segment │
+│     int32     │ varchar │
+├───────────────┼─────────┤
+│             1 │ path    │
+│             2 │ to      │
+│             3 │ page    │
+└───────────────┴─────────┘
+```
+
+Use with `LATERAL` to expand segments per row in a table:
+
+```sql
+D SELECT u.url,
+      s.segment_index,
+      s.segment
+  FROM urls u,
+      LATERAL extract_path_segments(u.url) s
+  ORDER BY u.url,
+      s.segment_index;
+┌───────────────────────────┬───────────────┬─────────┐
+│            url            │ segment_index │ segment │
+│          varchar          │     int32     │ varchar │
+├───────────────────────────┼───────────────┼─────────┤
+│ https://example.com/a/b/c │             1 │ a       │
+│ https://example.com/a/b/c │             2 │ b       │
+│ https://example.com/a/b/c │             3 │ c       │
+│ https://test.org/x/y      │             1 │ x       │
+│ https://test.org/x/y      │             2 │ y       │
+└───────────────────────────┴───────────────┴─────────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -839,7 +878,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `ip_in_range` function - Check if an IP falls within a given CIDR block
 - [ ] Support internationalized domain names (IDNs)
 - [ ] Implement `punycode_encode` / `punycode_decode` functions - Convert internationalized domain names to/from ASCII-compatible encoding
-- [ ] Implement `extract_path_segments` table function - Split a URL path into individual segment rows
 
 ## Contributing 🤝
 
