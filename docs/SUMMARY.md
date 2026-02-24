@@ -27,6 +27,7 @@
 * [Validate URL](functions/is-valid-url.md)
 * [Validate Domain](functions/is-valid-domain.md)
 * [Extract Path Segments](functions/extract-path-segments.md)
+* [URL Encode / Decode](functions/url-encode-functions.md)
 * [Tranco](functions/tranco/README.md)
   * [Get Tranco Rank](functions/tranco/get-tranco-rank.md)
   * [Download / Update Tranco](functions/tranco/download-update-tranco.md)

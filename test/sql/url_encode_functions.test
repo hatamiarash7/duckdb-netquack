@@ -1,0 +1,433 @@
+# name: test/sql/url_encode_functions.test
+# description: test netquack url_encode and url_decode
+# group: [sql]
+
+require netquack
+
+# === Basic url_encode ===
+
+query I
+SELECT url_encode('hello world');
+----
+hello%20world
+
+query I
+SELECT url_encode('foo bar baz');
+----
+foo%20bar%20baz
+
+query I
+SELECT url_encode('abc123');
+----
+abc123
+
+query I
+SELECT url_encode('a-b_c.d~e');
+----
+a-b_c.d~e
+
+# === Unreserved characters pass through ===
+
+query I
+SELECT url_encode('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~');
+----
+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~
+
+# === Reserved characters are encoded ===
+
+query I
+SELECT url_encode(':/?#[]@!$&''()*+,;=');
+----
+%3A%2F%3F%23%5B%5D%40%21%24%26%27%28%29%2A%2B%2C%3B%3D
+
+query I
+SELECT url_encode('key=value&key2=value2');
+----
+key%3Dvalue%26key2%3Dvalue2
+
+# === Spaces ===
+
+query I
+SELECT url_encode('hello world');
+----
+hello%20world
+
+query I
+SELECT url_encode(' ');
+----
+%20
+
+query I
+SELECT url_encode('  leading and trailing  ');
+----
+%20%20leading%20and%20trailing%20%20
+
+# === Special characters ===
+
+query I
+SELECT url_encode('100%');
+----
+100%25
+
+query I
+SELECT url_encode('price: $19.99');
+----
+price%3A%20%2419.99
+
+query I
+SELECT url_encode('<script>alert("xss")</script>');
+----
+%3Cscript%3Ealert%28%22xss%22%29%3C%2Fscript%3E
+
+query I
+SELECT url_encode('path/to/file');
+----
+path%2Fto%2Ffile
+
+# === URL components ===
+
+query I
+SELECT url_encode('https://example.com/path?q=hello world&lang=en');
+----
+https%3A%2F%2Fexample.com%2Fpath%3Fq%3Dhello%20world%26lang%3Den
+
+query I
+SELECT url_encode('user@example.com');
+----
+user%40example.com
+
+# === Unicode / UTF-8 ===
+
+query I
+SELECT url_encode('café');
+----
+caf%C3%A9
+
+query I
+SELECT url_encode('日本語');
+----
+%E6%97%A5%E6%9C%AC%E8%AA%9E
+
+query I
+SELECT url_encode('über');
+----
+%C3%BCber
+
+query I
+SELECT url_encode('emoji: 🦆');
+----
+emoji%3A%20%F0%9F%A6%86
+
+# === Empty string ===
+
+query I
+SELECT url_encode('');
+----
+(empty)
+
+# === NULL ===
+
+query I
+SELECT url_encode(NULL);
+----
+NULL
+
+# =========================================
+# === Basic url_decode ===
+# =========================================
+
+query I
+SELECT url_decode('hello%20world');
+----
+hello world
+
+query I
+SELECT url_decode('foo%20bar%20baz');
+----
+foo bar baz
+
+query I
+SELECT url_decode('abc123');
+----
+abc123
+
+# === Unreserved pass through ===
+
+query I
+SELECT url_decode('a-b_c.d~e');
+----
+a-b_c.d~e
+
+# === Decode reserved characters ===
+
+query I
+SELECT url_decode('%3A%2F%3F%23%5B%5D%40%21%24%26%27%28%29%2A%2B%2C%3B%3D');
+----
+:/?#[]@!$&'()*+,;=
+
+query I
+SELECT url_decode('key%3Dvalue%26key2%3Dvalue2');
+----
+key=value&key2=value2
+
+# === Plus sign decoded as space ===
+
+query I
+SELECT url_decode('hello+world');
+----
+hello world
+
+query I
+SELECT url_decode('key+name=some+value');
+----
+key name=some value
+
+# === Mixed percent and plus ===
+
+query I
+SELECT url_decode('hello%20world+foo');
+----
+hello world foo
+
+# === Lowercase hex digits ===
+
+query I
+SELECT url_decode('hello%20world');
+----
+hello world
+
+query I
+SELECT url_decode('caf%c3%a9');
+----
+café
+
+# === Uppercase hex digits ===
+
+query I
+SELECT url_decode('caf%C3%A9');
+----
+café
+
+# === Mixed case hex ===
+
+query I
+SELECT url_decode('%c3%A9');
+----
+é
+
+# === Invalid percent sequences pass through ===
+
+query I
+SELECT url_decode('%ZZ');
+----
+%ZZ
+
+query I
+SELECT url_decode('%');
+----
+%
+
+query I
+SELECT url_decode('%2');
+----
+%2
+
+query I
+SELECT url_decode('100%');
+----
+100%
+
+query I
+SELECT url_decode('%%20');
+----
+% 
+
+# === UTF-8 round-trip ===
+
+query I
+SELECT url_decode('%E6%97%A5%E6%9C%AC%E8%AA%9E');
+----
+日本語
+
+query I
+SELECT url_decode('%C3%BCber');
+----
+über
+
+query I
+SELECT url_decode('%F0%9F%A6%86');
+----
+🦆
+
+# === Full URL decode ===
+
+query I
+SELECT url_decode('https%3A%2F%2Fexample.com%2Fpath%3Fq%3Dhello%20world%26lang%3Den');
+----
+https://example.com/path?q=hello world&lang=en
+
+# === Empty string ===
+
+query I
+SELECT url_decode('');
+----
+(empty)
+
+# === NULL ===
+
+query I
+SELECT url_decode(NULL);
+----
+NULL
+
+# =========================================
+# === Round-trip tests ===
+# =========================================
+
+query I
+SELECT url_decode(url_encode('hello world'));
+----
+hello world
+
+query I
+SELECT url_decode(url_encode('https://example.com/path?q=test&lang=en'));
+----
+https://example.com/path?q=test&lang=en
+
+query I
+SELECT url_decode(url_encode('café 日本語 🦆'));
+----
+café 日本語 🦆
+
+query I
+SELECT url_decode(url_encode('special: <>&"'''));
+----
+special: <>&"'
+
+query I
+SELECT url_decode(url_encode('100% done!'));
+----
+100% done!
+
+query I
+SELECT url_decode(url_encode(''));
+----
+(empty)
+
+# =========================================
+# === Table usage ===
+# =========================================
+
+statement ok
+CREATE OR REPLACE TABLE test_urls AS
+SELECT * FROM (VALUES
+    ('hello world'),
+    ('café'),
+    ('key=value&a=1'),
+    ('https://example.com'),
+    ('')
+) AS t(input);
+
+query II
+SELECT input, url_encode(input) FROM test_urls ORDER BY input;
+----
+(empty)	(empty)
+café	caf%C3%A9
+hello world	hello%20world
+https://example.com	https%3A%2F%2Fexample.com
+key=value&a=1	key%3Dvalue%26a%3D1
+
+query II
+SELECT input, url_decode(url_encode(input)) AS roundtrip FROM test_urls ORDER BY input;
+----
+(empty)	(empty)
+café	café
+hello world	hello world
+https://example.com	https://example.com
+key=value&a=1	key=value&a=1
+
+statement ok
+DROP TABLE test_urls;
+
+# === Encoded strings table ===
+
+statement ok
+CREATE OR REPLACE TABLE encoded_data AS
+SELECT * FROM (VALUES
+    ('hello%20world'),
+    ('caf%C3%A9'),
+    ('key%3Dvalue%26a%3D1'),
+    ('hello+world'),
+    ('%E6%97%A5%E6%9C%AC%E8%AA%9E')
+) AS t(encoded);
+
+query II
+SELECT encoded, url_decode(encoded) FROM encoded_data ORDER BY encoded;
+----
+%E6%97%A5%E6%9C%AC%E8%AA%9E	日本語
+caf%C3%A9	café
+hello%20world	hello world
+hello+world	hello world
+key%3Dvalue%26a%3D1	key=value&a=1
+
+statement ok
+DROP TABLE encoded_data;
+
+# === GROUP BY with url_encode ===
+
+statement ok
+CREATE OR REPLACE TABLE mixed_data AS
+SELECT * FROM (VALUES
+    ('hello world'),
+    ('hello world'),
+    ('café'),
+    ('café'),
+    ('café'),
+    ('test')
+) AS t(val);
+
+query II
+SELECT url_encode(val) AS encoded, count(*) AS cnt FROM mixed_data GROUP BY url_encode(val) ORDER BY encoded;
+----
+caf%C3%A9	3
+hello%20world	2
+test	1
+
+statement ok
+DROP TABLE mixed_data;
+
+# === Encode NUL byte via chr() ===
+
+query I
+SELECT url_encode(chr(0));
+----
+%00
+
+# === Encode all control characters (0-31) produce percent encoding ===
+
+query I
+SELECT url_encode(chr(1));
+----
+%01
+
+query I
+SELECT url_encode(chr(9));
+----
+%09
+
+query I
+SELECT url_encode(chr(10));
+----
+%0A
+
+query I
+SELECT url_encode(chr(13));
+----
+%0D
+
+# === Decode %00 produces NUL ===
+
+query I
+SELECT length(url_decode('%00'));
+----
+1

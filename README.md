@@ -42,6 +42,7 @@ Table of Contents
     - [Validate URL](#validate-url)
     - [Validate Domain](#validate-domain)
     - [Extract Path Segments](#extract-path-segments)
+    - [URL Encode / Decode](#url-encode--decode)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -832,6 +833,58 @@ D SELECT u.url,
 └───────────────────────────┴───────────────┴─────────┘
 ```
 
+### URL Encode / Decode
+
+The `url_encode` function percent-encodes a string per RFC 3986. Only unreserved characters (`A-Z`, `a-z`, `0-9`, `-`, `_`, `.`, `~`) are left as-is — everything else is encoded as `%XX` with uppercase hex digits.
+
+The `url_decode` function decodes percent-encoded strings back to their original form. It also decodes `+` as a space (for `application/x-www-form-urlencoded` compatibility). Invalid percent sequences are passed through literally.
+
+```sql
+D SELECT url_encode('hello world') AS encoded;
+┌───────────────┐
+│    encoded    │
+│    varchar    │
+├───────────────┤
+│ hello%20world │
+└───────────────┘
+
+D SELECT url_decode('hello%20world') AS decoded;
+┌─────────────┐
+│   decoded   │
+│   varchar   │
+├─────────────┤
+│ hello world │
+└─────────────┘
+
+D SELECT url_encode('https://www.google.com/search?client=firefox-b-d&q=url+encode') AS encoded;
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                     encoded                                     │
+│                                     varchar                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ https%3A%2F%2Fwww.google.com%2Fsearch%3Fclient%3Dfirefox-b-d%26q%3Durl%2Bencode │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+D SELECT url_decode(url_encode('café 🦆')) AS roundtrip;
+┌───────────┐
+│ roundtrip │
+│  varchar  │
+├───────────┤
+│ café 🦆   │
+└───────────┘
+```
+
+`url_decode` also decodes `+` as space:
+
+```sql
+D SELECT url_decode('hello+world') AS decoded;
+┌─────────────┐
+│   decoded   │
+│   varchar   │
+├─────────────┤
+│ hello world │
+└─────────────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -874,7 +927,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Save Tranco data as Parquet
 - [ ] Implement GeoIP functionality
 - [ ] Return default value for `get_tranco_rank`
-- [ ] Implement `url_encode` / `url_decode` functions - Standalone percent-encoding and decoding
 - [ ] Implement `ip_in_range` function - Check if an IP falls within a given CIDR block
 - [ ] Support internationalized domain names (IDNs)
 - [ ] Implement `punycode_encode` / `punycode_decode` functions - Convert internationalized domain names to/from ASCII-compatible encoding
