@@ -40,7 +40,7 @@ void VersionFunc::Scan(ClientContext &context, TableFunctionInput &data_p, DataC
 
 	output.SetCardinality(1);
 	// Set version
-	output.data[0].SetValue(0, "v1.10.0");
+	output.data[0].SetValue(0, "v1.11.0");
 	// Set done
 	local_state.done = true;
 }
