@@ -14,6 +14,7 @@
 #include "functions/extract_host.hpp"
 #include "functions/extract_path.hpp"
 #include "functions/extract_path_segments.hpp"
+#include "functions/url_encode_functions.hpp"
 #include "functions/extract_port.hpp"
 #include "functions/extract_query.hpp"
 #include "functions/extract_schema.hpp"
@@ -144,6 +145,14 @@ static void LoadInternal(ExtensionLoader &loader) {
 	                  nullptr, netquack::ExtractPathSegmentsFunc::InitLocal);
 	extract_path_segments_function.in_out_function = netquack::ExtractPathSegmentsFunc::Function;
 	loader.RegisterFunction(extract_path_segments_function);
+
+	auto url_encode_function =
+	    ScalarFunction("url_encode", {LogicalType::VARCHAR}, LogicalType::VARCHAR, UrlEncodeFunction);
+	loader.RegisterFunction(url_encode_function);
+
+	auto url_decode_function =
+	    ScalarFunction("url_decode", {LogicalType::VARCHAR}, LogicalType::VARCHAR, UrlDecodeFunction);
+	loader.RegisterFunction(url_decode_function);
 
 	auto version_function =
 	    TableFunction("netquack_version", {}, netquack::VersionFunc::Scan, netquack::VersionFunc::Bind,
