@@ -10,3 +10,4 @@ test/python/__pycache__/
 *.csv
 public_suffix_list.dat
 !test/data/*.csv
+.cache
