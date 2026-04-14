@@ -5,7 +5,7 @@
 #include <cstring>
 
 namespace duckdb {
-void ExtractSchemaFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void ExtractSchemaFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -30,7 +30,7 @@ void ExtractSchemaFunction(DataChunk &args, ExpressionState &state, Vector &resu
 }
 
 namespace netquack {
-std::string ExtractSchema(const std::string &input) {
+std::string ExtractSchema(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}

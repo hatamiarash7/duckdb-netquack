@@ -10,6 +10,6 @@ void ExtractSubDomainFunction(DataChunk &args, ExpressionState &state, Vector &r
 
 namespace netquack {
 // Function to extract the sub-domain from a URL
-std::string ExtractSubDomain(const std::string &input);
+std::string ExtractSubDomain(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

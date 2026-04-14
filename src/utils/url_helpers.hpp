@@ -5,19 +5,18 @@
 #include <cstring>
 #include <string_view>
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 using Pos = const char *;
 
-constexpr inline bool isAlphaNumericASCII(char c) noexcept {
+constexpr bool isAlphaNumericASCII(char c) noexcept {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
-constexpr inline bool isAlphaASCII(char c) noexcept {
+constexpr bool isAlphaASCII(char c) noexcept {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
-constexpr inline bool isNumericASCII(char c) noexcept {
+constexpr bool isNumericASCII(char c) noexcept {
 	return (c >= '0' && c <= '9');
 }
 
@@ -185,5 +184,4 @@ inline std::string_view getURLHost(const char *data, size_t size) {
 	return checkAndReturnHost(pos, dot_pos, start_of_host);
 }
 
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

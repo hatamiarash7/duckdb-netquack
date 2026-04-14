@@ -4,8 +4,7 @@
 
 #include "duckdb.hpp"
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 // Function to update the Tranco list table
 void UpdateTrancoListFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
@@ -14,5 +13,4 @@ void GetTrancoRankFunction(DataChunk &args, ExpressionState &state, Vector &resu
 
 // Function to get the Tranco rank category of a domain
 void GetTrancoRankCategoryFunction(DataChunk &args, ExpressionState &state, Vector &result);
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

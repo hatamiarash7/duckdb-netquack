@@ -24,7 +24,7 @@ static constexpr std::array<uint8_t, 256> BuildBase64DecodeTable() {
 
 static constexpr auto BASE64_DECODE_TABLE = BuildBase64DecodeTable();
 
-void Base64EncodeFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void Base64EncodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -47,7 +47,7 @@ void Base64EncodeFunction(DataChunk &args, ExpressionState &state, Vector &resul
 	}
 }
 
-void Base64DecodeFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void Base64DecodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);

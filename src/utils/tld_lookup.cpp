@@ -4,10 +4,9 @@
 
 #include "tld_lookup_generated.hpp"
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 bool isValidTLD(const char *str, size_t len) {
-	return TLDLookupHash::isValidTLD(str, len) != nullptr;
+	return TLDLookupHash::isValidTLD(str, static_cast<unsigned int>(len)) != nullptr;
 }
 
 bool isValidTLD(const std::string &suffix) {
@@ -56,5 +55,4 @@ std::string getEffectiveTLD(const std::string &hostname) {
 	// No dots, return entire hostname
 	return hostname;
 }
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

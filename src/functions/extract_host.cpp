@@ -5,7 +5,7 @@
 #include "../utils/url_helpers.hpp"
 
 namespace duckdb {
-void ExtractHostFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void ExtractHostFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -30,7 +30,7 @@ void ExtractHostFunction(DataChunk &args, ExpressionState &state, Vector &result
 }
 
 namespace netquack {
-std::string ExtractHost(const std::string &input) {
+std::string ExtractHost(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}

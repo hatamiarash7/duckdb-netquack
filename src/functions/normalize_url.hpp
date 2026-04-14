@@ -11,6 +11,6 @@ namespace netquack {
 // Normalize a URL: lowercase scheme/host, remove default ports, sort query params,
 // remove trailing slashes, remove fragments, decode unnecessary percent-encoding,
 // and remove dot segments from the path.
-std::string NormalizeURL(const std::string &input);
+std::string NormalizeURL(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

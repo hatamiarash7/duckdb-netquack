@@ -2,14 +2,13 @@
 
 #include "validation_functions.hpp"
 
-#include "../utils/url_helpers.hpp"
-
-#include <algorithm>
 #include <string>
+
+#include "../utils/url_helpers.hpp"
 
 namespace duckdb {
 
-void IsValidURLFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void IsValidURLFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<bool>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -26,7 +25,7 @@ void IsValidURLFunction(DataChunk &args, ExpressionState &state, Vector &result)
 	}
 }
 
-void IsValidDomainFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void IsValidDomainFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<bool>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -59,13 +58,13 @@ namespace netquack {
 // - No empty labels (consecutive dots)
 // - Optional trailing dot is allowed (FQDN notation)
 // ---------------------------------------------------------------------------
-bool IsValidDomain(const std::string &input) {
+bool IsValidDomain(const std::string_view &input) {
 	if (input.empty()) {
 		return false;
 	}
 
 	// Work on a copy, strip optional trailing dot
-	std::string domain = input;
+	std::string domain = std::string(input);
 	if (domain.back() == '.') {
 		domain.pop_back();
 	}
@@ -142,7 +141,7 @@ bool IsValidDomain(const std::string &input) {
 // - The host must be a valid domain, IPv4, or bracketed IPv6
 // - Optional port, path, query, and fragment
 // ---------------------------------------------------------------------------
-bool IsValidURL(const std::string &input) {
+bool IsValidURL(const std::string_view &input) {
 	if (input.empty()) {
 		return false;
 	}
@@ -182,7 +181,6 @@ bool IsValidURL(const std::string &input) {
 	}
 
 	// Skip optional userinfo (user:pass@)
-	const char *authority_start = pos;
 	const char *at_pos = nullptr;
 	for (const char *scan = pos; scan < end && *scan != '/' && *scan != '?' && *scan != '#'; ++scan) {
 		if (*scan == '@') {
@@ -217,7 +215,7 @@ bool IsValidURL(const std::string &input) {
 			return false;
 		}
 		pos = bracket_close + 1;
-		host_end = pos;
+		// host_end = pos;
 	} else {
 		// Regular host (domain or IPv4)
 		while (pos < end && *pos != ':' && *pos != '/' && *pos != '?' && *pos != '#') {

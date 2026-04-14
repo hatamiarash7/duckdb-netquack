@@ -3,7 +3,6 @@
 #include "url_encode_functions.hpp"
 
 #include <array>
-#include <sstream>
 
 namespace duckdb {
 
@@ -52,7 +51,7 @@ static int HexVal(char c) {
 	return -1;
 }
 
-void UrlEncodeFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void UrlEncodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -70,7 +69,7 @@ void UrlEncodeFunction(DataChunk &args, ExpressionState &state, Vector &result) 
 	}
 }
 
-void UrlDecodeFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void UrlDecodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -90,7 +89,7 @@ void UrlDecodeFunction(DataChunk &args, ExpressionState &state, Vector &result) 
 
 namespace netquack {
 
-std::string UrlEncode(const std::string &input) {
+std::string UrlEncode(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}
@@ -112,7 +111,7 @@ std::string UrlEncode(const std::string &input) {
 	return result;
 }
 
-std::string UrlDecode(const std::string &input) {
+std::string UrlDecode(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}

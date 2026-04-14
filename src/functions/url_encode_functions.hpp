@@ -9,7 +9,7 @@ void UrlEncodeFunction(DataChunk &args, ExpressionState &state, Vector &result);
 void UrlDecodeFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
 namespace netquack {
-std::string UrlEncode(const std::string &input);
-std::string UrlDecode(const std::string &input);
+std::string UrlEncode(const std::string_view &input);
+std::string UrlDecode(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

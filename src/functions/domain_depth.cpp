@@ -5,7 +5,7 @@
 #include "../utils/url_helpers.hpp"
 
 namespace duckdb {
-void DomainDepthFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void DomainDepthFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<int32_t>(result);
 	auto &result_validity = FlatVector::Validity(result);

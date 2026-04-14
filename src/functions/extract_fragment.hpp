@@ -10,6 +10,6 @@ void ExtractFragmentFunction(DataChunk &args, ExpressionState &state, Vector &re
 
 namespace netquack {
 // Function to extract the fragment from a URL
-std::string ExtractFragment(const std::string &input);
+std::string ExtractFragment(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

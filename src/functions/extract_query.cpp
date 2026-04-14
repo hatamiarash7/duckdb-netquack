@@ -8,7 +8,7 @@
 #include "../utils/url_helpers.hpp"
 
 namespace duckdb {
-void ExtractQueryStringFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void ExtractQueryStringFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -32,7 +32,7 @@ void ExtractQueryStringFunction(DataChunk &args, ExpressionState &state, Vector 
 }
 
 namespace netquack {
-std::string ExtractQueryString(const std::string &input) {
+std::string ExtractQueryString(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}
@@ -70,7 +70,7 @@ std::string ExtractQueryString(const std::string &input) {
 }
 
 // Parse query string into key-value pairs
-static std::vector<std::pair<std::string, std::string>> ParseQueryParameters(const std::string &query_string) {
+static std::vector<std::pair<std::string, std::string>> ParseQueryParameters(const std::string_view &query_string) {
 	std::vector<std::pair<std::string, std::string>> params;
 
 	if (query_string.empty()) {
@@ -127,25 +127,24 @@ struct ExtractQueryParametersLocalState : public LocalTableFunctionState {
 	bool done = false;
 };
 
-unique_ptr<FunctionData> ExtractQueryParametersFunc::Bind(ClientContext &context, TableFunctionBindInput &input,
+unique_ptr<FunctionData> ExtractQueryParametersFunc::Bind(ClientContext &, TableFunctionBindInput &,
                                                           vector<LogicalType> &return_types, vector<string> &names) {
 	// Define output columns: key and value
-	return_types.emplace_back(LogicalType(LogicalTypeId::VARCHAR));
+	return_types.emplace_back(LogicalTypeId::VARCHAR);
 	names.emplace_back("key");
 
-	return_types.emplace_back(LogicalType(LogicalTypeId::VARCHAR));
+	return_types.emplace_back(LogicalTypeId::VARCHAR);
 	names.emplace_back("value");
 
 	return make_uniq<ExtractQueryParametersData>();
 }
 
-unique_ptr<LocalTableFunctionState> ExtractQueryParametersFunc::InitLocal(ExecutionContext &context,
-                                                                          TableFunctionInitInput &input,
-                                                                          GlobalTableFunctionState *global_state_p) {
+unique_ptr<LocalTableFunctionState> ExtractQueryParametersFunc::InitLocal(ExecutionContext &, TableFunctionInitInput &,
+                                                                          GlobalTableFunctionState *) {
 	return make_uniq<ExtractQueryParametersLocalState>();
 }
 
-OperatorResultType ExtractQueryParametersFunc::Function(ExecutionContext &context, TableFunctionInput &data_p,
+OperatorResultType ExtractQueryParametersFunc::Function(ExecutionContext &, TableFunctionInput &data_p,
                                                         DataChunk &input, DataChunk &output) {
 	auto &local_state = data_p.local_state->Cast<ExtractQueryParametersLocalState>();
 

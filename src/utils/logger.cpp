@@ -7,8 +7,7 @@
 #include <iostream>
 #include <mutex>
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 // Thread-safe mutex for logging
 static std::mutex log_mutex;
 
@@ -80,7 +79,7 @@ void LogMessage(LogLevel level, const std::string &message) {
 	}
 
 	// Lock for thread safety
-	std::lock_guard<std::mutex> lock(log_mutex);
+	std::scoped_lock<std::mutex> lock(log_mutex);
 
 	std::ofstream log_file("netquack.log", std::ios_base::app);
 	if (log_file.is_open()) {
@@ -97,5 +96,4 @@ void LogMessage(LogLevel level, const std::string &message) {
 		throw std::runtime_error(message);
 	}
 }
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

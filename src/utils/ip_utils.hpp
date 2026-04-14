@@ -8,8 +8,7 @@
 
 #include "duckdb.hpp"
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 struct IPInfo {
 	std::string address;
 	std::string netmask;
@@ -43,5 +42,4 @@ private:
 	static std::string intToIP(uint32_t ip);
 	static std::string intToIP(const std::array<int, 4> &octets);
 };
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

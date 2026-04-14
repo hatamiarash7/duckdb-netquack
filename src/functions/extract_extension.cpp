@@ -5,7 +5,7 @@
 #include "../utils/url_helpers.hpp"
 
 namespace duckdb {
-void ExtractExtensionFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void ExtractExtensionFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);

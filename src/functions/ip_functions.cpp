@@ -117,7 +117,7 @@ bool IsValidIPv6(const std::string &ip) {
 
 	// Handle leading :: (addr starts with ::)
 	if (addr.size() >= 2 && addr[0] == ':' && addr[1] == ':') {
-		parts.insert(parts.begin(), "");
+		parts.emplace(parts.begin(), "");
 	}
 	// Handle trailing :: (addr ends with ::)
 	if (addr.size() >= 2 && addr[addr.size() - 1] == ':' && addr[addr.size() - 2] == ':') {
@@ -317,7 +317,8 @@ static std::array<uint16_t, 8> ParseIPv6Groups(const std::string &ip) {
 
 	// Handle :: expansion
 	size_t dc_pos = addr.find("::");
-	std::vector<std::string> left_parts, right_parts;
+	std::vector<std::string> left_parts;
+	std::vector<std::string> right_parts;
 
 	if (dc_pos != std::string::npos) {
 		std::string left = addr.substr(0, dc_pos);
@@ -344,20 +345,24 @@ static std::array<uint16_t, 8> ParseIPv6Groups(const std::string &ip) {
 
 		size_t idx = 0;
 		for (size_t i = 0; i < left_count; ++i) {
-			groups[idx++] = static_cast<uint16_t>(std::stoul(left_parts[i], nullptr, 16));
+			groups[idx] = static_cast<uint16_t>(std::stoul(left_parts[i], nullptr, 16));
+			++idx;
 		}
 		for (size_t i = 0; i < zeros_needed; ++i) {
-			groups[idx++] = 0;
+			groups[idx] = 0;
+			++idx;
 		}
 		for (size_t i = 0; i < right_count; ++i) {
-			groups[idx++] = static_cast<uint16_t>(std::stoul(right_parts[i], nullptr, 16));
+			groups[idx] = static_cast<uint16_t>(std::stoul(right_parts[i], nullptr, 16));
+			++idx;
 		}
 	} else {
 		std::istringstream stream(addr);
 		std::string part;
 		int idx = 0;
 		while (std::getline(stream, part, ':') && idx < 8) {
-			groups[idx++] = static_cast<uint16_t>(std::stoul(part, nullptr, 16));
+			groups[idx] = static_cast<uint16_t>(std::stoul(part, nullptr, 16));
+			++idx;
 		}
 	}
 
@@ -427,7 +432,7 @@ bool IsPrivateIPv6(const std::string &ip) {
 // DuckDB Scalar Function implementations
 // ===========================================================================
 
-void IsValidIPFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void IsValidIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<bool>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -444,7 +449,7 @@ void IsValidIPFunction(DataChunk &args, ExpressionState &state, Vector &result) 
 	}
 }
 
-void IsPrivateIPFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void IsPrivateIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<bool>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -469,7 +474,7 @@ void IsPrivateIPFunction(DataChunk &args, ExpressionState &state, Vector &result
 	}
 }
 
-void IPToIntFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void IPToIntFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<uint64_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -492,7 +497,7 @@ void IPToIntFunction(DataChunk &args, ExpressionState &state, Vector &result) {
 	}
 }
 
-void IntToIPFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void IntToIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -516,7 +521,7 @@ void IntToIPFunction(DataChunk &args, ExpressionState &state, Vector &result) {
 	}
 }
 
-void IPVersionFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void IPVersionFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<int8_t>(result);
 	auto &result_validity = FlatVector::Validity(result);

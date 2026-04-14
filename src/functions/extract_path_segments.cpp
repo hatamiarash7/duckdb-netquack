@@ -7,13 +7,12 @@
 #include <string>
 #include <vector>
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 
 // ---------------------------------------------------------------------------
 // Pure logic: extract path from URL, then split into non-empty segments
 // ---------------------------------------------------------------------------
-std::vector<std::string> ExtractPathSegments(const std::string &input) {
+std::vector<std::string> ExtractPathSegments(const std::string_view &input) {
 	std::vector<std::string> segments;
 
 	if (input.empty()) {
@@ -72,26 +71,25 @@ struct ExtractPathSegmentsLocalState : public LocalTableFunctionState {
 	bool done = false;
 };
 
-unique_ptr<FunctionData> ExtractPathSegmentsFunc::Bind(ClientContext &context, TableFunctionBindInput &input,
+unique_ptr<FunctionData> ExtractPathSegmentsFunc::Bind(ClientContext &, TableFunctionBindInput &,
                                                        vector<LogicalType> &return_types, vector<string> &names) {
 	// Output columns: segment_index (1-based) and segment
-	return_types.emplace_back(LogicalType(LogicalTypeId::INTEGER));
+	return_types.emplace_back(LogicalTypeId::INTEGER);
 	names.emplace_back("segment_index");
 
-	return_types.emplace_back(LogicalType(LogicalTypeId::VARCHAR));
+	return_types.emplace_back(LogicalTypeId::VARCHAR);
 	names.emplace_back("segment");
 
 	return make_uniq<ExtractPathSegmentsData>();
 }
 
-unique_ptr<LocalTableFunctionState> ExtractPathSegmentsFunc::InitLocal(ExecutionContext &context,
-                                                                       TableFunctionInitInput &input,
-                                                                       GlobalTableFunctionState *global_state_p) {
+unique_ptr<LocalTableFunctionState> ExtractPathSegmentsFunc::InitLocal(ExecutionContext &, TableFunctionInitInput &,
+                                                                       GlobalTableFunctionState *) {
 	return make_uniq<ExtractPathSegmentsLocalState>();
 }
 
-OperatorResultType ExtractPathSegmentsFunc::Function(ExecutionContext &context, TableFunctionInput &data_p,
-                                                     DataChunk &input, DataChunk &output) {
+OperatorResultType ExtractPathSegmentsFunc::Function(ExecutionContext &, TableFunctionInput &data_p, DataChunk &input,
+                                                     DataChunk &output) {
 	auto &local_state = data_p.local_state->Cast<ExtractPathSegmentsLocalState>();
 
 	// Already finished outputting for this input row — request next input
@@ -151,5 +149,4 @@ OperatorResultType ExtractPathSegmentsFunc::Function(ExecutionContext &context, 
 	return OperatorResultType::HAVE_MORE_OUTPUT;
 }
 
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

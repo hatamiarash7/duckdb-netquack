@@ -10,6 +10,6 @@ void ExtractTLDFunction(DataChunk &args, ExpressionState &state, Vector &result)
 
 namespace netquack {
 // Function to extract the top-level domain from a URL
-std::string ExtractTLD(const std::string &input);
+std::string ExtractTLD(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

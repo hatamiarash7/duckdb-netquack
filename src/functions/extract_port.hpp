@@ -10,6 +10,6 @@ void ExtractPortFunction(DataChunk &args, ExpressionState &state, Vector &result
 
 namespace netquack {
 // Function to extract the port from a URL or host
-std::string ExtractPort(const std::string &input);
+std::string ExtractPort(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

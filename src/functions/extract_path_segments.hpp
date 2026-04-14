@@ -4,8 +4,7 @@
 
 #include "duckdb.hpp"
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 
 // Table function to split a URL path into individual segment rows
 struct ExtractPathSegmentsFunc {
@@ -18,7 +17,6 @@ struct ExtractPathSegmentsFunc {
 };
 
 // Pure logic: extract path segments from a URL
-std::vector<std::string> ExtractPathSegments(const std::string &input);
+std::vector<std::string> ExtractPathSegments(const std::string_view &input);
 
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

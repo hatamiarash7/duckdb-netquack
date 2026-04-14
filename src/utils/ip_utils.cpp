@@ -7,8 +7,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 IPInfo IPCalculator::calculate(const std::string &ipWithMask) {
 	// Validate input format
 	if (!isValidInput(ipWithMask)) {
@@ -245,5 +244,4 @@ std::string IPCalculator::intToIP(const std::array<int, 4> &octets) {
 	}
 	return ss.str();
 }
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

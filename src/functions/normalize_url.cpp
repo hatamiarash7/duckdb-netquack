@@ -10,7 +10,7 @@
 
 namespace duckdb {
 
-void NormalizeURLFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void NormalizeURLFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -188,7 +188,7 @@ static std::string SortQueryParams(const std::string &query) {
 }
 
 // Check if the given port is the default for the scheme
-static bool IsDefaultPort(const std::string &scheme, const std::string &port) {
+static bool IsDefaultPort(const std::string_view &scheme, const std::string_view &port) {
 	if (port.empty()) {
 		return true;
 	}
@@ -228,7 +228,7 @@ static std::string RemoveTrailingSlashes(const std::string &path) {
 // Main normalization
 // ---------------------------------------------------------------------------
 
-std::string NormalizeURL(const std::string &input) {
+std::string NormalizeURL(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}
@@ -242,7 +242,7 @@ std::string NormalizeURL(const std::string &input) {
 	while (end > start && std::isspace(static_cast<unsigned char>(input[end - 1]))) {
 		--end;
 	}
-	std::string url = input.substr(start, end - start);
+	std::string url = std::string(input).substr(start, end - start);
 
 	if (url.empty()) {
 		return "";
@@ -311,7 +311,7 @@ std::string NormalizeURL(const std::string &input) {
 			++query_end;
 		}
 		query = url.substr(pos, query_end - pos);
-		pos = query_end;
+		// pos = query_end; // fragment is dropped, so we don't need to update pos further
 	}
 
 	// Fragment is dropped (pos may point to '#...' which we skip)

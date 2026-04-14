@@ -4,8 +4,7 @@
 
 #include "duckdb.hpp"
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 struct VersionFunc {
 	static unique_ptr<FunctionData> Bind(ClientContext &context, TableFunctionBindInput &input,
 	                                     vector<LogicalType> &return_types, vector<string> &names);
@@ -14,5 +13,4 @@ struct VersionFunc {
 	                                                     GlobalTableFunctionState *global_state_p);
 	static unique_ptr<GlobalTableFunctionState> InitGlobal(ClientContext &context, TableFunctionInitInput &input);
 };
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

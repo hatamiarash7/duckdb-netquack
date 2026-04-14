@@ -12,8 +12,7 @@
 
 #include "logger.hpp"
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 bool file_exists(const char *file_path) {
 #ifdef _WIN32
 	DWORD attributes = GetFileAttributesA(file_path);
@@ -77,5 +76,4 @@ size_t WriteFileCallback(char *contents, size_t size, size_t nmemb, void *userp)
 	FILE *file = (FILE *)userp;
 	return fwrite(contents, size, nmemb, file);
 }
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

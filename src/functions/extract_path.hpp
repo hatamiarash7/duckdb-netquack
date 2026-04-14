@@ -10,6 +10,6 @@ void ExtractPathFunction(DataChunk &args, ExpressionState &state, Vector &result
 
 namespace netquack {
 // Function to extract the path from a URL or host
-std::string ExtractPath(const std::string &input);
+std::string ExtractPath(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

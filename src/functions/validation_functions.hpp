@@ -13,9 +13,9 @@ void IsValidDomainFunction(DataChunk &args, ExpressionState &state, Vector &resu
 
 namespace netquack {
 // Check if a string is a well-formed URL
-bool IsValidURL(const std::string &input);
+bool IsValidURL(const std::string_view &input);
 
 // Validate a domain name against RFC 1035 / RFC 1123 rules
-bool IsValidDomain(const std::string &input);
+bool IsValidDomain(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

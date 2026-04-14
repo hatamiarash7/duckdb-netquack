@@ -3,17 +3,17 @@
 #include "get_tranco.hpp"
 
 #include <curl/curl.h>
-
+#include <chrono>
+#include <format>
 #include <fstream>
 #include <regex>
 
 #include "../utils/logger.hpp"
 #include "../utils/utils.hpp"
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 // Function to get the download code for the Tranco list
-std::string GetTrancoDownloadCode(char *date) {
+std::string GetTrancoDownloadCode(const char *date) {
 	CURL *curl = CreateCurlHandler(WriteStringCallback);
 	CURLcode res;
 	std::string readBuffer;
@@ -49,14 +49,20 @@ std::string GetTrancoDownloadCode(char *date) {
 void LoadTrancoList(DatabaseInstance &db, bool force) {
 	// Get yesterday's date in YYYY-MM-DD format
 	std::time_t now = std::time(nullptr);
-	std::tm *yesterday = std::localtime(&now);
-	yesterday->tm_mday -= 1; // Subtract one day
-	std::mktime(yesterday);  // Normalize the time
-	char date[11];
-	std::strftime(date, sizeof(date), "%Y-%m-%d", yesterday);
+	std::tm yesterday_tm;
+	localtime_r(&now, &yesterday_tm);
 
-	// Construct the file name
-	std::string temp_file = "tranco_list_" + std::string(date) + ".csv";
+	yesterday_tm.tm_mday -= 1;
+	std::mktime(&yesterday_tm);
+	std::string date(11, '\0'); // allocate buffer
+
+	std::strftime(date.data(), date.size(), "%Y-%m-%d", &yesterday_tm);
+
+	// Remove trailing null character(s)
+	date.resize(std::strlen(date.c_str()));
+
+	// Construct filename
+	std::string temp_file = "tranco_list_" + date + ".csv";
 
 	// Check if file exists before download
 	bool file_exists = false;
@@ -72,7 +78,7 @@ void LoadTrancoList(DatabaseInstance &db, bool force) {
 			remove(temp_file.c_str());
 		}
 		// Get the download code
-		std::string download_code = GetTrancoDownloadCode(date);
+		std::string download_code = GetTrancoDownloadCode(date.c_str());
 
 		// Construct the download URL
 		std::string download_url = "https://tranco-list.eu/download/" + download_code + "/full";
@@ -250,5 +256,4 @@ void GetTrancoRankCategoryFunction(DataChunk &args, ExpressionState &state, Vect
 		}
 	}
 }
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

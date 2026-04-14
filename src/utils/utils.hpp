@@ -9,8 +9,7 @@
 #include "duckdb/execution/expression_executor.hpp"
 #include "duckdb/main/database.hpp"
 
-namespace duckdb {
-namespace netquack {
+namespace duckdb::netquack {
 // Function to get a CURL handler with custom write callback
 CURL *CreateCurlHandler(curl_write_callback write_callback);
 
@@ -22,5 +21,4 @@ size_t WriteFileCallback(char *contents, size_t size, size_t nmemb, void *userp)
 
 // Function to download the Tranco list and create a table
 void LoadTrancoList(DatabaseInstance &db, bool force);
-} // namespace netquack
-} // namespace duckdb
+} // namespace duckdb::netquack

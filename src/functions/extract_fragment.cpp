@@ -5,7 +5,7 @@
 #include "../utils/url_helpers.hpp"
 
 namespace duckdb {
-void ExtractFragmentFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+void ExtractFragmentFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
@@ -29,7 +29,7 @@ void ExtractFragmentFunction(DataChunk &args, ExpressionState &state, Vector &re
 }
 
 namespace netquack {
-std::string ExtractFragment(const std::string &input) {
+std::string ExtractFragment(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}

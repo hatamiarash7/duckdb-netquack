@@ -10,6 +10,6 @@ void ExtractSchemaFunction(DataChunk &args, ExpressionState &state, Vector &resu
 
 namespace netquack {
 // Function to extract the schema from a URL
-std::string ExtractSchema(const std::string &input);
+std::string ExtractSchema(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

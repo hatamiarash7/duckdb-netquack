@@ -10,7 +10,7 @@ void ExtractQueryStringFunction(DataChunk &args, ExpressionState &state, Vector 
 
 namespace netquack {
 // Function to extract the query string from a URL
-std::string ExtractQueryString(const std::string &input);
+std::string ExtractQueryString(const std::string_view &input);
 
 // Table function to extract query parameters as key-value pairs (supports lateral joins)
 struct ExtractQueryParametersFunc {
