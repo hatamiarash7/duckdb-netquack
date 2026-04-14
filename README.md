@@ -73,6 +73,19 @@ Also, you can check for any available updates for the extension using this comma
 UPDATE EXTENSIONS (netquack);
 ```
 
+The compatibility between Netquack and DuckDB varies across versions.
+
+| Version of Netquack | Version of DuckDB |
+| ------------------- | ----------------- |
+| v1.11.2             | v1.5.2            |
+| v1.11.1             | v1.5.1            |
+| v1.11.0             | v1.4.4            |
+| v1.10.0             | v1.4.4            |
+| v1.9.0              | v1.4.4            |
+| v1.8.1              | v1.4.4            |
+| v1.8.0              | v1.4.4            |
+| v1.4.0              | v1.4.0            |
+
 ## Usage Examples 📚
 
 Once installed, the [macro functions](https://duckdb.org/community_extensions/extensions/netquack.html#added-functions) provided by the extension can be used just like built-in functions.
@@ -895,7 +908,7 @@ D SELECT * FROM netquack_version();
 │ version │
 │ varchar │
 ├─────────┤
-│ v1.11.0 │
+│ v1.11.2 │
 └─────────┘
 ```
 
