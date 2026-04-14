@@ -24,5 +24,7 @@
     "varchar",
     "vcpkg",
     "webp"
-  ]
+  ],
+  "makefile.configureOnOpen": true,
+  "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/release/compile_commands.json"
 }
