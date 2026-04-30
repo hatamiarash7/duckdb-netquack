@@ -13,9 +13,9 @@ void Base64DecodeFunction(DataChunk &args, ExpressionState &state, Vector &resul
 
 namespace netquack {
 // Encode a string to Base64
-std::string Base64Encode(const std::string &input);
+std::string Base64Encode(const std::string_view &input);
 
 // Decode a Base64 string
-std::string Base64Decode(const std::string &input);
+std::string Base64Decode(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb

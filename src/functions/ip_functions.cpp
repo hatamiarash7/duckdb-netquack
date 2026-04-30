@@ -433,7 +433,7 @@ bool IsPrivateIPv6(const std::string &ip) {
 // ===========================================================================
 
 void IsValidIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	auto &input_vector = args.data[0];
+	const auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<bool>(result);
 	auto &result_validity = FlatVector::Validity(result);
 
@@ -450,7 +450,7 @@ void IsValidIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IsPrivateIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	auto &input_vector = args.data[0];
+	const auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<bool>(result);
 	auto &result_validity = FlatVector::Validity(result);
 
@@ -475,7 +475,7 @@ void IsPrivateIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IPToIntFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	auto &input_vector = args.data[0];
+	const auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<uint64_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
 
@@ -498,7 +498,7 @@ void IPToIntFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IntToIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	auto &input_vector = args.data[0];
+	const auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
 
@@ -522,7 +522,7 @@ void IntToIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IPVersionFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	auto &input_vector = args.data[0];
+	const auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<int8_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
 

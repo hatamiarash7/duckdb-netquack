@@ -7,7 +7,7 @@
 
 namespace duckdb {
 void ExtractDomainFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	auto &input_vector = args.data[0];
+	const auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<string_t>(result);
 	auto &result_validity = FlatVector::Validity(result);
 

@@ -9,7 +9,7 @@
 namespace duckdb {
 
 void IsValidURLFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	auto &input_vector = args.data[0];
+	const auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<bool>(result);
 	auto &result_validity = FlatVector::Validity(result);
 
@@ -26,7 +26,7 @@ void IsValidURLFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IsValidDomainFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	auto &input_vector = args.data[0];
+	const auto &input_vector = args.data[0];
 	auto result_data = FlatVector::GetData<bool>(result);
 	auto &result_validity = FlatVector::Validity(result);
 

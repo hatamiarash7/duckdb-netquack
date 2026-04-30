@@ -10,6 +10,6 @@ void ExtractExtensionFunction(DataChunk &args, ExpressionState &state, Vector &r
 
 namespace netquack {
 // Function to extract the extension from a URL or host
-std::string ExtractExtension(const std::string &input);
+std::string ExtractExtension(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb
