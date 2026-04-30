@@ -30,7 +30,7 @@ void ExtractExtensionFunction(DataChunk &args, ExpressionState &, Vector &result
 }
 
 namespace netquack {
-std::string ExtractExtension(const std::string &input) {
+std::string ExtractExtension(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}

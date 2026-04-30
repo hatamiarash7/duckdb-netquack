@@ -72,7 +72,7 @@ void Base64DecodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 
 namespace netquack {
 
-std::string Base64Encode(const std::string &input) {
+std::string Base64Encode(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}
@@ -101,7 +101,7 @@ std::string Base64Encode(const std::string &input) {
 	return result;
 }
 
-std::string Base64Decode(const std::string &input) {
+std::string Base64Decode(const std::string_view &input) {
 	if (input.empty()) {
 		return "";
 	}
