@@ -64,7 +64,7 @@ namespace duckdb {
 void MyFunctionFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
 namespace netquack {
-std::string MyFunction(const std::string &input);
+std::string MyFunction(const std::string_view &input);
 } // namespace netquack
 } // namespace duckdb
 ```
@@ -154,7 +154,7 @@ Key test conventions:
 
 ## Documentation Format (GitBook)
 
-Every function doc in `docs/functions/` uses this frontmatter:
+Every function doc in `docs/functions/` uses this front-matter:
 
 ```markdown
 ---
