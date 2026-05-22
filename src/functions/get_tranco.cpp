@@ -3,8 +3,6 @@
 #include "get_tranco.hpp"
 
 #include <curl/curl.h>
-#include <chrono>
-#include <format>
 #include <fstream>
 #include <regex>
 
@@ -50,7 +48,11 @@ void LoadTrancoList(DatabaseInstance &db, bool force) {
 	// Get yesterday's date in YYYY-MM-DD format
 	std::time_t now = std::time(nullptr);
 	std::tm yesterday_tm;
+#ifdef _WIN32
+	localtime_s(&yesterday_tm, &now);
+#else
 	localtime_r(&now, &yesterday_tm);
+#endif
 
 	yesterday_tm.tm_mday -= 1;
 	std::mktime(&yesterday_tm);
