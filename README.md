@@ -77,15 +77,11 @@ The compatibility between Netquack and DuckDB varies across versions.
 
 | Version of Netquack | Version of DuckDB |
 | ------------------- | ----------------- |
+| v1.12.1             | v1.5.3            |
 | v1.12.0             | v1.5.2            |
 | v1.11.2             | v1.5.2            |
 | v1.11.1             | v1.5.1            |
 | v1.11.0             | v1.4.4            |
-| v1.10.0             | v1.4.4            |
-| v1.9.0              | v1.4.4            |
-| v1.8.1              | v1.4.4            |
-| v1.8.0              | v1.4.4            |
-| v1.4.0              | v1.4.0            |
 
 ## Usage Examples 📚
 
@@ -909,7 +905,7 @@ D SELECT * FROM netquack_version();
 │ version │
 │ varchar │
 ├─────────┤
-│ v1.11.2 │
+│ v1.12.1 │
 └─────────┘
 ```
 
