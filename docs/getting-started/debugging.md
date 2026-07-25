@@ -35,6 +35,6 @@ D SELECT * FROM netquack_version();
 │ version │
 │ varchar │
 ├─────────┤
-│ v1.12.1 │
+│ v1.13.0 │
 └─────────┘
 ```
