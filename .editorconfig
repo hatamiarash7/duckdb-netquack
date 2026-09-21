@@ -1,1 +1,68 @@
-duckdb/.editorconfig
+# https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{c,cpp,h,hpp}]
+indent_style = tab
+tab_width = 4
+indent_size = tab
+max_line_length = 120
+# JetBrains-specific wrap hints (ignored by other editors)
+x-soft-wrap-text = true
+x-soft-wrap-mode = CharacterWidth
+x-soft-wrap-limit = 120
+
+# DuckDB sqllogictest: tabs separate expected columns; do not strip them.
+[*.{test,test_slow,test_coverage,benchmark}]
+indent_style = tab
+tab_width = 4
+indent_size = tab
+trim_trailing_whitespace = false
+max_line_length = off
+
+[Makefile]
+indent_style = tab
+tab_width = 4
+indent_size = tab
+
+[{CMakeLists.txt,*.cmake}]
+indent_style = space
+indent_size = 2
+
+[*.{yml,yaml,json}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+max_line_length = off
+
+[*.{py,pyi}]
+indent_style = space
+indent_size = 4
+
+[*.sh]
+indent_style = tab
+tab_width = 4
+indent_size = tab
+
+[*.sql]
+indent_style = tab
+tab_width = 4
+indent_size = tab
+
+[*.gperf]
+indent_style = tab
+tab_width = 4
+indent_size = tab
+
+[*.cff]
+indent_style = space
+indent_size = 2

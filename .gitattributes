@@ -1,1 +1,49 @@
-*.test linguist-language=sql
+# Default to LF so Windows checkouts match Linux/macOS and CI.
+* text=auto eol=lf
+
+# Source and docs
+*.c text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.hpp text eol=lf
+*.cmake text eol=lf
+CMakeLists.txt text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.sql text eol=lf
+*.toml text eol=lf
+*.gperf text eol=lf
+Makefile text eol=lf
+
+# DuckDB sqllogictest files (tab-sensitive expected output)
+*.test text eol=lf
+*.test_slow text eol=lf
+*.test_coverage text eol=lf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.duckdb_extension binary
+
+# GitHub language stats: this repo is the extension, not vendored DuckDB.
+duckdb/** linguist-vendored
+extension-ci-tools/** linguist-vendored
+docs/** linguist-documentation
+
+# Treat SQL tests as SQL, not as unknown/data files.
+*.test linguist-language=SQL
+*.test_slow linguist-language=SQL
+*.test_coverage linguist-language=SQL
+
+# gperf output is generated from Mozilla's Public Suffix List.
+src/utils/tld_lookup.gperf linguist-generated
+src/utils/tld_lookup_generated.hpp linguist-generated
