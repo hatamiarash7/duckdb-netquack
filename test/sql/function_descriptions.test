@@ -1,0 +1,52 @@
+# name: test/sql/function_descriptions.test
+# description: test netquack function catalog metadata
+# group: [sql]
+
+require netquack
+
+# Every registered netquack function has a description, example, and category
+query I
+SELECT count(*) FROM duckdb_functions()
+WHERE function_name IN (
+	'extract_domain', 'extract_path', 'extract_schema', 'extract_host', 'extract_query_string',
+	'extract_query_parameters', 'extract_tld', 'extract_subdomain', 'extract_port', 'extract_extension',
+	'update_tranco', 'get_tranco_rank', 'get_tranco_rank_category', 'ipcalc', 'is_valid_ip', 'is_private_ip',
+	'ip_to_int', 'int_to_ip', 'ip_version', 'extract_fragment', 'domain_depth', 'normalize_url',
+	'base64_encode', 'base64_decode', 'is_valid_url', 'is_valid_domain', 'extract_path_segments',
+	'url_encode', 'url_decode', 'netquack_version'
+)
+  AND (description IS NULL OR len(examples) = 0 OR len(categories) = 0);
+----
+0
+
+# Scalar URL function
+query IIII
+SELECT function_name, parameters, categories[1], description
+FROM duckdb_functions()
+WHERE function_name = 'extract_domain';
+----
+extract_domain	[url]	url	Extracts the registrable domain from a URL using the Public Suffix List.
+
+# Table function
+query III
+SELECT function_name, parameters, categories[1]
+FROM duckdb_functions()
+WHERE function_name = 'ipcalc';
+----
+ipcalc	[cidr]	ip
+
+# Integer parameter name
+query II
+SELECT function_name, parameters
+FROM duckdb_functions()
+WHERE function_name = 'int_to_ip';
+----
+int_to_ip	[ip_int]
+
+# Zero-argument table function
+query III
+SELECT function_name, parameters, categories[1]
+FROM duckdb_functions()
+WHERE function_name = 'netquack_version';
+----
+netquack_version	[]	utility
