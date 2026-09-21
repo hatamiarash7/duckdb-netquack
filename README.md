@@ -976,16 +976,19 @@ D SELECT * FROM netquack_version();
 
 - **C++ compiler**: Needs C++17 or later (e.g., `g++`, `clang++`).
 - **gperf**: Perfect hash generation requires `gperf`.
-- **CMake**
-- **GNU Make**
+- **CMake** and **GNU Make**
+- **Ninja** (recommended) and **ccache** (optional, speeds rebuilds)
+- **vcpkg** for `libcurl` (see [`CONTRIBUTING.md`](CONTRIBUTING.md))
 
 ```bash
 # On Debian-based systems
-sudo apt-get install gperf cmake make
+sudo apt-get install gperf cmake make ninja-build g++
 
-# On MacOS using Homebrew
-brew install gperf cmake make
+# On macOS using Homebrew
+brew install gperf cmake make ninja
 ```
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for vcpkg setup, Make targets, and the development workflow. `make help` lists the common commands.
 
 ## Debugging
 
@@ -1005,16 +1008,18 @@ Also, there will be stdout errors for background tasks like CURL.
 
 ## Contributing 🤝
 
-Don't be shy and reach out to us if you want to contribute 😉
+Contributions are welcome. The full workflow (build, tests, new functions, PR checklist) is in [`CONTRIBUTING.md`](CONTRIBUTING.md). Architecture and coding conventions live in [`AGENTS.md`](AGENTS.md).
 
-New functions must follow the checklist in [`AGENTS.md`](AGENTS.md), including catalog metadata (`Register()` descriptions, examples, and categories).
+```bash
+git clone --recurse-submodules git@github.com:hatamiarash7/duckdb-netquack.git
+cd duckdb-netquack
+make help
+GEN=ninja make
+GEN=ninja make test
+```
 
-1. Fork it!
-2. Create your feature branch: `git checkout -b my-new-feature`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin my-new-feature`
-5. Submit a pull request
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues go through [SECURITY.md](SECURITY.md), not public issues.
 
 ## Issues 🐛
 
-Each project may have many problems. Contributing to the better development of this project by [reporting them](https://github.com/hatamiarash7/duckdb-netquack/issues). 👍
+Use the [issue templates](https://github.com/hatamiarash7/duckdb-netquack/issues/new/choose) and include Netquack and DuckDB versions.

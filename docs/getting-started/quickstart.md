@@ -38,7 +38,7 @@ The compatibility between Netquack and DuckDB varies across versions.
 
 ### Install Netquack
 
-BlockDuck is one of the available DuckDB community [extensions](https://duckdb.org/community_extensions/list_of_extensions), so we can use `INSTALL`and `LOAD` to install it easily.
+Netquack is one of the available DuckDB community [extensions](https://duckdb.org/community_extensions/list_of_extensions), so we can use `INSTALL` and `LOAD` to install it easily.
 
 ```sql
 SET allow_community_extensions = true;

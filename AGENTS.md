@@ -7,8 +7,13 @@ This extension is designed to simplify working with domains, URIs, and web paths
 ## Main Commands
 
 ```bash
+make help              # List common development targets.
 GEN=ninja make         # Build the entire project (reconfigures CMake + compiles).
 GEN=ninja make test    # Run all tests.
+make test-one TEST=test/sql/extract_domain.test
+make run               # Interactive DuckDB CLI with the local extension.
+make format            # clang-format src/ and test/.
+make update-tld        # Refresh the Public Suffix List (gperf).
 ```
 
 ### Build Troubleshooting

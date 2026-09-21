@@ -21,12 +21,35 @@ layout:
 
 # Contributing
 
-Don't be shy and reach out to us if you want to contribute 😉
+Thanks for wanting to contribute. Bug reports, new functions, tests, and documentation are all welcome.
 
-When adding a function, follow the checklist in [`AGENTS.md`](https://github.com/hatamiarash7/duckdb-netquack/blob/main/AGENTS.md) — especially catalog metadata (`Register()` descriptions, examples, and categories) so the function appears in `duckdb_functions()`.
+The full development guide lives in [`CONTRIBUTING.md`](https://github.com/hatamiarash7/duckdb-netquack/blob/main/CONTRIBUTING.md). Architecture, function checklists, and test conventions are in [`AGENTS.md`](https://github.com/hatamiarash7/duckdb-netquack/blob/main/AGENTS.md). By participating you agree to the [Code of Conduct](https://github.com/hatamiarash7/duckdb-netquack/blob/main/CODE_OF_CONDUCT.md).
 
-1. [Fork it!](https://github.com/hatamiarash7/duckdb-netquack/fork)
-2. Create your feature branch: `git checkout -b my-new-feature`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin my-new-feature`
-5. Submit a pull request
+## Workflow
+
+1. [Fork](https://github.com/hatamiarash7/duckdb-netquack/fork) the repository.
+2. Clone with submodules and create a branch from `main`.
+3. Build and test locally (`make help` lists targets):
+
+```bash
+git clone --recurse-submodules git@github.com:hatamiarash7/duckdb-netquack.git
+cd duckdb-netquack
+GEN=ninja make
+GEN=ninja make test
+```
+
+4. Add tests under `test/sql/` for any behavior change.
+5. Run `make format` before opening a pull request.
+
+## Adding a function
+
+New functions must follow the checklist in [`AGENTS.md`](https://github.com/hatamiarash7/duckdb-netquack/blob/main/AGENTS.md):
+
+- Header + implementation in `src/functions/`
+- Register with `Register()` (descriptions, examples, and categories) so the function appears in `duckdb_functions()`
+- SQL tests, including a NULL case in `null_handling.test`
+- README example, GitBook page, and `docs/SUMMARY.md` entry
+
+## Pull requests
+
+Keep changes focused. Fill in the pull-request template and link related issues. CI (`format` + extension distribution) must pass before merge.

@@ -21,4 +21,14 @@ layout:
 
 # Issues
 
-Each project may have many problems. Contributing to the better development of this project by reporting them. 👍
+Please report bugs and feature ideas with the [GitHub issue templates](https://github.com/hatamiarash7/duckdb-netquack/issues/new/choose). Include Netquack and DuckDB versions:
+
+```sql
+SELECT * FROM netquack_version();
+```
+
+```bash
+duckdb --version
+```
+
+Security problems should be reported privately — see [SECURITY.md](https://github.com/hatamiarash7/duckdb-netquack/blob/main/SECURITY.md).

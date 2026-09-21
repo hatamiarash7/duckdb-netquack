@@ -44,20 +44,20 @@ export VCPKG_TOOLCHAIN_PATH=`pwd`/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 #### Compile <a href="#compile" id="compile"></a>
 
-Then we can use `make` to build the extension:
+Then we can use `make` to build the extension. `make help` lists the common targets.
 
 ```bash
-make
+GEN=ninja make
 ```
 
-The BlockDuck extension binary will be:
+The Netquack extension binary will be:
 
 ```bash
 ./build/release/extension/netquack/netquack.duckdb_extension
 ```
 
 {% hint style="warning" %}
-The build process is long and resource-intensive. Use tools like [Ninja](https://ninja-build.org/) and [Ccache](https://ccache.dev/) and consider adequate swap space if you run out of RAM.
+The first build compiles DuckDB itself and is long and resource-intensive. Use [Ninja](https://ninja-build.org/) and [Ccache](https://ccache.dev/), and consider adequate swap space if you run out of RAM.
 
 ```bash
 GEN=ninja make
@@ -65,10 +65,23 @@ GEN=ninja make
 
 {% endhint %}
 
-#### Tests <a href="#tests" id="tests"></a>
-
-In Netquack, there are some `sqllogictest`, scenarios to make sure all functions work as expected:
+Load the local build in the CLI:
 
 ```bash
-make test
+make run
 ```
+
+```sql
+LOAD './build/release/extension/netquack/netquack.duckdb_extension';
+```
+
+#### Tests <a href="#tests" id="tests"></a>
+
+Netquack uses DuckDB `sqllogictest` files under `test/sql/` to make sure functions work as expected:
+
+```bash
+GEN=ninja make test
+make test-one TEST=test/sql/extract_domain.test
+```
+
+See [`CONTRIBUTING.md`](https://github.com/hatamiarash7/duckdb-netquack/blob/main/CONTRIBUTING.md) for the full development workflow.
