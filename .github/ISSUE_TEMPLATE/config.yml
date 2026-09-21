@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/hatamiarash7/duckdb-netquack/blob/main/CONTRIBUTING.md
+    about: How to build, test, and submit changes
+  - name: Netquack on DuckDB
+    url: https://duckdb.org/community_extensions/extensions/netquack.html
+    about: Official community extension documentation

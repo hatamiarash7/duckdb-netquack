@@ -1,0 +1,41 @@
+name: ✨ Feature request
+description: Suggest a new function or enhancement
+title: "[FEATURE] "
+labels: [enhancement]
+assignees:
+  - hatamiarash7
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for an idea. Check the [roadmap](https://github.com/hatamiarash7/duckdb-netquack/blob/main/README.md#roadmap-%EF%B8%8F) and existing issues first.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that is hard or impossible today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Function name, signature, and example SQL if you have them.
+      placeholder: |
+        SELECT ip_in_range('192.168.1.10', '192.168.1.0/24');
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches, existing functions, or workarounds.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links, datasets, or related DuckDB functions.

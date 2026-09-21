@@ -1,0 +1,63 @@
+name: 🐛 Bug report
+description: Report a bug or unexpected behavior
+title: "[BUG] "
+labels: [bug]
+assignees:
+  - hatamiarash7
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill in the sections below so we can reproduce it.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what went wrong.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: To reproduce
+      description: Minimal SQL (or steps) that trigger the problem.
+      placeholder: |
+        LOAD netquack;
+        SELECT extract_domain('...');
+      render: sql
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen instead.
+    validations:
+      required: true
+
+  - type: input
+    id: netquack-version
+    attributes:
+      label: Netquack version
+      description: Output of `SELECT * FROM netquack_version();`
+      placeholder: v1.14.0
+    validations:
+      required: true
+
+  - type: input
+    id: duckdb-version
+    attributes:
+      label: DuckDB version
+      description: Output of `duckdb --version`
+      placeholder: v1.5.5
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: OS, how you installed the extension (community vs local build), logs, etc.
