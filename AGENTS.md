@@ -144,6 +144,7 @@ Do not construct `CreateScalarFunctionInfo` / `CreateTableFunctionInfo` at the c
 | Scalar `VARCHAR → BOOLEAN` | `is_valid_ip`, `is_private_ip`       | Boolean result        |
 | Scalar `VARCHAR → UBIGINT` | `ip_to_int`                          | Integer result        |
 | Scalar `VARCHAR → TINYINT` | `ip_version`                         | Small integer result  |
+| Scalar `VARCHAR → STRUCT`  | `parse_uri`                          | Named struct fields   |
 | Table (in_out)             | `extract_query_parameters`, `ipcalc` | Multiple rows/columns |
 
 ## Test Format (sqllogictest)

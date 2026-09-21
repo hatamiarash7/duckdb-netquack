@@ -14,7 +14,7 @@ WHERE function_name IN (
 	'update_tranco', 'get_tranco_rank', 'get_tranco_rank_category', 'ipcalc', 'is_valid_ip', 'is_private_ip',
 	'ip_to_int', 'int_to_ip', 'ip_version', 'extract_fragment', 'domain_depth', 'normalize_url',
 	'base64_encode', 'base64_decode', 'is_valid_url', 'is_valid_domain', 'extract_path_segments',
-	'url_encode', 'url_decode', 'netquack_version'
+	'url_encode', 'url_decode', 'parse_uri', 'netquack_version'
 )
   AND (description IS NULL OR len(examples) = 0 OR len(categories) = 0);
 ----
@@ -27,6 +27,14 @@ FROM duckdb_functions()
 WHERE function_name = 'extract_domain';
 ----
 extract_domain	[url]	url	Extracts the registrable domain from a URL using the Public Suffix List.
+
+# STRUCT-returning URL function
+query IIII
+SELECT function_name, parameters, categories[1], description
+FROM duckdb_functions()
+WHERE function_name = 'parse_uri';
+----
+parse_uri	[url]	url	Parses a URI and returns a STRUCT with scheme, host, port, path, query, and fragment.
 
 # Table function
 query III

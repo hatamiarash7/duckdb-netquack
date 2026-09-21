@@ -22,7 +22,6 @@ layout:
 # Roadmap
 
 - [ ] Implement `extract_custom_format` function
-- [ ] Implement `parse_uri` function - Return a STRUCT with all components (scheme, host, port, path, query, fragment) in a single call
 - [ ] Save Tranco data as Parquet
 - [ ] Implement GeoIP functionality
 - [ ] Return default value for `get_tranco_rank`

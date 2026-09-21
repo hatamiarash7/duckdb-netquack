@@ -42,6 +42,7 @@ Table of Contents
     - [Validate URL](#validate-url)
     - [Validate Domain](#validate-domain)
     - [Extract Path Segments](#extract-path-segments)
+    - [Parse URI](#parse-uri)
     - [URL Encode / Decode](#url-encode--decode)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
@@ -858,6 +859,53 @@ D SELECT u.url,
 └───────────────────────────┴───────────────┴─────────┘
 ```
 
+### Parse URI
+
+The `parse_uri` function returns every URI component in a single `STRUCT` call: `scheme`, `host`, `port`, `path`, `query`, and `fragment`. Missing components are empty strings. `NULL` input returns `NULL`. Scheme and host are lowercased; path, query, and fragment keep their original case.
+
+```sql
+D SELECT parse_uri('https://example.com:8080/path?q=1#section') AS uri;
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                   uri                                                    │
+│    struct(scheme varchar, host varchar, port varchar, path varchar, query varchar, fragment varchar)     │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ {'scheme': https, 'host': example.com, 'port': 8080, 'path': /path, 'query': 'q=1', 'fragment': section} │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+Access individual fields with dot notation:
+
+```sql
+D SELECT parse_uri('https://example.com:8080/path?q=1#section').scheme AS scheme;
+┌─────────┐
+│ scheme  │
+│ varchar │
+├─────────┤
+│ https   │
+└─────────┘
+
+D SELECT uri.host, uri.port, uri.path, uri.query, uri.fragment
+  FROM (SELECT parse_uri('https://User:Pass@WWW.Example.COM:8080/Path?Q=1#Frag') AS uri);
+┌─────────────────┬─────────┬─────────┬─────────┬──────────┐
+│      host       │  port   │  path   │  query  │ fragment │
+│     varchar     │ varchar │ varchar │ varchar │ varchar  │
+├─────────────────┼─────────┼─────────┼─────────┼──────────┤
+│ www.example.com │ 8080    │ /Path   │ Q=1     │ Frag     │
+└─────────────────┴─────────┴─────────┴─────────┴──────────┘
+```
+
+Opaque URIs such as `mailto:` and `tel:` put the remainder in `path`. Scheme-less values like `example.com/path` are still split into host and path.
+
+```sql
+D SELECT parse_uri('mailto:someone@example.com').path AS path;
+┌─────────────────────┐
+│        path         │
+│       varchar       │
+├─────────────────────┤
+│ someone@example.com │
+└─────────────────────┘
+```
+
 ### URL Encode / Decode
 
 The `url_encode` function percent-encodes a string per RFC 3986. Only unreserved characters (`A-Z`, `a-z`, `0-9`, `-`, `_`, `.`, `~`) are left as-is — everything else is encoded as `%XX` with uppercase hex digits.
@@ -948,7 +996,6 @@ Also, there will be stdout errors for background tasks like CURL.
 ## Roadmap 🗺️
 
 - [ ] Implement `extract_custom_format` function
-- [ ] Implement `parse_uri` function - Return a STRUCT with all components (scheme, host, port, path, query, fragment) in a single call
 - [ ] Save Tranco data as Parquet
 - [ ] Implement GeoIP functionality
 - [ ] Return default value for `get_tranco_rank`

@@ -28,6 +28,7 @@
 #include "functions/ip_functions.hpp"
 #include "functions/ipcalc.hpp"
 #include "functions/normalize_url.hpp"
+#include "functions/parse_uri.hpp"
 #include "functions/validation_functions.hpp"
 
 namespace duckdb {
@@ -207,6 +208,16 @@ static void LoadInternal(ExtensionLoader &loader) {
 	Register(loader, std::move(extract_path_segments_function), {"url"},
 	         "Splits a URL path into one row per segment with a 1-based index.",
 	         {"SELECT * FROM extract_path_segments('https://example.com/path/to/page');"}, {"url"});
+
+	auto parse_uri_type = LogicalType::STRUCT({{"scheme", LogicalType(LogicalTypeId::VARCHAR)},
+	                                           {"host", LogicalType(LogicalTypeId::VARCHAR)},
+	                                           {"port", LogicalType(LogicalTypeId::VARCHAR)},
+	                                           {"path", LogicalType(LogicalTypeId::VARCHAR)},
+	                                           {"query", LogicalType(LogicalTypeId::VARCHAR)},
+	                                           {"fragment", LogicalType(LogicalTypeId::VARCHAR)}});
+	Register(loader, ScalarFunction("parse_uri", {LogicalType::VARCHAR}, std::move(parse_uri_type), ParseURIFunction),
+	         {"url"}, "Parses a URI and returns a STRUCT with scheme, host, port, path, query, and fragment.",
+	         {"SELECT parse_uri('https://example.com:8080/path?q=1#section');"}, {"url"});
 
 	Register(loader, ScalarFunction("url_encode", {LogicalType::VARCHAR}, LogicalType::VARCHAR, UrlEncodeFunction),
 	         {"string"}, "Percent-encodes a string per RFC 3986.", {"SELECT url_encode('hello world');"}, {"encoding"});

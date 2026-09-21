@@ -106,6 +106,12 @@ SELECT url_decode(NULL);
 ----
 NULL
 
+# Test NULL handling for parse_uri
+query I
+SELECT parse_uri(NULL);
+----
+NULL
+
 # Test NULL values in a table
 statement ok
 CREATE TABLE test_nulls (url VARCHAR);

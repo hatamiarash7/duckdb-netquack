@@ -1,0 +1,416 @@
+# name: test/sql/parse_uri.test
+# description: test netquack parse_uri function
+# group: [sql]
+
+require netquack
+
+# ===========================================================================
+# Full URI with all components
+# ===========================================================================
+
+query IIIIII
+SELECT uri.scheme, uri.host, uri.port, uri.path, uri.query, uri.fragment
+FROM (SELECT parse_uri('https://example.com:8080/path/to/page?q=duckdb&hl=en#section') AS uri);
+----
+https	example.com	8080	/path/to/page	q=duckdb&hl=en	section
+
+query IIIIII
+SELECT uri.scheme, uri.host, uri.port, uri.path, uri.query, uri.fragment
+FROM (SELECT parse_uri('http://www.example.com/path') AS uri);
+----
+http	www.example.com	(empty)	/path	(empty)	(empty)
+
+# ===========================================================================
+# Field access
+# ===========================================================================
+
+query I
+SELECT parse_uri('https://example.com:8443/path?q=1#top').scheme;
+----
+https
+
+query I
+SELECT parse_uri('https://example.com:8443/path?q=1#top').host;
+----
+example.com
+
+query I
+SELECT parse_uri('https://example.com:8443/path?q=1#top').port;
+----
+8443
+
+query I
+SELECT parse_uri('https://example.com:8443/path?q=1#top').path;
+----
+/path
+
+query I
+SELECT parse_uri('https://example.com:8443/path?q=1#top').query;
+----
+q=1
+
+query I
+SELECT parse_uri('https://example.com:8443/path?q=1#top').fragment;
+----
+top
+
+# ===========================================================================
+# Missing components
+# ===========================================================================
+
+# No port, query, or fragment
+query IIIIII
+SELECT uri.scheme, uri.host, uri.port, uri.path, uri.query, uri.fragment
+FROM (SELECT parse_uri('https://example.com/path') AS uri);
+----
+https	example.com	(empty)	/path	(empty)	(empty)
+
+# No path
+query I
+SELECT parse_uri('https://example.com').path;
+----
+/
+
+query I
+SELECT parse_uri('https://example.com:8080').path;
+----
+/
+
+query I
+SELECT parse_uri('https://example.com?q=1').path;
+----
+/
+
+query I
+SELECT parse_uri('https://example.com#frag').path;
+----
+/
+
+# Empty query / fragment markers
+query I
+SELECT parse_uri('https://example.com/path?').query;
+----
+(empty)
+
+query I
+SELECT parse_uri('https://example.com/path#').fragment;
+----
+(empty)
+
+# ===========================================================================
+# Scheme and host case
+# ===========================================================================
+
+query II
+SELECT parse_uri('HTTP://WWW.EXAMPLE.COM/Path').scheme, parse_uri('HTTP://WWW.EXAMPLE.COM/Path').host;
+----
+http	www.example.com
+
+# Path case is preserved
+query I
+SELECT parse_uri('https://example.com/PaTh/To/Page').path;
+----
+/PaTh/To/Page
+
+# Query and fragment case is preserved
+query II
+SELECT parse_uri('https://example.com/path?Q=DuckDB#Section').query, parse_uri('https://example.com/path?Q=DuckDB#Section').fragment;
+----
+Q=DuckDB	Section
+
+# ===========================================================================
+# Userinfo is skipped
+# ===========================================================================
+
+query III
+SELECT uri.host, uri.port, uri.path
+FROM (SELECT parse_uri('https://user:pass@example.com:443/secret') AS uri);
+----
+example.com	443	/secret
+
+query I
+SELECT parse_uri('http://user@example.com/path').host;
+----
+example.com
+
+# ===========================================================================
+# No scheme
+# ===========================================================================
+
+query IIII
+SELECT uri.scheme, uri.host, uri.port, uri.path
+FROM (SELECT parse_uri('example.com/path/page') AS uri);
+----
+(empty)	example.com	(empty)	/path/page
+
+query III
+SELECT uri.host, uri.port, uri.path
+FROM (SELECT parse_uri('example.com:8080/path') AS uri);
+----
+example.com	8080	/path
+
+query III
+SELECT uri.host, uri.port, uri.path
+FROM (SELECT parse_uri('example.com:8080') AS uri);
+----
+example.com	8080	/
+
+# Relative path (no host)
+query III
+SELECT uri.scheme, uri.host, uri.path
+FROM (SELECT parse_uri('/only/path') AS uri);
+----
+(empty)	(empty)	/only/path
+
+query I
+SELECT parse_uri('foo/bar').path;
+----
+foo/bar
+
+# ===========================================================================
+# Protocol-relative
+# ===========================================================================
+
+query III
+SELECT uri.scheme, uri.host, uri.path
+FROM (SELECT parse_uri('//cdn.example.com/lib.js') AS uri);
+----
+(empty)	cdn.example.com	/lib.js
+
+# ===========================================================================
+# Opaque schemes (mailto, tel, sms)
+# ===========================================================================
+
+query IIII
+SELECT uri.scheme, uri.host, uri.path, uri.query
+FROM (SELECT parse_uri('mailto:someone@example.com') AS uri);
+----
+mailto	(empty)	someone@example.com	(empty)
+
+query II
+SELECT uri.scheme, uri.path
+FROM (SELECT parse_uri('tel:+1234') AS uri);
+----
+tel	+1234
+
+query II
+SELECT uri.scheme, uri.path
+FROM (SELECT parse_uri('sms:01234') AS uri);
+----
+sms	01234
+
+query II
+SELECT uri.scheme, uri.path
+FROM (SELECT parse_uri('mailto:') AS uri);
+----
+mailto	(empty)
+
+# Custom schemes
+query III
+SELECT uri.scheme, uri.host, uri.path
+FROM (SELECT parse_uri('git+ssh://git@github.com/user/repo.git') AS uri);
+----
+git+ssh	github.com	/user/repo.git
+
+query III
+SELECT uri.scheme, uri.host, uri.path
+FROM (SELECT parse_uri('ws://example.com/socket') AS uri);
+----
+ws	example.com	/socket
+
+query III
+SELECT uri.scheme, uri.host, uri.port
+FROM (SELECT parse_uri('sftp://example.com:22/path') AS uri);
+----
+sftp	example.com	22
+
+# ===========================================================================
+# IPv4 / IPv6 / localhost
+# ===========================================================================
+
+query III
+SELECT uri.host, uri.port, uri.path
+FROM (SELECT parse_uri('http://192.168.1.1:8080/admin') AS uri);
+----
+192.168.1.1	8080	/admin
+
+query III
+SELECT uri.host, uri.port, uri.path
+FROM (SELECT parse_uri('http://[2001:db8::1]:8080/path') AS uri);
+----
+[2001:db8::1]	8080	/path
+
+query II
+SELECT uri.host, uri.port
+FROM (SELECT parse_uri('http://[::1]:80/') AS uri);
+----
+[::1]	80
+
+query II
+SELECT uri.host, uri.path
+FROM (SELECT parse_uri('http://localhost/admin') AS uri);
+----
+localhost	/admin
+
+query II
+SELECT uri.host, uri.port
+FROM (SELECT parse_uri('localhost:5432') AS uri);
+----
+localhost	5432
+
+query II
+SELECT uri.host, uri.port
+FROM (SELECT parse_uri('[::1]:6379') AS uri);
+----
+[::1]	6379
+
+# ===========================================================================
+# FTP / rsync
+# ===========================================================================
+
+query III
+SELECT uri.scheme, uri.host, uri.path
+FROM (SELECT parse_uri('ftp://ftp.example.com/path/path') AS uri);
+----
+ftp	ftp.example.com	/path/path
+
+query III
+SELECT uri.scheme, uri.host, uri.path
+FROM (SELECT parse_uri('rsync://rpki.example.com/module') AS uri);
+----
+rsync	rpki.example.com	/module
+
+# ===========================================================================
+# Query before fragment; '?' inside fragment is not query
+# ===========================================================================
+
+query II
+SELECT uri.query, uri.fragment
+FROM (SELECT parse_uri('http://example.com/path?q=1#/search?q=test') AS uri);
+----
+q=1	/search?q=test
+
+query I
+SELECT parse_uri('http://example.com/path#frag?notquery').query;
+----
+(empty)
+
+query I
+SELECT parse_uri('http://example.com/path#frag?notquery').fragment;
+----
+frag?notquery
+
+# Multiple '#' characters: first starts the fragment
+query I
+SELECT parse_uri('http://example.com/path#frag#ment').fragment;
+----
+frag#ment
+
+# ===========================================================================
+# Consistency with extract_* for a standard URL
+# ===========================================================================
+
+query I
+SELECT parse_uri('https://example.com:8080/path?q=1#f').scheme = extract_schema('https://example.com:8080/path?q=1#f');
+----
+true
+
+query I
+SELECT parse_uri('https://example.com:8080/path?q=1#f').host = extract_host('https://example.com:8080/path?q=1#f');
+----
+true
+
+query I
+SELECT parse_uri('https://example.com:8080/path?q=1#f').port = extract_port('https://example.com:8080/path?q=1#f');
+----
+true
+
+query I
+SELECT parse_uri('https://example.com:8080/path?q=1#f').path = extract_path('https://example.com:8080/path?q=1#f');
+----
+true
+
+query I
+SELECT parse_uri('https://example.com:8080/path?q=1#f').query = extract_query_string('https://example.com:8080/path?q=1#f');
+----
+true
+
+query I
+SELECT parse_uri('https://example.com:8080/path?q=1#f').fragment = extract_fragment('https://example.com:8080/path?q=1#f');
+----
+true
+
+# ===========================================================================
+# NULL and empty
+# ===========================================================================
+
+query I
+SELECT parse_uri(NULL);
+----
+NULL
+
+query I
+SELECT parse_uri(NULL).scheme;
+----
+NULL
+
+query I
+SELECT parse_uri('').scheme;
+----
+(empty)
+
+query I
+SELECT parse_uri('').path;
+----
+/
+
+# Just a fragment
+query II
+SELECT uri.path, uri.fragment
+FROM (SELECT parse_uri('#section') AS uri);
+----
+/	section
+
+# ===========================================================================
+# Invalid port is ignored
+# ===========================================================================
+
+query II
+SELECT uri.host, uri.port
+FROM (SELECT parse_uri('http://example.com:abc/path') AS uri);
+----
+example.com	(empty)
+
+# ===========================================================================
+# Table usage
+# ===========================================================================
+
+statement ok
+CREATE OR REPLACE TABLE uri_test AS
+    SELECT 'https://example.com:443/a?q=1#x' AS url UNION ALL
+    SELECT 'http://test.org/b' UNION ALL
+    SELECT 'example.com/c' UNION ALL
+    SELECT NULL;
+
+query IIII
+SELECT url, parse_uri(url).scheme AS scheme, parse_uri(url).host AS host, parse_uri(url).path AS path
+FROM uri_test
+ORDER BY url;
+----
+example.com/c	(empty)	example.com	/c
+http://test.org/b	http	test.org	/b
+https://example.com:443/a?q=1#x	https	example.com	/a
+NULL	NULL	NULL	NULL
+
+query II
+SELECT parse_uri(url).host AS host, count(*) AS cnt
+FROM uri_test
+WHERE url IS NOT NULL
+GROUP BY host
+ORDER BY cnt DESC, host;
+----
+example.com	2
+test.org	1
+
+statement ok
+DROP TABLE uri_test;
