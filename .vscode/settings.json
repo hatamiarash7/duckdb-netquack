@@ -22,6 +22,7 @@
     "ipcalc",
     "Netquack",
     "publicsuffix",
+    "TINYINT",
     "varchar",
     "vcpkg",
     "webp"
