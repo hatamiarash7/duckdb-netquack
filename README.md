@@ -88,6 +88,20 @@ The compatibility between Netquack and DuckDB varies across versions.
 
 Once installed, the [macro functions](https://duckdb.org/community_extensions/extensions/netquack.html#added-functions) provided by the extension can be used just like built-in functions.
 
+Function names, parameter names, descriptions, examples, and categories are also available in-catalog:
+
+```sql
+D SELECT function_name, parameters, description, categories
+  FROM duckdb_functions()
+  WHERE function_name = 'extract_domain';
+┌────────────────┬────────────┬──────────────────────────────────────────────────────────────────────────┬────────────┐
+│ function_name  │ parameters │                               description                                │ categories │
+│    varchar     │ varchar[]  │                                 varchar                                  │ varchar[]  │
+├────────────────┼────────────┼──────────────────────────────────────────────────────────────────────────┼────────────┤
+│ extract_domain │ [url]      │ Extracts the registrable domain from a URL using the Public Suffix List. │ [url]      │
+└────────────────┴────────────┴──────────────────────────────────────────────────────────────────────────┴────────────┘
+```
+
 ### Extracting The Main Domain
 
 This function extracts the main domain from a URL using an optimized static TLD lookup system. The extension uses Mozilla's Public Suffix List compiled into a gperf-generated perfect hash function for O(1) TLD lookups with zero collisions.
@@ -945,6 +959,8 @@ Also, there will be stdout errors for background tasks like CURL.
 ## Contributing 🤝
 
 Don't be shy and reach out to us if you want to contribute 😉
+
+New functions must follow the checklist in [`AGENTS.md`](AGENTS.md), including catalog metadata (`Register()` descriptions, examples, and categories).
 
 1. Fork it!
 2. Create your feature branch: `git checkout -b my-new-feature`

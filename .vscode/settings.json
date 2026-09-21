@@ -13,16 +13,22 @@
     "--suggest-missing-includes"
   ],
   "cSpell.words": [
+    "autoplay",
     "duckdb",
     "ELEC",
     "exloop",
+    "frontmatter",
     "gperf",
     "Hostroute",
     "HUGEINT",
     "ipcalc",
     "Netquack",
+    "nullptr",
+    "pasteable",
     "publicsuffix",
+    "sqllogictest",
     "TINYINT",
+    "UBIGINT",
     "varchar",
     "vcpkg",
     "webp"

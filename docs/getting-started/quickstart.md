@@ -58,3 +58,11 @@ Also, you can check for any available updates for the extension using this comma
 ```sql
 UPDATE EXTENSIONS (netquack);
 ```
+
+You can list installed netquack functions and their catalog metadata with:
+
+```sql
+SELECT function_name, parameters, description, categories
+FROM duckdb_functions()
+WHERE function_name IN ('extract_domain', 'ipcalc', 'netquack_version');
+```

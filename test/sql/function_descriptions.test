@@ -4,7 +4,8 @@
 
 require netquack
 
-# Every registered netquack function has a description, example, and category
+# Every registered netquack function has a description, example, and category.
+# When adding a function, include its name in the IN (...) list below (see AGENTS.md → Catalog Metadata).
 query I
 SELECT count(*) FROM duckdb_functions()
 WHERE function_name IN (

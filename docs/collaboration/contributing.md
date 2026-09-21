@@ -23,6 +23,8 @@ layout:
 
 Don't be shy and reach out to us if you want to contribute 😉
 
+When adding a function, follow the checklist in [`AGENTS.md`](https://github.com/hatamiarash7/duckdb-netquack/blob/main/AGENTS.md) — especially catalog metadata (`Register()` descriptions, examples, and categories) so the function appears in `duckdb_functions()`.
+
 1. [Fork it!](https://github.com/hatamiarash7/duckdb-netquack/fork)
 2. Create your feature branch: `git checkout -b my-new-feature`
 3. Commit your changes: `git commit -am 'Add some feature'`

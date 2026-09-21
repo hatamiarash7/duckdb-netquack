@@ -53,45 +53,88 @@ Each function follows a consistent pattern. For a function named `my_function`:
 
 1. **Header** — `src/functions/my_function.hpp`
 
-```cpp
-// Copyright 2026 Arash Hatami
+    ```cpp
+    // Copyright 2026 Arash Hatami
 
-#pragma once
+    #pragma once
 
-#include "duckdb.hpp"
+    #include "duckdb.hpp"
 
-namespace duckdb {
-void MyFunctionFunction(DataChunk &args, ExpressionState &state, Vector &result);
+    namespace duckdb {
+    void MyFunctionFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
-namespace netquack {
-std::string MyFunction(const std::string_view &input);
-} // namespace netquack
-} // namespace duckdb
-```
+    namespace netquack {
+    std::string MyFunction(const std::string_view &input);
+    } // namespace netquack
+    } // namespace duckdb
+    ```
 
-1. **Implementation** — `src/functions/my_function.cpp`
+2. **Implementation** — `src/functions/my_function.cpp`
    - The DuckDB wrapper (`MyFunctionFunction`) iterates over the input chunk, handles NULLs, and delegates to the pure logic function (`netquack::MyFunction`).
    - Uses `url_helpers.hpp` utilities like `find_first_symbols<'#'>()` for fast character scanning.
    - On parse failure, return an error string or the original input (never throw back to DuckDB).
 
-2. **Registration** — `src/netquack_extension.cpp`
+3. **Registration** — `src/netquack_extension.cpp`
    - Add `#include "functions/my_function.hpp"` (includes are alphabetically ordered).
-   - Register as `ScalarFunction("my_function", {LogicalType::VARCHAR}, LogicalType::VARCHAR, MyFunctionFunction)`.
+   - Register with the `Register()` helper (see [Catalog Metadata](#catalog-metadata)). Never call `loader.RegisterFunction` directly.
    - Place registration before `netquack_version` (which is always last).
 
-3. **Tests** — `test/sql/my_function.test`
+4. **Tests** — `test/sql/my_function.test`
    - Uses DuckDB's sqllogictest format.
    - Must start with the 3-line header and `require netquack`.
    - Also add a NULL test case to `test/sql/null_handling.test`.
+   - Add the function name to the `IN (...)` list in `test/sql/function_descriptions.test`.
 
-4. **Documentation**
+5. **Documentation**
    - Add usage examples to `README.md` (ToC entry + new section + roadmap checkbox).
    - Create `docs/functions/my-function.md` with GitBook frontmatter.
    - Add entry to `docs/SUMMARY.md`.
 
 ### Adding a Table Function
 
-Table functions (e.g., `ipcalc`, `extract_query_parameters`, `netquack_version`) use a different pattern with Bind/InitLocal/Function callbacks and `in_out_function`. See `extract_query.hpp` or `ipcalc.hpp` for reference.
+Table functions (e.g., `ipcalc`, `extract_query_parameters`, `netquack_version`) use Bind/InitLocal/Function callbacks and `in_out_function`. See `extract_query.hpp` or `ipcalc.hpp` for reference.
+
+Construct the `TableFunction`, set `in_out_function` if needed, then pass it to `Register()` with catalog metadata. Same test and documentation steps as scalar functions, including `function_descriptions.test`.
+
+### Catalog Metadata
+
+Every function must ship a `FunctionDescription` so it appears in `duckdb_functions()` (parameter names, description, examples, categories). Use the local `Register()` helpers in `src/netquack_extension.cpp` — they copy parameter types from the function signature and set `ALTER_ON_CONFLICT` (required so names that overlap DuckDB core, e.g. `url_encode`, still load).
+
+```cpp
+Register(loader,
+         ScalarFunction("my_function", {LogicalType::VARCHAR}, LogicalType::VARCHAR, MyFunctionFunction),
+         {"url"}, "One-sentence description of what the function does.",
+         {"SELECT my_function('https://example.com/path');"}, {"url"});
+```
+
+Table functions that need extra setup:
+
+```cpp
+auto my_table_function = TableFunction("my_table_function", {LogicalType::VARCHAR}, nullptr,
+                                       netquack::MyTableFunc::Bind, nullptr, netquack::MyTableFunc::InitLocal);
+my_table_function.in_out_function = netquack::MyTableFunc::Function;
+Register(loader, std::move(my_table_function), {"url"},
+         "One-sentence description of what the table function does.",
+         {"SELECT * FROM my_table_function('https://example.com/path');"}, {"url"});
+```
+
+Conventions:
+
+- **parameter_names**: semantic names (`url`, `ip`, `domain`, `cidr`, `force`), not `arg1`. Use `{}` for zero-argument functions (`netquack_version`).
+- **description**: one sentence, present tense. Keep it aligned with `README.md` / GitBook.
+- **examples**: one copy-pasteable SQL statement. Scalars use `SELECT fn(...);`; table functions use `SELECT * FROM fn(...);`.
+- **categories**: exactly one lowercase label from this set:
+
+| Category   | Functions                                               |
+| ---------- | ------------------------------------------------------- |
+| `url`      | URL parse / extract / normalize / validate              |
+| `ip`       | IP address helpers (`ipcalc`, `is_valid_ip`, …)         |
+| `domain`   | Domain-only helpers (`domain_depth`, `is_valid_domain`) |
+| `tranco`   | Tranco rank list                                        |
+| `encoding` | `base64_*`, `url_encode`, `url_decode`                  |
+| `utility`  | `netquack_version`                                      |
+
+Do not construct `CreateScalarFunctionInfo` / `CreateTableFunctionInfo` at the call site; the helper owns `on_conflict` and `parameter_types`.
 
 ## Function Types & Signatures
 
@@ -151,6 +194,7 @@ Key test conventions:
 - NULL sorts **last** in DuckDB `ORDER BY` (not first).
 - Group tests by category with `# ===` comment separators.
 - Cover: basic usage, edge cases (empty, NULL, no scheme), special characters, table usage with GROUP BY.
+- New functions must be added to `test/sql/function_descriptions.test` so catalog metadata (description, examples, categories) cannot ship empty.
 
 ## Documentation Format (GitBook)
 
