@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "llvm-vs-code-extensions.vscode-clangd",
+    "editorconfig.editorconfig",
+    "ms-vscode.makefile-tools"
+  ]
+}
