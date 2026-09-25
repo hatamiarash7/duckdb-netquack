@@ -142,6 +142,18 @@ SELECT is_ipv4_mapped(NULL);
 ----
 NULL
 
+# Test NULL handling for ip_type
+query I
+SELECT ip_type(NULL);
+----
+NULL
+
+# Test NULL handling for is_bogon
+query I
+SELECT is_bogon(NULL);
+----
+NULL
+
 # Test NULL values in a table
 statement ok
 CREATE TABLE test_nulls (url VARCHAR);

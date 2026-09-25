@@ -192,6 +192,14 @@ static void LoadInternal(ExtensionLoader &loader) {
 	         {"ip"}, "Returns true if the address is an IPv4-mapped IPv6 address (::ffff:0:0/96).",
 	         {"SELECT is_ipv4_mapped('::ffff:192.168.1.1');"}, {"ip"});
 
+	Register(loader, ScalarFunction("ip_type", {LogicalType::VARCHAR}, LogicalType::VARCHAR, IPTypeFunction), {"ip"},
+	         "Classifies an IP as public, private, loopback, link_local, multicast, cgnat, documentation, or reserved.",
+	         {"SELECT ip_type('100.64.0.1');"}, {"ip"});
+
+	Register(loader, ScalarFunction("is_bogon", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsBogonFunction), {"ip"},
+	         "Returns true if the IP is not globally routable (any ip_type other than public).",
+	         {"SELECT is_bogon('10.0.0.1');"}, {"ip"});
+
 	Register(loader,
 	         ScalarFunction("extract_fragment", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractFragmentFunction),
 	         {"url"}, "Extracts the fragment (the part after #) from a URL.",

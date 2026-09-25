@@ -39,6 +39,7 @@ Table of Contents
       - [IP in Range](#ip-in-range)
       - [IP to PTR](#ip-to-ptr)
       - [IPv6 Compress / Expand](#ipv6-compress--expand)
+      - [IP Type / Bogon](#ip-type--bogon)
     - [Normalize URL](#normalize-url)
     - [Domain Depth](#domain-depth)
     - [Base64 Encode / Decode](#base64-encode--decode)
@@ -748,6 +749,30 @@ D SELECT is_ipv4_mapped('::ffff:192.168.1.1');
 └──────────────────────────────────────┘
 ```
 
+#### IP Type / Bogon
+
+The `ip_type` function classifies an IPv4 or IPv6 address as one of `public`, `private`, `loopback`, `link_local`, `multicast`, `cgnat`, `documentation`, or `reserved`. IPv4-mapped IPv6 addresses are classified by their embedded IPv4 address. Returns `NULL` for invalid input.
+
+The `is_bogon` function returns `true` if the address is not globally routable (any type other than `public`), and `NULL` for invalid input.
+
+```sql
+D SELECT ip_type('100.64.0.1');
+┌───────────────────────┐
+│ ip_type('100.64.0.1') │
+│        varchar        │
+├───────────────────────┤
+│ cgnat                 │
+└───────────────────────┘
+
+D SELECT is_bogon('203.0.113.1');
+┌─────────────────────────┐
+│ is_bogon('203.0.113.1') │
+│         boolean         │
+├─────────────────────────┤
+│ true                    │
+└─────────────────────────┘
+```
+
 ### Normalize URL
 
 The `normalize_url` function canonicalizes a URL by applying RFC 3986 normalizations: scheme/host lowercasing, default port removal (80/443/21), trailing slash removal, dot segment resolution, query parameter sorting, fragment removal, and percent-encoding normalization.
@@ -1103,7 +1128,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Support IPv6 in `ip_to_int` / `int_to_ip` (`UHUGEINT`)
 - [ ] Implement CIDR functions - `cidr_contains`, `cidr_overlaps`, `cidr_range`, `range_to_cidrs`
 - [ ] Implement `cidr_merge` aggregate function - Collapse a set of CIDRs into the minimal covering set
-- [ ] Implement `ip_type` / `is_bogon` functions - Classify IPs as public, private, loopback, link-local, multicast, CGNAT, documentation or reserved
 - [ ] Implement `ip_anonymize` function - Truncate IPv4/IPv6 addresses for privacy
 - [ ] Implement ASN lookup - `ip_to_asn` / `ip_to_as_org`
 - [ ] Implement `extract_sld` function - Return the label before the public suffix

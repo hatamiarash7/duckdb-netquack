@@ -12,7 +12,7 @@ WHERE function_name IN (
 	'extract_domain', 'extract_path', 'extract_schema', 'extract_host', 'extract_query_string',
 	'extract_query_parameters', 'extract_tld', 'extract_subdomain', 'extract_port', 'extract_extension',
 	'update_tranco', 'get_tranco_rank', 'get_tranco_rank_category', 'ipcalc', 'is_valid_ip', 'is_private_ip',
-	'ip_to_int', 'int_to_ip', 'ip_version', 'ip_in_range', 'ip_to_ptr', 'ipv6_compress', 'ipv6_expand', 'is_ipv4_mapped', 'extract_fragment', 'domain_depth', 'normalize_url',
+	'ip_to_int', 'int_to_ip', 'ip_version', 'ip_in_range', 'ip_to_ptr', 'ipv6_compress', 'ipv6_expand', 'is_ipv4_mapped', 'ip_type', 'is_bogon', 'extract_fragment', 'domain_depth', 'normalize_url',
 	'base64_encode', 'base64_decode', 'is_valid_url', 'is_valid_domain', 'extract_path_segments',
 	'url_encode', 'url_decode', 'parse_uri', 'netquack_version'
 )

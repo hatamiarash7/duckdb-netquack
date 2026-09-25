@@ -44,6 +44,7 @@
   * [IP in Range](ip-address/ip-in-range.md)
   * [IP to PTR](ip-address/ip-to-ptr.md)
   * [IPv6 Compress / Expand](ip-address/ipv6-format.md)
+  * [IP Type / Bogon](ip-address/ip-type.md)
 
 ## Collaboration
 

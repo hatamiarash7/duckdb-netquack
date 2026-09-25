@@ -649,6 +649,93 @@ int IsIPv4Mapped(const std::string &ip) {
 	return IsIPv4MappedGroups(groups) ? 1 : 0;
 }
 
+// ---------------------------------------------------------------------------
+// IP classification
+// ---------------------------------------------------------------------------
+static const char *ClassifyIPv4(uint32_t addr) {
+	// 127.0.0.0/8
+	if ((addr & 0xFF000000) == 0x7F000000) {
+		return "loopback";
+	}
+	// 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 - RFC 1918
+	if ((addr & 0xFF000000) == 0x0A000000 || (addr & 0xFFF00000) == 0xAC100000 ||
+	    (addr & 0xFFFF0000) == 0xC0A80000) {
+		return "private";
+	}
+	// 169.254.0.0/16
+	if ((addr & 0xFFFF0000) == 0xA9FE0000) {
+		return "link_local";
+	}
+	// 100.64.0.0/10 - RFC 6598
+	if ((addr & 0xFFC00000) == 0x64400000) {
+		return "cgnat";
+	}
+	// 224.0.0.0/4
+	if ((addr & 0xF0000000) == 0xE0000000) {
+		return "multicast";
+	}
+	// 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 - RFC 5737
+	if ((addr & 0xFFFFFF00) == 0xC0000200 || (addr & 0xFFFFFF00) == 0xC6336400 ||
+	    (addr & 0xFFFFFF00) == 0xCB007100) {
+		return "documentation";
+	}
+	// 0.0.0.0/8, 192.0.0.0/24, 198.18.0.0/15, 240.0.0.0/4 (includes 255.255.255.255)
+	if ((addr & 0xFF000000) == 0x00000000 || (addr & 0xFFFFFF00) == 0xC0000000 ||
+	    (addr & 0xFFFE0000) == 0xC6120000 || (addr & 0xF0000000) == 0xF0000000) {
+		return "reserved";
+	}
+	return "public";
+}
+
+static const char *ClassifyIPv6(const std::array<uint16_t, 8> &groups) {
+	if (IsIPv4MappedGroups(groups)) {
+		return ClassifyIPv4((static_cast<uint32_t>(groups[6]) << 16) | groups[7]);
+	}
+	// ::1
+	if (groups[0] == 0 && groups[1] == 0 && groups[2] == 0 && groups[3] == 0 && groups[4] == 0 && groups[5] == 0 &&
+	    groups[6] == 0 && groups[7] == 1) {
+		return "loopback";
+	}
+	// fe80::/10
+	if ((groups[0] & 0xFFC0) == 0xFE80) {
+		return "link_local";
+	}
+	// fc00::/7 - Unique local address (RFC 4193)
+	if ((groups[0] & 0xFE00) == 0xFC00) {
+		return "private";
+	}
+	// ff00::/8
+	if ((groups[0] & 0xFF00) == 0xFF00) {
+		return "multicast";
+	}
+	// 2001:db8::/32 (RFC 3849), 3fff::/20 (RFC 9637)
+	if ((groups[0] == 0x2001 && groups[1] == 0x0DB8) || (groups[0] == 0x3FFF && (groups[1] & 0xF000) == 0)) {
+		return "documentation";
+	}
+	// Anything outside 2000::/3 global unicast (::, 100::/64, fec0::/10, 64:ff9b::/96, ...)
+	if ((groups[0] & 0xE000) != 0x2000) {
+		return "reserved";
+	}
+	// 2001:2::/48 benchmarking (RFC 5180), 2001:10::/28 deprecated ORCHID (RFC 4843)
+	if (groups[0] == 0x2001 && ((groups[1] == 0x0002 && groups[2] == 0) || (groups[1] & 0xFFF0) == 0x0010)) {
+		return "reserved";
+	}
+	return "public";
+}
+
+std::string IPType(const std::string &ip) {
+	int version = DetectIPVersion(ip);
+	if (version == 4) {
+		return ClassifyIPv4(IPv4ToUint32(ip));
+	}
+	if (version == 6) {
+		std::array<uint16_t, 8> groups;
+		ParseIPv6ToGroups(ip, groups);
+		return ClassifyIPv6(groups);
+	}
+	return "";
+}
+
 } // namespace netquack
 
 // ===========================================================================
@@ -825,6 +912,30 @@ void IsIPv4MappedFunction(DataChunk &args, ExpressionState &, Vector &result) {
 			                                                return false;
 		                                                }
 		                                                return mapped == 1;
+	                                                });
+}
+
+void IPTypeFunction(DataChunk &args, ExpressionState &, Vector &result) {
+	UnaryExecutor::ExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
+	                                                    [&](string_t ip, ValidityMask &mask, idx_t idx) {
+		                                                    auto type = netquack::IPType(ip.GetString());
+		                                                    if (type.empty()) {
+			                                                    mask.SetInvalid(idx);
+			                                                    return string_t();
+		                                                    }
+		                                                    return StringVector::AddString(result, type);
+	                                                    });
+}
+
+void IsBogonFunction(DataChunk &args, ExpressionState &, Vector &result) {
+	UnaryExecutor::ExecuteWithNulls<string_t, bool>(args.data[0], result, args.size(),
+	                                                [&](string_t ip, ValidityMask &mask, idx_t idx) {
+		                                                auto type = netquack::IPType(ip.GetString());
+		                                                if (type.empty()) {
+			                                                mask.SetInvalid(idx);
+			                                                return false;
+		                                                }
+		                                                return type != "public";
 	                                                });
 }
 

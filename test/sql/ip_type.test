@@ -1,0 +1,416 @@
+# name: test/sql/ip_type.test
+# description: test netquack ip_type and is_bogon functions
+# group: [sql]
+
+require netquack
+
+# ===========================================================================
+# ip_type: IPv4
+# ===========================================================================
+
+query I
+SELECT ip_type('8.8.8.8');
+----
+public
+
+query I
+SELECT ip_type('1.1.1.1');
+----
+public
+
+query I
+SELECT ip_type('127.0.0.1');
+----
+loopback
+
+query I
+SELECT ip_type('127.255.255.255');
+----
+loopback
+
+query I
+SELECT ip_type('10.0.0.1');
+----
+private
+
+query I
+SELECT ip_type('172.16.0.1');
+----
+private
+
+query I
+SELECT ip_type('172.31.255.255');
+----
+private
+
+query I
+SELECT ip_type('192.168.1.1');
+----
+private
+
+query I
+SELECT ip_type('169.254.1.1');
+----
+link_local
+
+query I
+SELECT ip_type('100.64.0.1');
+----
+cgnat
+
+query I
+SELECT ip_type('100.127.255.255');
+----
+cgnat
+
+query I
+SELECT ip_type('224.0.0.1');
+----
+multicast
+
+query I
+SELECT ip_type('239.255.255.255');
+----
+multicast
+
+query I
+SELECT ip_type('192.0.2.1');
+----
+documentation
+
+query I
+SELECT ip_type('198.51.100.1');
+----
+documentation
+
+query I
+SELECT ip_type('203.0.113.1');
+----
+documentation
+
+query I
+SELECT ip_type('0.0.0.0');
+----
+reserved
+
+query I
+SELECT ip_type('192.0.0.1');
+----
+reserved
+
+query I
+SELECT ip_type('198.18.0.1');
+----
+reserved
+
+query I
+SELECT ip_type('240.0.0.1');
+----
+reserved
+
+query I
+SELECT ip_type('255.255.255.255');
+----
+reserved
+
+# ===========================================================================
+# ip_type: IPv4 range boundaries
+# ===========================================================================
+
+query I
+SELECT ip_type('172.15.255.255');
+----
+public
+
+query I
+SELECT ip_type('172.32.0.0');
+----
+public
+
+query I
+SELECT ip_type('100.63.255.255');
+----
+public
+
+query I
+SELECT ip_type('100.128.0.0');
+----
+public
+
+query I
+SELECT ip_type('198.20.0.0');
+----
+public
+
+query I
+SELECT ip_type('223.255.255.255');
+----
+public
+
+# ===========================================================================
+# ip_type: IPv6
+# ===========================================================================
+
+query I
+SELECT ip_type('2606:4700:4700::1111');
+----
+public
+
+query I
+SELECT ip_type('2002::1');
+----
+public
+
+query I
+SELECT ip_type('::1');
+----
+loopback
+
+query I
+SELECT ip_type('[::1]');
+----
+loopback
+
+query I
+SELECT ip_type('fe80::1');
+----
+link_local
+
+query I
+SELECT ip_type('febf::1');
+----
+link_local
+
+query I
+SELECT ip_type('fc00::1');
+----
+private
+
+query I
+SELECT ip_type('fd12:3456:789a::1');
+----
+private
+
+query I
+SELECT ip_type('ff02::1');
+----
+multicast
+
+query I
+SELECT ip_type('2001:db8::1');
+----
+documentation
+
+query I
+SELECT ip_type('3fff::1');
+----
+documentation
+
+query I
+SELECT ip_type('3fff:1000::1');
+----
+public
+
+query I
+SELECT ip_type('::');
+----
+reserved
+
+query I
+SELECT ip_type('100::1');
+----
+reserved
+
+query I
+SELECT ip_type('fec0::1');
+----
+reserved
+
+query I
+SELECT ip_type('64:ff9b::8.8.8.8');
+----
+reserved
+
+query I
+SELECT ip_type('2001:2::1');
+----
+reserved
+
+query I
+SELECT ip_type('2001:10::1');
+----
+reserved
+
+query I
+SELECT ip_type('4000::1');
+----
+reserved
+
+# ===========================================================================
+# ip_type: IPv4-mapped IPv6 uses the embedded IPv4 classification
+# ===========================================================================
+
+query I
+SELECT ip_type('::ffff:8.8.8.8');
+----
+public
+
+query I
+SELECT ip_type('::ffff:192.168.1.1');
+----
+private
+
+query I
+SELECT ip_type('::ffff:7f00:1');
+----
+loopback
+
+query I
+SELECT ip_type('::ffff:100.64.0.1');
+----
+cgnat
+
+# ===========================================================================
+# ip_type: invalid input returns NULL
+# ===========================================================================
+
+query I
+SELECT ip_type(NULL);
+----
+NULL
+
+query I
+SELECT ip_type('');
+----
+NULL
+
+query I
+SELECT ip_type('not-an-ip');
+----
+NULL
+
+query I
+SELECT ip_type('256.1.1.1');
+----
+NULL
+
+query I
+SELECT ip_type('192.168.1.0/24');
+----
+NULL
+
+query I
+SELECT ip_type('2001:db8::1::2');
+----
+NULL
+
+# ===========================================================================
+# is_bogon
+# ===========================================================================
+
+query I
+SELECT is_bogon('8.8.8.8');
+----
+false
+
+query I
+SELECT is_bogon('2606:4700:4700::1111');
+----
+false
+
+query I
+SELECT is_bogon('10.0.0.1');
+----
+true
+
+query I
+SELECT is_bogon('100.64.0.1');
+----
+true
+
+query I
+SELECT is_bogon('203.0.113.1');
+----
+true
+
+query I
+SELECT is_bogon('255.255.255.255');
+----
+true
+
+query I
+SELECT is_bogon('::1');
+----
+true
+
+query I
+SELECT is_bogon('2001:db8::1');
+----
+true
+
+query I
+SELECT is_bogon('::ffff:8.8.8.8');
+----
+false
+
+query I
+SELECT is_bogon(NULL);
+----
+NULL
+
+query I
+SELECT is_bogon('');
+----
+NULL
+
+query I
+SELECT is_bogon('invalid');
+----
+NULL
+
+# ===========================================================================
+# is_bogon agrees with is_private_ip for IPv4
+# ===========================================================================
+
+query I
+SELECT count(*) FROM (
+	SELECT int_to_ip((i * 16777216 + 12345)::UBIGINT) AS ip FROM range(256) t(i)
+	UNION ALL
+	SELECT unnest(['100.64.0.1', '169.254.0.1', '192.0.0.1', '192.0.2.1', '198.18.0.1', '198.51.100.1',
+	               '203.0.113.1', '172.16.0.1', '192.168.0.1', '255.255.255.255'])
+) WHERE is_bogon(ip) != is_private_ip(ip);
+----
+0
+
+# ===========================================================================
+# Table usage
+# ===========================================================================
+
+statement ok
+CREATE OR REPLACE TABLE ip_type_data AS SELECT unnest([
+	'8.8.8.8', '1.1.1.1', '10.0.0.1', '192.168.1.1', '127.0.0.1', '100.64.0.1',
+	'224.0.0.1', '192.0.2.1', '0.0.0.0', 'fe80::1', '2001:db8::1', 'garbage', NULL
+]) AS ip;
+
+query II
+SELECT ip_type(ip) AS t, count(*) FROM ip_type_data GROUP BY t ORDER BY t;
+----
+cgnat	1
+documentation	2
+link_local	1
+loopback	1
+multicast	1
+private	2
+public	2
+reserved	1
+NULL	2
+
+query II
+SELECT is_bogon(ip) AS b, count(*) FROM ip_type_data GROUP BY b ORDER BY b;
+----
+false	2
+true	9
+NULL	2
+
+statement ok
+DROP TABLE ip_type_data;

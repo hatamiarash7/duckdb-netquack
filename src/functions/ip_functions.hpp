@@ -35,6 +35,12 @@ void IPv6ExpandFunction(DataChunk &args, ExpressionState &state, Vector &result)
 // Scalar function: is_ipv4_mapped(VARCHAR) -> BOOLEAN
 void IsIPv4MappedFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
+// Scalar function: ip_type(VARCHAR) -> VARCHAR
+void IPTypeFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
+// Scalar function: is_bogon(VARCHAR) -> BOOLEAN
+void IsBogonFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
 namespace netquack {
 // Check if a string is a valid IPv4 address
 bool IsValidIPv4(const std::string &ip);
@@ -76,5 +82,9 @@ std::string IPv6Expand(const std::string &ip);
 
 // Check if an address is IPv4-mapped IPv6 (::ffff:0:0/96): returns 1 (mapped), 0 (not mapped), or -1 (invalid input)
 int IsIPv4Mapped(const std::string &ip);
+
+// Classify an IP as public, private, loopback, link_local, multicast, cgnat, documentation or reserved;
+// returns empty string for invalid input
+std::string IPType(const std::string &ip);
 } // namespace netquack
 } // namespace duckdb
