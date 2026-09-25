@@ -43,7 +43,7 @@ body:
     attributes:
       label: Netquack version
       description: Output of `SELECT * FROM netquack_version();`
-      placeholder: v1.14.0
+      placeholder: v1.15.0
     validations:
       required: true
 
