@@ -1347,7 +1347,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `domain_entropy` / `is_likely_dga` functions - Detect algorithmically generated domains
 - [ ] Implement `generate_typosquats` table function - Generate typosquatting variants of a domain
 - [ ] Implement `domain_skeleton` / `is_homograph` functions - Detect Unicode confusable domains
-- [ ] Support historical Tranco lists by date or list ID
 - [ ] Support other ranking lists (Cloudflare Radar, Cisco Umbrella, Majestic)
 - [ ] Implement email functions - `extract_email_domain`, `is_valid_email`, `normalize_email`, `is_disposable_email_domain`
 - [ ] Implement `read_access_log` table function - Parse Apache/Nginx access logs
