@@ -6,6 +6,10 @@
 #include <fstream>
 #include <regex>
 
+#include "duckdb/catalog/catalog.hpp"
+#include "duckdb/parser/parser.hpp"
+#include "duckdb/parser/statement/select_statement.hpp"
+#include "duckdb/parser/tableref/subqueryref.hpp"
 #include "../utils/logger.hpp"
 #include "../utils/utils.hpp"
 
@@ -257,5 +261,19 @@ void GetTrancoRankCategoryFunction(DataChunk &args, ExpressionState &state, Vect
 			    StringVector::AddString(result, "Error extracting tranco category: " + std::string(e.what()));
 		}
 	}
+}
+
+unique_ptr<TableRef> TrancoListFunc::BindReplace(ClientContext &context, TableFunctionBindInput &input) {
+	const string table_name = "tranco_list";
+	EntryLookupInfo lookup_info(CatalogType::TABLE_ENTRY, table_name);
+	auto table = Catalog::GetEntry(context, INVALID_CATALOG, INVALID_SCHEMA, lookup_info, OnEntryNotFound::RETURN_NULL);
+	if (!table) {
+		throw InvalidInputException("Tranco table not found. Download it first using `SELECT update_tranco(true);`");
+	}
+
+	Parser parser(context.GetParserOptions());
+	parser.ParseQuery("SELECT rank, domain, category FROM tranco_list");
+	auto select = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(parser.statements[0]));
+	return make_uniq<SubqueryRef>(std::move(select));
 }
 } // namespace duckdb::netquack

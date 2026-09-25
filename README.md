@@ -30,6 +30,7 @@ Table of Contents
     - [Get Tranco Rank](#get-tranco-rank)
       - [Update Tranco List](#update-tranco-list)
       - [Get Tranco Ranking](#get-tranco-ranking)
+      - [Tranco List](#tranco-list)
     - [IP Address Functions](#ip-address-functions)
       - [IP Calculator](#ip-calculator)
       - [Validate IP Address](#validate-ip-address)
@@ -454,6 +455,26 @@ D SELECT get_tranco_rank_category('microsoft.com') AS category;
 ├──────────┤
 │ top1k    │
 └──────────┘
+```
+
+#### Tranco List
+
+The `tranco_list` table function exposes the cached Tranco list as `rank`, `domain`, and `category` columns, so you can join it against your own data instead of calling `get_tranco_rank` row by row. Run `update_tranco` first to populate the cache.
+
+```sql
+D SELECT * FROM tranco_list() LIMIT 3;
+┌───────┬───────────────┬──────────┐
+│ rank  │    domain     │ category │
+│ int32 │    varchar    │ varchar  │
+├───────┼───────────────┼──────────┤
+│     1 │ google.com    │ top1k    │
+│     2 │ microsoft.com │ top1k    │
+│     3 │ mail.ru       │ top1k    │
+└───────┴───────────────┴──────────┘
+
+D SELECT l.url, t.rank, t.category
+  FROM logs l
+  LEFT JOIN tranco_list() t ON t.domain = extract_domain(l.url);
 ```
 
 ### IP Address Functions
@@ -1231,7 +1252,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `domain_entropy` / `is_likely_dga` functions - Detect algorithmically generated domains
 - [ ] Implement `generate_typosquats` table function - Generate typosquatting variants of a domain
 - [ ] Implement `domain_skeleton` / `is_homograph` functions - Detect Unicode confusable domains
-- [ ] Implement `tranco_list` table function - Expose the cached Tranco list for joins
 - [ ] Support historical Tranco lists by date or list ID
 - [ ] Support other ranking lists (Cloudflare Radar, Cisco Umbrella, Majestic)
 - [ ] Implement email functions - `extract_email_domain`, `is_valid_email`, `normalize_email`, `is_disposable_email_domain`

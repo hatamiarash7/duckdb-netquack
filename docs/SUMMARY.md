@@ -34,6 +34,7 @@
 * [Tranco](functions/tranco/README.md)
   * [Get Tranco Rank](functions/tranco/get-tranco-rank.md)
   * [Download / Update Tranco](functions/tranco/download-update-tranco.md)
+  * [Tranco List](functions/tranco/tranco-list.md)
 
 ***
 

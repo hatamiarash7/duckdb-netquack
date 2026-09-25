@@ -143,6 +143,12 @@ static void LoadInternal(ExtensionLoader &loader) {
 	         {"domain"}, "Returns the log-scale Tranco rank category of a domain (e.g. top1k, top10k).",
 	         {"SELECT get_tranco_rank_category('microsoft.com');"}, {"tranco"});
 
+	TableFunction tranco_list_function("tranco_list", {}, nullptr);
+	tranco_list_function.bind_replace = netquack::TrancoListFunc::BindReplace;
+	Register(loader, std::move(tranco_list_function), {},
+	         "Returns the cached Tranco list as rows of rank, domain, and category for joins.",
+	         {"SELECT * FROM tranco_list() LIMIT 10;"}, {"tranco"});
+
 	auto ipcalc_function = TableFunction("ipcalc", {LogicalType::VARCHAR}, nullptr, netquack::IPCalcFunc::Bind, nullptr,
 	                                     netquack::IPCalcFunc::InitLocal);
 	ipcalc_function.in_out_function = netquack::IPCalcFunc::Function;

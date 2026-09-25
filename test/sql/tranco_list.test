@@ -1,0 +1,72 @@
+# name: test/sql/tranco_list.test
+# description: test netquack tranco_list table function
+# group: [sql]
+
+require netquack
+
+# ===================================================================
+# Missing table
+# ===================================================================
+
+statement error
+SELECT * FROM tranco_list();
+----
+Tranco table not found
+
+# ===================================================================
+# Basic usage
+# ===================================================================
+
+statement ok
+CREATE TABLE tranco_list AS
+SELECT rank, domain, CASE WHEN rank <= 5 THEN 'top1k' ELSE 'top5k' END AS category
+FROM read_csv('test/data/tranco.csv', header=false, columns={'rank': 'INTEGER', 'domain': 'VARCHAR'});
+
+query I
+SELECT COUNT(*) FROM tranco_list();
+----
+20
+
+query III
+SELECT * FROM tranco_list() ORDER BY rank LIMIT 3;
+----
+1	google.com	top1k
+2	microsoft.com	top1k
+3	mail.ru	top1k
+
+query III
+SELECT rank, domain, category FROM tranco_list() WHERE domain = 'gstatic.com';
+----
+19	gstatic.com	top5k
+
+query I
+SELECT typeof(rank) FROM tranco_list() LIMIT 1;
+----
+INTEGER
+
+# ===================================================================
+# Joins
+# ===================================================================
+
+statement ok
+CREATE TABLE uri_list AS SELECT * FROM read_csv('test/data/examples_tranco.csv', header=false, columns={'uri': 'VARCHAR'});
+
+query II
+SELECT u.uri, t.rank FROM uri_list u JOIN tranco_list() t ON t.domain = u.uri ORDER BY t.rank;
+----
+microsoft.com	2
+apple.com	7
+googleapis.com	10
+gstatic.com	19
+
+query II
+SELECT t.category, COUNT(*) FROM uri_list u JOIN tranco_list() t ON t.domain = u.uri GROUP BY t.category ORDER BY t.category;
+----
+top1k	1
+top5k	3
+
+statement ok
+DROP TABLE uri_list;
+
+statement ok
+DROP TABLE tranco_list;
