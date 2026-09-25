@@ -200,6 +200,17 @@ static void LoadInternal(ExtensionLoader &loader) {
 	         "Returns true if the IP is not globally routable (any ip_type other than public).",
 	         {"SELECT is_bogon('10.0.0.1');"}, {"ip"});
 
+	Register(loader, ScalarFunction("ip_anonymize", {LogicalType::VARCHAR}, LogicalType::VARCHAR, IPAnonymizeFunction),
+	         {"ip"}, "Truncates an IP for privacy by zeroing all bits after /24 (IPv4) or /48 (IPv6).",
+	         {"SELECT ip_anonymize('192.168.1.123');"}, {"ip"});
+
+	Register(loader,
+	         ScalarFunction("ip_anonymize", {LogicalType::VARCHAR, LogicalType::INTEGER, LogicalType::INTEGER},
+	                        LogicalType::VARCHAR, IPAnonymizeFunction),
+	         {"ip", "ipv4_prefix", "ipv6_prefix"},
+	         "Truncates an IP for privacy by zeroing all bits after the given IPv4 or IPv6 prefix length.",
+	         {"SELECT ip_anonymize('2001:db8:abcd:1234::1', 16, 32);"}, {"ip"});
+
 	Register(loader,
 	         ScalarFunction("extract_fragment", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractFragmentFunction),
 	         {"url"}, "Extracts the fragment (the part after #) from a URL.",

@@ -567,12 +567,7 @@ static bool IsIPv4MappedGroups(const std::array<uint16_t, 8> &groups) {
 	       groups[5] == 0xFFFF;
 }
 
-std::string IPv6Compress(const std::string &ip) {
-	std::array<uint16_t, 8> groups;
-	if (!ParseIPv6ToGroups(ip, groups)) {
-		return "";
-	}
-
+static std::string FormatIPv6Groups(const std::array<uint16_t, 8> &groups) {
 	if (IsIPv4MappedGroups(groups)) {
 		return "::ffff:" + Uint32ToIPv4((static_cast<uint32_t>(groups[6]) << 16) | groups[7]);
 	}
@@ -615,6 +610,14 @@ std::string IPv6Compress(const std::string &ip) {
 		out += buf;
 	}
 	return out;
+}
+
+std::string IPv6Compress(const std::string &ip) {
+	std::array<uint16_t, 8> groups;
+	if (!ParseIPv6ToGroups(ip, groups)) {
+		return "";
+	}
+	return FormatIPv6Groups(groups);
 }
 
 std::string IPv6Expand(const std::string &ip) {
@@ -734,6 +737,48 @@ std::string IPType(const std::string &ip) {
 		return ClassifyIPv6(groups);
 	}
 	return "";
+}
+
+// ---------------------------------------------------------------------------
+// IP anonymization
+// ---------------------------------------------------------------------------
+static uint32_t IPv4PrefixMask(int prefix) {
+	return prefix == 0 ? 0 : 0xFFFFFFFFu << (32 - prefix);
+}
+
+std::string IPAnonymize(const std::string &ip, int ipv4_prefix, int ipv6_prefix) {
+	if (ipv4_prefix < 0 || ipv4_prefix > 32 || ipv6_prefix < 0 || ipv6_prefix > 128) {
+		return "";
+	}
+
+	int version = DetectIPVersion(ip);
+	if (version == 4) {
+		return Uint32ToIPv4(IPv4ToUint32(ip) & IPv4PrefixMask(ipv4_prefix));
+	}
+	if (version != 6) {
+		return "";
+	}
+
+	std::array<uint16_t, 8> groups;
+	ParseIPv6ToGroups(ip, groups);
+
+	// IPv4-mapped addresses carry an IPv4 client address, so they get the IPv4 prefix
+	if (IsIPv4MappedGroups(groups)) {
+		uint32_t v4 = ((static_cast<uint32_t>(groups[6]) << 16) | groups[7]) & IPv4PrefixMask(ipv4_prefix);
+		groups[6] = static_cast<uint16_t>(v4 >> 16);
+		groups[7] = static_cast<uint16_t>(v4 & 0xFFFF);
+		return FormatIPv6Groups(groups);
+	}
+
+	for (int i = 0; i < 8; i++) {
+		int keep = ipv6_prefix - 16 * i;
+		if (keep <= 0) {
+			groups[i] = 0;
+		} else if (keep < 16) {
+			groups[i] &= static_cast<uint16_t>(0xFFFF << (16 - keep));
+		}
+	}
+	return FormatIPv6Groups(groups);
 }
 
 } // namespace netquack
@@ -937,6 +982,32 @@ void IsBogonFunction(DataChunk &args, ExpressionState &, Vector &result) {
 		                                                }
 		                                                return type != "public";
 	                                                });
+}
+
+void IPAnonymizeFunction(DataChunk &args, ExpressionState &, Vector &result) {
+	if (args.ColumnCount() == 1) {
+		UnaryExecutor::ExecuteWithNulls<string_t, string_t>(
+		    args.data[0], result, args.size(), [&](string_t ip, ValidityMask &mask, idx_t idx) {
+			    auto out = netquack::IPAnonymize(ip.GetString(), 24, 48);
+			    if (out.empty()) {
+				    mask.SetInvalid(idx);
+				    return string_t();
+			    }
+			    return StringVector::AddString(result, out);
+		    });
+		return;
+	}
+
+	TernaryExecutor::ExecuteWithNulls<string_t, int32_t, int32_t, string_t>(
+	    args.data[0], args.data[1], args.data[2], result, args.size(),
+	    [&](string_t ip, int32_t ipv4_prefix, int32_t ipv6_prefix, ValidityMask &mask, idx_t idx) {
+		    auto out = netquack::IPAnonymize(ip.GetString(), ipv4_prefix, ipv6_prefix);
+		    if (out.empty()) {
+			    mask.SetInvalid(idx);
+			    return string_t();
+		    }
+		    return StringVector::AddString(result, out);
+	    });
 }
 
 } // namespace duckdb

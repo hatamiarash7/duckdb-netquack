@@ -25,3 +25,4 @@ This extension provides various functions for manipulating and analyzing IP addr
 * [**IP to PTR**](ip-to-ptr.md) — Build the reverse DNS (`in-addr.arpa` / `ip6.arpa`) name for an IP
 * [**IPv6 Compress / Expand**](ipv6-format.md) — Canonicalize or fully expand IPv6 addresses and detect IPv4-mapped addresses
 * [**IP Type / Bogon**](ip-type.md) — Classify an IP (public, private, loopback, CGNAT, ...) and detect bogons
+* [**IP Anonymize**](ip-anonymize.md) — Truncate IPv4/IPv6 addresses to a prefix for privacy

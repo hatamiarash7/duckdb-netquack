@@ -41,6 +41,9 @@ void IPTypeFunction(DataChunk &args, ExpressionState &state, Vector &result);
 // Scalar function: is_bogon(VARCHAR) -> BOOLEAN
 void IsBogonFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
+// Scalar function: ip_anonymize(VARCHAR[, INTEGER, INTEGER]) -> VARCHAR
+void IPAnonymizeFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
 namespace netquack {
 // Check if a string is a valid IPv4 address
 bool IsValidIPv4(const std::string &ip);
@@ -86,5 +89,9 @@ int IsIPv4Mapped(const std::string &ip);
 // Classify an IP as public, private, loopback, link_local, multicast, cgnat, documentation or reserved;
 // returns empty string for invalid input
 std::string IPType(const std::string &ip);
+
+// Zero all bits after the given prefix lengths (IPv4-mapped IPv6 uses the IPv4 prefix);
+// returns empty string for invalid input or out-of-range prefixes
+std::string IPAnonymize(const std::string &ip, int ipv4_prefix, int ipv6_prefix);
 } // namespace netquack
 } // namespace duckdb

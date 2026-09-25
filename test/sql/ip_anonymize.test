@@ -1,0 +1,233 @@
+# name: test/sql/ip_anonymize.test
+# description: test netquack ip_anonymize function
+# group: [sql]
+
+require netquack
+
+# ===========================================================================
+# Default prefixes: /24 for IPv4, /48 for IPv6
+# ===========================================================================
+
+query I
+SELECT ip_anonymize('192.168.1.123');
+----
+192.168.1.0
+
+query I
+SELECT ip_anonymize('8.8.8.8');
+----
+8.8.8.0
+
+query I
+SELECT ip_anonymize('255.255.255.255');
+----
+255.255.255.0
+
+query I
+SELECT ip_anonymize('0.0.0.0');
+----
+0.0.0.0
+
+query I
+SELECT ip_anonymize('2001:db8:abcd:1234:5678:9abc:def0:1234');
+----
+2001:db8:abcd::
+
+query I
+SELECT ip_anonymize('2001:0db8:abcd:0012:0000:0000:0000:0001');
+----
+2001:db8:abcd::
+
+query I
+SELECT ip_anonymize('::1');
+----
+::
+
+# Uppercase and bracketed IPv6 input
+query I
+SELECT ip_anonymize('[2001:DB8:ABCD:1::1]');
+----
+2001:db8:abcd::
+
+# IPv4-mapped IPv6 uses the IPv4 prefix
+query I
+SELECT ip_anonymize('::ffff:192.168.1.123');
+----
+::ffff:192.168.1.0
+
+query I
+SELECT ip_anonymize('::ffff:c0a8:017b');
+----
+::ffff:192.168.1.0
+
+# ===========================================================================
+# Custom prefixes
+# ===========================================================================
+
+query I
+SELECT ip_anonymize('192.168.1.123', 16, 48);
+----
+192.168.0.0
+
+query I
+SELECT ip_anonymize('192.168.1.123', 32, 128);
+----
+192.168.1.123
+
+query I
+SELECT ip_anonymize('192.168.1.123', 0, 0);
+----
+0.0.0.0
+
+# Non-byte-aligned IPv4 prefix
+query I
+SELECT ip_anonymize('192.168.1.255', 25, 48);
+----
+192.168.1.128
+
+query I
+SELECT ip_anonymize('10.255.255.255', 12, 48);
+----
+10.240.0.0
+
+query I
+SELECT ip_anonymize('2001:db8:abcd:1234::1', 16, 32);
+----
+2001:db8::
+
+query I
+SELECT ip_anonymize('2001:db8:abcd:1234:5678:9abc:def0:1234', 24, 64);
+----
+2001:db8:abcd:1234::
+
+query I
+SELECT ip_anonymize('2001:db8:abcd:1234:5678:9abc:def0:1234', 24, 128);
+----
+2001:db8:abcd:1234:5678:9abc:def0:1234
+
+query I
+SELECT ip_anonymize('2001:db8:abcd:1234::1', 24, 0);
+----
+::
+
+# Non-group-aligned IPv6 prefix
+query I
+SELECT ip_anonymize('2001:db8:abff::1', 24, 40);
+----
+2001:db8:ab00::
+
+query I
+SELECT ip_anonymize('2001:db8:ffff::1', 24, 36);
+----
+2001:db8:f000::
+
+query I
+SELECT ip_anonymize('::ffff:192.168.1.123', 16, 48);
+----
+::ffff:192.168.0.0
+
+# ===========================================================================
+# Invalid input returns NULL
+# ===========================================================================
+
+query I
+SELECT ip_anonymize('');
+----
+NULL
+
+query I
+SELECT ip_anonymize('not-an-ip');
+----
+NULL
+
+query I
+SELECT ip_anonymize('256.1.1.1');
+----
+NULL
+
+query I
+SELECT ip_anonymize('192.168.1.0/24');
+----
+NULL
+
+query I
+SELECT ip_anonymize('2001:db8::1::1');
+----
+NULL
+
+# Out-of-range prefixes
+query I
+SELECT ip_anonymize('192.168.1.1', 33, 48);
+----
+NULL
+
+query I
+SELECT ip_anonymize('192.168.1.1', -1, 48);
+----
+NULL
+
+query I
+SELECT ip_anonymize('2001:db8::1', 24, 129);
+----
+NULL
+
+# ===========================================================================
+# NULL handling
+# ===========================================================================
+
+query I
+SELECT ip_anonymize(NULL);
+----
+NULL
+
+query I
+SELECT ip_anonymize(NULL, 24, 48);
+----
+NULL
+
+query I
+SELECT ip_anonymize('192.168.1.1', NULL, 48);
+----
+NULL
+
+query I
+SELECT ip_anonymize('192.168.1.1', 24, NULL);
+----
+NULL
+
+# ===========================================================================
+# Table usage
+# ===========================================================================
+
+statement ok
+CREATE OR REPLACE TABLE access_logs AS SELECT * FROM (VALUES
+	('192.168.1.10'),
+	('192.168.1.200'),
+	('10.0.0.1'),
+	('2001:db8:abcd:1::1'),
+	('2001:db8:abcd:2::2'),
+	('invalid'),
+	(NULL)
+) t(client_ip);
+
+query II
+SELECT ip_anonymize(client_ip) AS anon, count(*) FROM access_logs GROUP BY anon ORDER BY anon;
+----
+10.0.0.0	1
+192.168.1.0	2
+2001:db8:abcd::	2
+NULL	2
+
+query I
+SELECT ip_anonymize(client_ip, 8, 32) FROM access_logs ORDER BY client_ip;
+----
+10.0.0.0
+192.0.0.0
+192.0.0.0
+2001:db8::
+2001:db8::
+NULL
+NULL
+
+statement ok
+DROP TABLE access_logs;

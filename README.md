@@ -40,6 +40,7 @@ Table of Contents
       - [IP to PTR](#ip-to-ptr)
       - [IPv6 Compress / Expand](#ipv6-compress--expand)
       - [IP Type / Bogon](#ip-type--bogon)
+      - [IP Anonymize](#ip-anonymize)
     - [Normalize URL](#normalize-url)
     - [Domain Depth](#domain-depth)
     - [Base64 Encode / Decode](#base64-encode--decode)
@@ -773,6 +774,28 @@ D SELECT is_bogon('203.0.113.1');
 └─────────────────────────┘
 ```
 
+#### IP Anonymize
+
+The `ip_anonymize` function truncates an IP address for privacy by zeroing every bit after a prefix length: `/24` for IPv4 (the last octet) and `/48` for IPv6 by default. Pass `ip_anonymize(ip, ipv4_prefix, ipv6_prefix)` to choose how many bits to keep. IPv6 output is in RFC 5952 canonical form, and IPv4-mapped IPv6 addresses use the IPv4 prefix. Returns `NULL` for invalid input or out-of-range prefixes.
+
+```sql
+D SELECT ip_anonymize('192.168.1.123');
+┌───────────────────────────────┐
+│ ip_anonymize('192.168.1.123') │
+│            varchar            │
+├───────────────────────────────┤
+│ 192.168.1.0                   │
+└───────────────────────────────┘
+
+D SELECT ip_anonymize('2001:db8:abcd:1234::1', 16, 32);
+┌───────────────────────────────────────────────┐
+│ ip_anonymize('2001:db8:abcd:1234::1', 16, 32) │
+│                    varchar                    │
+├───────────────────────────────────────────────┤
+│ 2001:db8::                                    │
+└───────────────────────────────────────────────┘
+```
+
 ### Normalize URL
 
 The `normalize_url` function canonicalizes a URL by applying RFC 3986 normalizations: scheme/host lowercasing, default port removal (80/443/21), trailing slash removal, dot segment resolution, query parameter sorting, fragment removal, and percent-encoding normalization.
@@ -1128,7 +1151,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Support IPv6 in `ip_to_int` / `int_to_ip` (`UHUGEINT`)
 - [ ] Implement CIDR functions - `cidr_contains`, `cidr_overlaps`, `cidr_range`, `range_to_cidrs`
 - [ ] Implement `cidr_merge` aggregate function - Collapse a set of CIDRs into the minimal covering set
-- [ ] Implement `ip_anonymize` function - Truncate IPv4/IPv6 addresses for privacy
 - [ ] Implement ASN lookup - `ip_to_asn` / `ip_to_as_org`
 - [ ] Implement `extract_sld` function - Return the label before the public suffix
 - [ ] Implement `is_public_suffix` / `is_known_tld` functions
