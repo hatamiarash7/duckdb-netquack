@@ -281,12 +281,12 @@ static void LoadInternal(ExtensionLoader &loader) {
 	         {"SELECT url_decode('hello%20world');"}, {"encoding"});
 
 	Register(loader, ScalarFunction("defang", {LogicalType::VARCHAR}, LogicalType::VARCHAR, DefangFunction), {"url"},
-	         "Defangs a URL, email, or IP so it is not clickable (hxxps://example[.]com).",
-	         {"SELECT defang('https://example.com/path');"}, {"url"});
+	         "Defangs a URL, email, or IP in CyberChef style so it is not clickable (hxxps[://]example[.]com).",
+	         {"SELECT defang('https://example.com:443/path');"}, {"url"});
 
 	Register(loader, ScalarFunction("refang", {LogicalType::VARCHAR}, LogicalType::VARCHAR, RefangFunction), {"url"},
-	         "Restores a defanged URL or IP (e.g. hxxps://example[.]com) to its original form.",
-	         {"SELECT refang('hxxps://example[.]com/path');"}, {"url"});
+	         "Restores a defanged URL, email, or IP (e.g. hxxps[://]example[.]com) to its original form.",
+	         {"SELECT refang('hxxps[://]example[.]com[:]443/path');"}, {"url"});
 
 	Register(loader,
 	         TableFunction("netquack_version", {}, netquack::VersionFunc::Scan, netquack::VersionFunc::Bind,

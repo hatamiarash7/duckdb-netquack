@@ -1131,42 +1131,42 @@ D SELECT url_decode('hello+world') AS decoded;
 
 ### Defang / Refang
 
-The `defang` function makes a URL, domain, or IP safe to share by replacing `http`/`https`/`ftp` schemes with `hxxp`/`hxxps`/`fxp`, every `.` with `[.]`, every `@` with `[@]`, and colons inside IPv6 addresses with `[:]`. It is idempotent.
+The `defang` function makes a URL, domain, email, or IP safe to share using the CyberChef "Defang URL" convention. It rewrites `http`/`https`/`ftp` schemes to `hxxp`/`hxxps`/`fxp` and brackets `://`, dots, `@`, port colons, and IPv6 colons. It is idempotent.
 
-The `refang` function reverses this and also accepts common variants such as `(.)`, `{.}`, `[dot]`, `[:]`, `[://]`, `[@]`, `[at]`, and `hXXps://`.
+The `refang` function reverses this and also accepts common variants such as `(.)`, `{.}`, `[dot]`, `[at]`, and `hXXps://`.
 
 ```sql
-D SELECT defang('https://example.com/path') AS defanged;
-┌────────────────────────────┐
-│          defanged          │
-│          varchar           │
-├────────────────────────────┤
-│ hxxps://example[.]com/path │
-└────────────────────────────┘
+D SELECT defang('https://malware.example.com/beacon') AS defanged;
+┌──────────────────────────────────────────┐
+│                 defanged                 │
+│                 varchar                  │
+├──────────────────────────────────────────┤
+│ hxxps[://]malware[.]example[.]com/beacon │
+└──────────────────────────────────────────┘
 
-D SELECT defang('192.168.1.1') AS defanged;
-┌───────────────────┐
-│     defanged      │
-│      varchar      │
-├───────────────────┤
-│ 192[.]168[.]1[.]1 │
-└───────────────────┘
+D SELECT defang('invoice@spam-domain.com') AS defanged;
+┌─────────────────────────────┐
+│          defanged           │
+│           varchar           │
+├─────────────────────────────┤
+│ invoice[@]spam-domain[.]com │
+└─────────────────────────────┘
 
-D SELECT defang('2001:db8::1') AS defanged;
-┌───────────────────┐
-│     defanged      │
-│      varchar      │
-├───────────────────┤
-│ 2001[:]db8[:][:]1 │
-└───────────────────┘
+D SELECT defang('http://192.168.1.100:8080/beacon') AS defanged;
+┌────────────────────────────────────────────┐
+│                  defanged                  │
+│                  varchar                   │
+├────────────────────────────────────────────┤
+│ hxxp[://]192[.]168[.]1[.]100[:]8080/beacon │
+└────────────────────────────────────────────┘
 
-D SELECT refang('hxxps[://]example[dot]com/path') AS refanged;
-┌──────────────────────────┐
-│         refanged         │
-│         varchar          │
-├──────────────────────────┤
-│ https://example.com/path │
-└──────────────────────────┘
+D SELECT refang('hxxps[://]malware[.]example[.]com/beacon') AS refanged;
+┌────────────────────────────────────┐
+│              refanged              │
+│              varchar               │
+├────────────────────────────────────┤
+│ https://malware.example.com/beacon │
+└────────────────────────────────────┘
 ```
 
 ### Get Extension Version

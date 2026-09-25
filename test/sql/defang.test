@@ -11,23 +11,23 @@ require netquack
 query I
 SELECT defang('https://example.com');
 ----
-hxxps://example[.]com
+hxxps[://]example[.]com
 
 query I
 SELECT defang('http://example.com/path/file.exe?a=1#top');
 ----
-hxxp://example[.]com/path/file[.]exe?a=1#top
+hxxp[://]example[.]com/path/file[.]exe?a=1#top
 
 query I
 SELECT defang('ftp://files.example.org/pub');
 ----
-fxp://files[.]example[.]org/pub
+fxp[://]files[.]example[.]org/pub
 
 # Case of the scheme is preserved
 query I
 SELECT defang('HTTPS://Example.COM');
 ----
-HXXPS://Example[.]COM
+HXXPS[://]Example[.]COM
 
 # IPv4 address
 query I
@@ -39,7 +39,7 @@ SELECT defang('192.168.1.1');
 query I
 SELECT defang('http://10.0.0.1:8080/admin');
 ----
-hxxp://10[.]0[.]0[.]1:8080/admin
+hxxp[://]10[.]0[.]0[.]1[:]8080/admin
 
 # Bare domain (no scheme)
 query I
@@ -59,11 +59,11 @@ SELECT defang('2001:db8::1');
 ----
 2001[:]db8[:][:]1
 
-# IPv6 literal in a URL keeps scheme and port colons
+# IPv6 literal in a URL with a port
 query I
 SELECT defang('http://[2001:db8::1]:8080/');
 ----
-hxxp://[2001[:]db8[:][:]1]:8080/
+hxxp[://][2001[:]db8[:][:]1][:]8080/
 
 # IPv4-mapped IPv6
 query I
@@ -71,15 +71,37 @@ SELECT defang('::ffff:192.168.1.1');
 ----
 [:][:]ffff[:]192[.]168[.]1[.]1
 
+# CyberChef-style examples
+query I
+SELECT defang('https://malware.example.com/beacon');
+----
+hxxps[://]malware[.]example[.]com/beacon
+
+query I
+SELECT defang('invoice@spam-domain.com');
+----
+invoice[@]spam-domain[.]com
+
+query I
+SELECT defang('203.0.113.45:443');
+----
+203[.]0[.]113[.]45[:]443
+
+# Other schemes get a bracketed separator
+query I
+SELECT defang('ssh://git.example.com:22');
+----
+ssh[://]git[.]example[.]com[:]22
+
 # ============================================================
 # defang: edge cases
 # ============================================================
 
-# Colons outside IPv6 addresses are left alone
+# Colons that are neither IPv6 nor ports are left alone
 query I
-SELECT defang('12:30:45 example.com:443');
+SELECT defang('12:30:45 example.com:443 localhost:8080');
 ----
-12:30:45 example[.]com:443
+12:30:45 example[.]com[:]443 localhost[:]8080
 
 # Idempotent for IPv6 and email
 query I
@@ -89,9 +111,9 @@ user[@][2001[:]db8[:][:]1]
 
 # Idempotent
 query I
-SELECT defang(defang('https://example.com'));
+SELECT defang(defang('http://192.168.1.100:8080/beacon'));
 ----
-hxxps://example[.]com
+hxxp[://]192[.]168[.]1[.]100[:]8080/beacon
 
 # "http" not followed by :// is left alone
 query I
@@ -103,7 +125,7 @@ http example
 query I
 SELECT defang('xhttp://a');
 ----
-xhttp://a
+xhttp[://]a
 
 # No dots and no scheme
 query I
@@ -185,6 +207,11 @@ SELECT refang('hxxps[://]example[.]com');
 https://example.com
 
 query I
+SELECT refang('hxxp[://]192[.]168[.]1[.]100[:]8080/beacon');
+----
+http://192.168.1.100:8080/beacon
+
+query I
 SELECT refang('hxxps[:]//example[.]com');
 ----
 https://example.com
@@ -257,8 +284,8 @@ query II
 SELECT defang(ioc), refang(defang(ioc)) = ioc FROM iocs ORDER BY ioc;
 ----
 bad[.]example[.]org	true
-hxxp://1[.]2[.]3[.]4/	true
-hxxps://evil[.]example[.]com/payload[.]bin	true
+hxxp[://]1[.]2[.]3[.]4/	true
+hxxps[://]evil[.]example[.]com/payload[.]bin	true
 NULL	NULL
 
 query II

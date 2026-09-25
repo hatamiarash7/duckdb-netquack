@@ -122,6 +122,30 @@ static bool IsBracketed(const std::string_view &input, size_t pos) {
 	return pos > 0 && input[pos - 1] == '[' && pos + 1 < input.size() && input[pos + 1] == ']';
 }
 
+// A port colon follows a host (IPv6 literal, or a token with a dot or letter) and precedes 1-5 digits
+static bool IsPortColon(const std::string_view &input, size_t pos) {
+	size_t end = pos + 1;
+	while (end < input.size() && end - pos <= 5 && input[end] >= '0' && input[end] <= '9') {
+		end++;
+	}
+	if (end == pos + 1 || (end < input.size() && IsAlnum(input[end]))) {
+		return false;
+	}
+	if (pos > 0 && input[pos - 1] == ']') {
+		return true;
+	}
+	for (size_t k = pos; k > 0; k--) {
+		char c = input[k - 1];
+		if (c == '/' || c == '@' || c == ' ' || c == '\t' || c == '\n') {
+			break;
+		}
+		if (c == '.' || IsAlpha(c)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 std::string Defang(const std::string_view &input) {
 	std::string result;
 	result.reserve(input.size() * 2);
@@ -145,6 +169,12 @@ std::string Defang(const std::string_view &input) {
 				}
 			}
 			i += len - 1;
+		} else if (MatchAt(input, i, "://") &&
+		           !(i > 0 && input[i - 1] == '[' && i + 3 < input.size() && input[i + 3] == ']')) {
+			result += "[://]";
+			i += 2;
+		} else if (input[i] == ':' && !IsBracketed(input, i) && IsPortColon(input, i)) {
+			result += "[:]";
 		} else if (input[i] == '.' || input[i] == '@') {
 			if (IsBracketed(input, i)) {
 				result += input[i];
