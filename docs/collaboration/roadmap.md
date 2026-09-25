@@ -41,7 +41,6 @@ layout:
 - [ ] Implement `cidr_merge` aggregate function - Collapse a set of CIDRs into the minimal covering set
 - [ ] Implement `ip_type` / `is_bogon` functions - Classify IPs as public, private, loopback, link-local, multicast, CGNAT, documentation or reserved
 - [ ] Implement `ip_anonymize` function - Truncate IPv4/IPv6 addresses for privacy
-- [ ] Implement `ipv6_compress` / `ipv6_expand` / `is_ipv4_mapped` functions
 - [ ] Implement ASN lookup - `ip_to_asn` / `ip_to_as_org`
 - [ ] Implement `extract_sld` function - Return the label before the public suffix
 - [ ] Implement `is_public_suffix` / `is_known_tld` functions

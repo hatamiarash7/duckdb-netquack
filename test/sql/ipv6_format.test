@@ -1,0 +1,258 @@
+# name: test/sql/ipv6_format.test
+# description: test netquack ipv6_compress, ipv6_expand and is_ipv4_mapped functions
+# group: [sql]
+
+require netquack
+
+# ===========================================================================
+# ipv6_compress
+# ===========================================================================
+
+query I
+SELECT ipv6_compress('2001:0db8:0000:0000:0000:0000:0000:0001');
+----
+2001:db8::1
+
+query I
+SELECT ipv6_compress('0000:0000:0000:0000:0000:0000:0000:0000');
+----
+::
+
+query I
+SELECT ipv6_compress('0:0:0:0:0:0:0:1');
+----
+::1
+
+query I
+SELECT ipv6_compress('fe80:0:0:0:0:0:0:0');
+----
+fe80::
+
+# Uppercase hex is lowercased
+query I
+SELECT ipv6_compress('2001:DB8::ABCD');
+----
+2001:db8::abcd
+
+# A single zero group is not compressed
+query I
+SELECT ipv6_compress('2001:db8:0:1:1:1:1:1');
+----
+2001:db8:0:1:1:1:1:1
+
+# The longest run of zero groups is compressed
+query I
+SELECT ipv6_compress('2001:0:0:1:0:0:0:1');
+----
+2001:0:0:1::1
+
+# On a tie, the first run is compressed
+query I
+SELECT ipv6_compress('2001:db8:0:0:1:0:0:1');
+----
+2001:db8::1:0:0:1
+
+# Already compressed input is re-canonicalized
+query I
+SELECT ipv6_compress('2001:db8:0::0:1');
+----
+2001:db8::1
+
+# Bracketed address
+query I
+SELECT ipv6_compress('[2001:db8::1]');
+----
+2001:db8::1
+
+# IPv4-mapped addresses use mixed notation
+query I
+SELECT ipv6_compress('::ffff:192.168.1.1');
+----
+::ffff:192.168.1.1
+
+query I
+SELECT ipv6_compress('0:0:0:0:0:ffff:c0a8:0101');
+----
+::ffff:192.168.1.1
+
+# Other embedded IPv4 forms are rendered as hex
+query I
+SELECT ipv6_compress('64:ff9b::1.2.3.4');
+----
+64:ff9b::102:304
+
+# ===========================================================================
+# ipv6_expand
+# ===========================================================================
+
+query I
+SELECT ipv6_expand('2001:db8::1');
+----
+2001:0db8:0000:0000:0000:0000:0000:0001
+
+query I
+SELECT ipv6_expand('::');
+----
+0000:0000:0000:0000:0000:0000:0000:0000
+
+query I
+SELECT ipv6_expand('::1');
+----
+0000:0000:0000:0000:0000:0000:0000:0001
+
+query I
+SELECT ipv6_expand('fe80::');
+----
+fe80:0000:0000:0000:0000:0000:0000:0000
+
+query I
+SELECT ipv6_expand('2001:DB8::ABCD');
+----
+2001:0db8:0000:0000:0000:0000:0000:abcd
+
+query I
+SELECT ipv6_expand('[2001:db8::1]');
+----
+2001:0db8:0000:0000:0000:0000:0000:0001
+
+query I
+SELECT ipv6_expand('::ffff:192.168.1.1');
+----
+0000:0000:0000:0000:0000:ffff:c0a8:0101
+
+# Round trip
+query I
+SELECT ipv6_compress(ipv6_expand('2001:db8:0:0:1:0:0:1'));
+----
+2001:db8::1:0:0:1
+
+# ===========================================================================
+# is_ipv4_mapped
+# ===========================================================================
+
+query I
+SELECT is_ipv4_mapped('::ffff:192.168.1.1');
+----
+true
+
+query I
+SELECT is_ipv4_mapped('::ffff:c0a8:101');
+----
+true
+
+query I
+SELECT is_ipv4_mapped('0000:0000:0000:0000:0000:ffff:0000:0000');
+----
+true
+
+query I
+SELECT is_ipv4_mapped('[::ffff:8.8.8.8]');
+----
+true
+
+# Deprecated IPv4-compatible form is not mapped
+query I
+SELECT is_ipv4_mapped('::192.168.1.1');
+----
+false
+
+# NAT64 prefix is not mapped
+query I
+SELECT is_ipv4_mapped('64:ff9b::1.2.3.4');
+----
+false
+
+query I
+SELECT is_ipv4_mapped('2001:db8::1');
+----
+false
+
+query I
+SELECT is_ipv4_mapped('::1');
+----
+false
+
+# Plain IPv4 is valid but not mapped
+query I
+SELECT is_ipv4_mapped('192.168.1.1');
+----
+false
+
+# ===========================================================================
+# Invalid input returns NULL
+# ===========================================================================
+
+# IPv4 is not an IPv6 address
+query II
+SELECT ipv6_compress('192.168.1.1'), ipv6_expand('192.168.1.1');
+----
+NULL	NULL
+
+query III
+SELECT ipv6_compress(''), ipv6_expand(''), is_ipv4_mapped('');
+----
+NULL	NULL	NULL
+
+query III
+SELECT ipv6_compress('not-an-ip'), ipv6_expand('not-an-ip'), is_ipv4_mapped('not-an-ip');
+----
+NULL	NULL	NULL
+
+query III
+SELECT ipv6_compress('2001:db8::1::2'), ipv6_expand('2001:db8::1::2'), is_ipv4_mapped('2001:db8::1::2');
+----
+NULL	NULL	NULL
+
+query III
+SELECT ipv6_compress('gggg::1'), ipv6_expand('gggg::1'), is_ipv4_mapped('gggg::1');
+----
+NULL	NULL	NULL
+
+query III
+SELECT ipv6_compress('2001:db8::/32'), ipv6_expand('2001:db8::/32'), is_ipv4_mapped('2001:db8::/32');
+----
+NULL	NULL	NULL
+
+query III
+SELECT ipv6_compress('::ffff:256.1.1.1'), ipv6_expand('::ffff:256.1.1.1'), is_ipv4_mapped('::ffff:256.1.1.1');
+----
+NULL	NULL	NULL
+
+query III
+SELECT ipv6_compress(NULL), ipv6_expand(NULL), is_ipv4_mapped(NULL);
+----
+NULL	NULL	NULL
+
+# ===========================================================================
+# Table usage
+# ===========================================================================
+
+statement ok
+CREATE OR REPLACE TABLE ipv6_test AS SELECT * FROM (VALUES
+	('2001:0DB8:0000:0000:0000:0000:0000:0001'),
+	('2001:db8::1'),
+	('::ffff:10.0.0.1'),
+	('10.0.0.1'),
+	('invalid'),
+	(NULL)
+) t(ip);
+
+query IIII
+SELECT ip, ipv6_compress(ip), ipv6_expand(ip), is_ipv4_mapped(ip) FROM ipv6_test ORDER BY ip;
+----
+10.0.0.1	NULL	NULL	false
+2001:0DB8:0000:0000:0000:0000:0000:0001	2001:db8::1	2001:0db8:0000:0000:0000:0000:0000:0001	false
+2001:db8::1	2001:db8::1	2001:0db8:0000:0000:0000:0000:0000:0001	false
+::ffff:10.0.0.1	::ffff:10.0.0.1	0000:0000:0000:0000:0000:ffff:0a00:0001	true
+invalid	NULL	NULL	NULL
+NULL	NULL	NULL	NULL
+
+# Canonical form deduplicates differently-written addresses
+query II
+SELECT ipv6_compress(ip) AS canonical, count(*) FROM ipv6_test WHERE ipv6_compress(ip) IS NOT NULL GROUP BY canonical ORDER BY canonical;
+----
+2001:db8::1	2
+::ffff:10.0.0.1	1
+
+statement ok
+DROP TABLE ipv6_test;

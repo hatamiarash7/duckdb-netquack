@@ -26,6 +26,15 @@ void IPInRangeFunction(DataChunk &args, ExpressionState &state, Vector &result);
 // Scalar function: ip_to_ptr(VARCHAR) -> VARCHAR
 void IPToPTRFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
+// Scalar function: ipv6_compress(VARCHAR) -> VARCHAR
+void IPv6CompressFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
+// Scalar function: ipv6_expand(VARCHAR) -> VARCHAR
+void IPv6ExpandFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
+// Scalar function: is_ipv4_mapped(VARCHAR) -> BOOLEAN
+void IsIPv4MappedFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
 namespace netquack {
 // Check if a string is a valid IPv4 address
 bool IsValidIPv4(const std::string &ip);
@@ -58,5 +67,14 @@ int IPInRange(const std::string &ip, const std::string &cidr);
 
 // Build the reverse DNS name (in-addr.arpa / ip6.arpa) for an IP; returns empty string for invalid input
 std::string IPToPTR(const std::string &ip);
+
+// Format an IPv6 address in RFC 5952 canonical form; returns empty string for invalid or IPv4 input
+std::string IPv6Compress(const std::string &ip);
+
+// Format an IPv6 address as eight zero-padded hex groups; returns empty string for invalid or IPv4 input
+std::string IPv6Expand(const std::string &ip);
+
+// Check if an address is IPv4-mapped IPv6 (::ffff:0:0/96): returns 1 (mapped), 0 (not mapped), or -1 (invalid input)
+int IsIPv4Mapped(const std::string &ip);
 } // namespace netquack
 } // namespace duckdb

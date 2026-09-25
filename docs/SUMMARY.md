@@ -43,6 +43,7 @@
   * [IP to Integer / Integer to IP](ip-address/ip-to-int.md)
   * [IP in Range](ip-address/ip-in-range.md)
   * [IP to PTR](ip-address/ip-to-ptr.md)
+  * [IPv6 Compress / Expand](ip-address/ipv6-format.md)
 
 ## Collaboration
 

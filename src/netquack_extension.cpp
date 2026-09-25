@@ -179,6 +179,20 @@ static void LoadInternal(ExtensionLoader &loader) {
 	         {"SELECT ip_to_ptr('192.168.1.1');"}, {"ip"});
 
 	Register(loader,
+	         ScalarFunction("ipv6_compress", {LogicalType::VARCHAR}, LogicalType::VARCHAR, IPv6CompressFunction),
+	         {"ip"}, "Formats an IPv6 address in its shortest RFC 5952 canonical form.",
+	         {"SELECT ipv6_compress('2001:0db8:0000:0000:0000:0000:0000:0001');"}, {"ip"});
+
+	Register(loader, ScalarFunction("ipv6_expand", {LogicalType::VARCHAR}, LogicalType::VARCHAR, IPv6ExpandFunction),
+	         {"ip"}, "Expands an IPv6 address to eight zero-padded hexadecimal groups.",
+	         {"SELECT ipv6_expand('2001:db8::1');"}, {"ip"});
+
+	Register(loader,
+	         ScalarFunction("is_ipv4_mapped", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsIPv4MappedFunction),
+	         {"ip"}, "Returns true if the address is an IPv4-mapped IPv6 address (::ffff:0:0/96).",
+	         {"SELECT is_ipv4_mapped('::ffff:192.168.1.1');"}, {"ip"});
+
+	Register(loader,
 	         ScalarFunction("extract_fragment", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractFragmentFunction),
 	         {"url"}, "Extracts the fragment (the part after #) from a URL.",
 	         {"SELECT extract_fragment('http://example.com/page#section');"}, {"url"});

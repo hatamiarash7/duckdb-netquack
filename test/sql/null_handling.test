@@ -124,6 +124,24 @@ SELECT ip_to_ptr(NULL);
 ----
 NULL
 
+# Test NULL handling for ipv6_compress
+query I
+SELECT ipv6_compress(NULL);
+----
+NULL
+
+# Test NULL handling for ipv6_expand
+query I
+SELECT ipv6_expand(NULL);
+----
+NULL
+
+# Test NULL handling for is_ipv4_mapped
+query I
+SELECT is_ipv4_mapped(NULL);
+----
+NULL
+
 # Test NULL values in a table
 statement ok
 CREATE TABLE test_nulls (url VARCHAR);

@@ -38,6 +38,7 @@ Table of Contents
       - [IP to Integer / Integer to IP](#ip-to-integer--integer-to-ip)
       - [IP in Range](#ip-in-range)
       - [IP to PTR](#ip-to-ptr)
+      - [IPv6 Compress / Expand](#ipv6-compress--expand)
     - [Normalize URL](#normalize-url)
     - [Domain Depth](#domain-depth)
     - [Base64 Encode / Decode](#base64-encode--decode)
@@ -715,6 +716,38 @@ D SELECT ip_to_ptr('2001:db8::1');
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
+#### IPv6 Compress / Expand
+
+The `ipv6_compress` function formats an IPv6 address in its shortest RFC 5952 canonical form (lowercase, leading zeros stripped, longest zero run replaced with `::`). IPv4-mapped addresses are written as `::ffff:a.b.c.d`. The `ipv6_expand` function returns the full form with eight zero-padded groups. Both return `NULL` for invalid or IPv4 input.
+
+The `is_ipv4_mapped` function returns `true` if the address is an IPv4-mapped IPv6 address (`::ffff:0:0/96`), `false` for other IPv6 or IPv4 addresses, and `NULL` for invalid input.
+
+```sql
+D SELECT ipv6_compress('2001:0db8:0000:0000:0000:0000:0000:0001');
+┌──────────────────────────────────────────────────────────┐
+│ ipv6_compress('2001:0db8:0000:0000:0000:0000:0000:0001') │
+│                         varchar                          │
+├──────────────────────────────────────────────────────────┤
+│ 2001:db8::1                                              │
+└──────────────────────────────────────────────────────────┘
+
+D SELECT ipv6_expand('2001:db8::1');
+┌─────────────────────────────────────────┐
+│       ipv6_expand('2001:db8::1')        │
+│                 varchar                 │
+├─────────────────────────────────────────┤
+│ 2001:0db8:0000:0000:0000:0000:0000:0001 │
+└─────────────────────────────────────────┘
+
+D SELECT is_ipv4_mapped('::ffff:192.168.1.1');
+┌──────────────────────────────────────┐
+│ is_ipv4_mapped('::ffff:192.168.1.1') │
+│               boolean                │
+├──────────────────────────────────────┤
+│ true                                 │
+└──────────────────────────────────────┘
+```
+
 ### Normalize URL
 
 The `normalize_url` function canonicalizes a URL by applying RFC 3986 normalizations: scheme/host lowercasing, default port removal (80/443/21), trailing slash removal, dot segment resolution, query parameter sorting, fragment removal, and percent-encoding normalization.
@@ -1072,7 +1105,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `cidr_merge` aggregate function - Collapse a set of CIDRs into the minimal covering set
 - [ ] Implement `ip_type` / `is_bogon` functions - Classify IPs as public, private, loopback, link-local, multicast, CGNAT, documentation or reserved
 - [ ] Implement `ip_anonymize` function - Truncate IPv4/IPv6 addresses for privacy
-- [ ] Implement `ipv6_compress` / `ipv6_expand` / `is_ipv4_mapped` functions
 - [ ] Implement ASN lookup - `ip_to_asn` / `ip_to_as_org`
 - [ ] Implement `extract_sld` function - Return the label before the public suffix
 - [ ] Implement `is_public_suffix` / `is_known_tld` functions

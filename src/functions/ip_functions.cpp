@@ -547,6 +547,108 @@ std::string IPToPTR(const std::string &ip) {
 	return ptr;
 }
 
+// ---------------------------------------------------------------------------
+// IPv6 formatting
+// ---------------------------------------------------------------------------
+static bool ParseIPv6ToGroups(const std::string &ip, std::array<uint16_t, 8> &groups) {
+	if (DetectIPVersion(ip) != 6) {
+		return false;
+	}
+	std::array<uint8_t, 16> bytes;
+	ParseIPToBytes(ip, 6, bytes);
+	for (int i = 0; i < 8; i++) {
+		groups[i] = static_cast<uint16_t>((bytes[2 * i] << 8) | bytes[2 * i + 1]);
+	}
+	return true;
+}
+
+static bool IsIPv4MappedGroups(const std::array<uint16_t, 8> &groups) {
+	return groups[0] == 0 && groups[1] == 0 && groups[2] == 0 && groups[3] == 0 && groups[4] == 0 &&
+	       groups[5] == 0xFFFF;
+}
+
+std::string IPv6Compress(const std::string &ip) {
+	std::array<uint16_t, 8> groups;
+	if (!ParseIPv6ToGroups(ip, groups)) {
+		return "";
+	}
+
+	if (IsIPv4MappedGroups(groups)) {
+		return "::ffff:" + Uint32ToIPv4((static_cast<uint32_t>(groups[6]) << 16) | groups[7]);
+	}
+
+	// RFC 5952: collapse the longest (first on tie) run of two or more zero groups
+	int best_start = -1;
+	int best_len = 0;
+	for (int i = 0; i < 8;) {
+		if (groups[i] != 0) {
+			i++;
+			continue;
+		}
+		int j = i;
+		while (j < 8 && groups[j] == 0) {
+			j++;
+		}
+		if (j - i > best_len) {
+			best_start = i;
+			best_len = j - i;
+		}
+		i = j;
+	}
+	if (best_len < 2) {
+		best_start = -1;
+	}
+
+	std::string out;
+	out.reserve(39);
+	char buf[5];
+	for (int i = 0; i < 8; i++) {
+		if (i == best_start) {
+			out += "::";
+			i += best_len - 1;
+			continue;
+		}
+		if (!out.empty() && out.back() != ':') {
+			out += ':';
+		}
+		snprintf(buf, sizeof(buf), "%x", groups[i]);
+		out += buf;
+	}
+	return out;
+}
+
+std::string IPv6Expand(const std::string &ip) {
+	std::array<uint16_t, 8> groups;
+	if (!ParseIPv6ToGroups(ip, groups)) {
+		return "";
+	}
+
+	std::string out;
+	out.reserve(39);
+	char buf[5];
+	for (int i = 0; i < 8; i++) {
+		if (i > 0) {
+			out += ':';
+		}
+		snprintf(buf, sizeof(buf), "%04x", groups[i]);
+		out += buf;
+	}
+	return out;
+}
+
+int IsIPv4Mapped(const std::string &ip) {
+	int version = DetectIPVersion(ip);
+	if (version == 0) {
+		return -1;
+	}
+	if (version == 4) {
+		return 0;
+	}
+	std::array<uint16_t, 8> groups;
+	ParseIPv6ToGroups(ip, groups);
+	return IsIPv4MappedGroups(groups) ? 1 : 0;
+}
+
 } // namespace netquack
 
 // ===========================================================================
@@ -688,6 +790,42 @@ void IPToPTRFunction(DataChunk &args, ExpressionState &, Vector &result) {
 		                                                    }
 		                                                    return StringVector::AddString(result, ptr);
 	                                                    });
+}
+
+void IPv6CompressFunction(DataChunk &args, ExpressionState &, Vector &result) {
+	UnaryExecutor::ExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
+	                                                    [&](string_t ip, ValidityMask &mask, idx_t idx) {
+		                                                    auto out = netquack::IPv6Compress(ip.GetString());
+		                                                    if (out.empty()) {
+			                                                    mask.SetInvalid(idx);
+			                                                    return string_t();
+		                                                    }
+		                                                    return StringVector::AddString(result, out);
+	                                                    });
+}
+
+void IPv6ExpandFunction(DataChunk &args, ExpressionState &, Vector &result) {
+	UnaryExecutor::ExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
+	                                                    [&](string_t ip, ValidityMask &mask, idx_t idx) {
+		                                                    auto out = netquack::IPv6Expand(ip.GetString());
+		                                                    if (out.empty()) {
+			                                                    mask.SetInvalid(idx);
+			                                                    return string_t();
+		                                                    }
+		                                                    return StringVector::AddString(result, out);
+	                                                    });
+}
+
+void IsIPv4MappedFunction(DataChunk &args, ExpressionState &, Vector &result) {
+	UnaryExecutor::ExecuteWithNulls<string_t, bool>(args.data[0], result, args.size(),
+	                                                [&](string_t ip, ValidityMask &mask, idx_t idx) {
+		                                                int mapped = netquack::IsIPv4Mapped(ip.GetString());
+		                                                if (mapped < 0) {
+			                                                mask.SetInvalid(idx);
+			                                                return false;
+		                                                }
+		                                                return mapped == 1;
+	                                                });
 }
 
 } // namespace duckdb
