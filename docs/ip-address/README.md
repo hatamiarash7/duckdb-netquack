@@ -21,3 +21,4 @@ This extension provides various functions for manipulating and analyzing IP addr
 * [**Check Private IP**](is-private-ip.md) — Determine if an IP belongs to a private or reserved range
 * [**IP Version**](ip-version.md) — Detect whether an address is IPv4 or IPv6
 * [**IP to Integer / Integer to IP**](ip-to-int.md) — Convert between dotted-quad notation and integer representation
+* [**IP in Range**](ip-in-range.md) — Check if an IP falls within a given CIDR block

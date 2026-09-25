@@ -41,6 +41,7 @@
   * [Check Private IP](ip-address/is-private-ip.md)
   * [IP Version](ip-address/ip-version.md)
   * [IP to Integer / Integer to IP](ip-address/ip-to-int.md)
+  * [IP in Range](ip-address/ip-in-range.md)
 
 ## Collaboration
 

@@ -1,0 +1,274 @@
+# name: test/sql/ip_in_range.test
+# description: test netquack ip_in_range function
+# group: [sql]
+
+require netquack
+
+# ===========================================================================
+# IPv4
+# ===========================================================================
+
+query I
+SELECT ip_in_range('192.168.1.100', '192.168.1.0/24');
+----
+true
+
+query I
+SELECT ip_in_range('192.168.2.1', '192.168.1.0/24');
+----
+false
+
+query I
+SELECT ip_in_range('10.255.255.255', '10.0.0.0/8');
+----
+true
+
+query I
+SELECT ip_in_range('11.0.0.0', '10.0.0.0/8');
+----
+false
+
+# Non-byte-aligned prefix
+query I
+SELECT ip_in_range('172.31.255.255', '172.16.0.0/12');
+----
+true
+
+query I
+SELECT ip_in_range('172.32.0.0', '172.16.0.0/12');
+----
+false
+
+# Host bits set in the network part are ignored
+query I
+SELECT ip_in_range('192.168.1.7', '192.168.1.200/24');
+----
+true
+
+# /0 matches everything
+query I
+SELECT ip_in_range('8.8.8.8', '0.0.0.0/0');
+----
+true
+
+# /32 matches a single host
+query I
+SELECT ip_in_range('8.8.8.8', '8.8.8.8/32');
+----
+true
+
+query I
+SELECT ip_in_range('8.8.8.9', '8.8.8.8/32');
+----
+false
+
+# No prefix means a single host
+query I
+SELECT ip_in_range('8.8.8.8', '8.8.8.8');
+----
+true
+
+query I
+SELECT ip_in_range('8.8.8.9', '8.8.8.8');
+----
+false
+
+# ===========================================================================
+# IPv6
+# ===========================================================================
+
+query I
+SELECT ip_in_range('2001:db8::1', '2001:db8::/32');
+----
+true
+
+query I
+SELECT ip_in_range('2001:db9::1', '2001:db8::/32');
+----
+false
+
+query I
+SELECT ip_in_range('fe80::c028:8eff:fe34:6e5f', 'fe80::/10');
+----
+true
+
+query I
+SELECT ip_in_range('fec0::1', 'fe80::/10');
+----
+false
+
+query I
+SELECT ip_in_range('::1', '::1/128');
+----
+true
+
+query I
+SELECT ip_in_range('::2', '::1/128');
+----
+false
+
+query I
+SELECT ip_in_range('ffff::1', '::/0');
+----
+true
+
+query I
+SELECT ip_in_range('[2001:db8::1]', '2001:db8::/64');
+----
+true
+
+query I
+SELECT ip_in_range('2001:DB8::1', '2001:db8::/64');
+----
+true
+
+# IPv4-mapped IPv6 addresses
+query I
+SELECT ip_in_range('::ffff:192.168.1.1', '::ffff:192.168.0.0/112');
+----
+true
+
+query I
+SELECT ip_in_range('::ffff:192.169.1.1', '::ffff:192.168.0.0/112');
+----
+false
+
+# ===========================================================================
+# Mixed families never match
+# ===========================================================================
+
+query I
+SELECT ip_in_range('192.168.1.1', '::/0');
+----
+false
+
+query I
+SELECT ip_in_range('::1', '0.0.0.0/0');
+----
+false
+
+# ===========================================================================
+# Invalid input returns NULL
+# ===========================================================================
+
+query I
+SELECT ip_in_range(NULL, '10.0.0.0/8');
+----
+NULL
+
+query I
+SELECT ip_in_range('10.0.0.1', NULL);
+----
+NULL
+
+query I
+SELECT ip_in_range('', '10.0.0.0/8');
+----
+NULL
+
+query I
+SELECT ip_in_range('10.0.0.1', '');
+----
+NULL
+
+query I
+SELECT ip_in_range('not-an-ip', '10.0.0.0/8');
+----
+NULL
+
+query I
+SELECT ip_in_range('256.0.0.1', '10.0.0.0/8');
+----
+NULL
+
+query I
+SELECT ip_in_range('10.0.0.1', '10.0.0.0/33');
+----
+NULL
+
+query I
+SELECT ip_in_range('::1', '::/129');
+----
+NULL
+
+query I
+SELECT ip_in_range('10.0.0.1', '10.0.0.0/');
+----
+NULL
+
+query I
+SELECT ip_in_range('10.0.0.1', '10.0.0.0/08');
+----
+NULL
+
+query I
+SELECT ip_in_range('10.0.0.1', '10.0.0.0/-1');
+----
+NULL
+
+query I
+SELECT ip_in_range('10.0.0.1', '10.0.0.0/8/8');
+----
+NULL
+
+query I
+SELECT ip_in_range('10.0.0.1', '10.0.0.0/abc');
+----
+NULL
+
+query I
+SELECT ip_in_range('10.0.0.1', 'example.com/8');
+----
+NULL
+
+# ===========================================================================
+# Table usage
+# ===========================================================================
+
+statement ok
+CREATE OR REPLACE TABLE test_ips AS
+    SELECT '10.1.2.3' AS ip UNION ALL
+    SELECT '192.168.1.10' UNION ALL
+    SELECT '192.168.2.10' UNION ALL
+    SELECT '8.8.8.8' UNION ALL
+    SELECT '2001:db8::1' UNION ALL
+    SELECT 'invalid' UNION ALL
+    SELECT NULL;
+
+statement ok
+CREATE OR REPLACE TABLE test_ranges AS
+    SELECT 'office' AS name, '192.168.1.0/24' AS cidr UNION ALL
+    SELECT 'vpn', '10.0.0.0/8' UNION ALL
+    SELECT 'docs', '2001:db8::/32';
+
+query II
+SELECT ip, ip_in_range(ip, '192.168.0.0/16') FROM test_ips ORDER BY ip;
+----
+10.1.2.3	false
+192.168.1.10	true
+192.168.2.10	true
+2001:db8::1	false
+8.8.8.8	false
+invalid	NULL
+NULL	NULL
+
+# Join IPs against a table of CIDR blocks
+query II
+SELECT r.name, i.ip FROM test_ips i JOIN test_ranges r ON ip_in_range(i.ip, r.cidr) ORDER BY r.name, i.ip;
+----
+docs	2001:db8::1
+office	192.168.1.10
+vpn	10.1.2.3
+
+query II
+SELECT r.name, count(i.ip) FROM test_ranges r LEFT JOIN test_ips i ON ip_in_range(i.ip, r.cidr) GROUP BY r.name ORDER BY r.name;
+----
+docs	1
+office	1
+vpn	1
+
+statement ok
+DROP TABLE test_ips;
+
+statement ok
+DROP TABLE test_ranges;

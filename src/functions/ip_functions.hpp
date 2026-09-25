@@ -20,6 +20,9 @@ void IntToIPFunction(DataChunk &args, ExpressionState &state, Vector &result);
 // Scalar function: ip_version(VARCHAR) -> INT8
 void IPVersionFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
+// Scalar function: ip_in_range(VARCHAR, VARCHAR) -> BOOLEAN
+void IPInRangeFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
 namespace netquack {
 // Check if a string is a valid IPv4 address
 bool IsValidIPv4(const std::string &ip);
@@ -46,5 +49,8 @@ std::string Uint32ToIPv4(uint32_t ip);
 
 // Detect IP version: returns 4, 6, or 0 (invalid)
 int DetectIPVersion(const std::string &ip);
+
+// Check if an IP falls within a CIDR block: returns 1 (in range), 0 (not in range), or -1 (invalid input)
+int IPInRange(const std::string &ip, const std::string &cidr);
 } // namespace netquack
 } // namespace duckdb

@@ -169,6 +169,12 @@ static void LoadInternal(ExtensionLoader &loader) {
 	         {"SELECT ip_version('192.168.1.1');"}, {"ip"});
 
 	Register(loader,
+	         ScalarFunction("ip_in_range", {LogicalType::VARCHAR, LogicalType::VARCHAR}, LogicalType::BOOLEAN,
+	                        IPInRangeFunction),
+	         {"ip", "cidr"}, "Returns true if the IP address falls within the given IPv4 or IPv6 CIDR block.",
+	         {"SELECT ip_in_range('192.168.1.100', '192.168.1.0/24');"}, {"ip"});
+
+	Register(loader,
 	         ScalarFunction("extract_fragment", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractFragmentFunction),
 	         {"url"}, "Extracts the fragment (the part after #) from a URL.",
 	         {"SELECT extract_fragment('http://example.com/page#section');"}, {"url"});

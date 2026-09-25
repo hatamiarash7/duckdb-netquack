@@ -36,6 +36,7 @@ Table of Contents
       - [Check Private IP](#check-private-ip)
       - [IP Version](#ip-version)
       - [IP to Integer / Integer to IP](#ip-to-integer--integer-to-ip)
+      - [IP in Range](#ip-in-range)
     - [Normalize URL](#normalize-url)
     - [Domain Depth](#domain-depth)
     - [Base64 Encode / Decode](#base64-encode--decode)
@@ -661,6 +662,36 @@ D SELECT ip
 └──────────┘
 ```
 
+#### IP in Range
+
+The `ip_in_range` function checks whether an IP address falls within a given CIDR block. Supports both IPv4 and IPv6. A CIDR without a prefix length is treated as a single host. An IPv4 address never matches an IPv6 block (and vice versa). Returns `NULL` for invalid IPs or malformed CIDRs.
+
+```sql
+D SELECT ip_in_range('192.168.1.100', '192.168.1.0/24');
+┌────────────────────────────────────────────────┐
+│ ip_in_range('192.168.1.100', '192.168.1.0/24') │
+│                    boolean                     │
+├────────────────────────────────────────────────┤
+│ true                                           │
+└────────────────────────────────────────────────┘
+
+D SELECT ip_in_range('10.0.0.1', '192.168.1.0/24');
+┌───────────────────────────────────────────┐
+│ ip_in_range('10.0.0.1', '192.168.1.0/24') │
+│                  boolean                  │
+├───────────────────────────────────────────┤
+│ false                                     │
+└───────────────────────────────────────────┘
+
+D SELECT ip_in_range('2001:db8::1', '2001:db8::/32');
+┌─────────────────────────────────────────────┐
+│ ip_in_range('2001:db8::1', '2001:db8::/32') │
+│                   boolean                   │
+├─────────────────────────────────────────────┤
+│ true                                        │
+└─────────────────────────────────────────────┘
+```
+
 ### Normalize URL
 
 The `normalize_url` function canonicalizes a URL by applying RFC 3986 normalizations: scheme/host lowercasing, default port removal (80/443/21), trailing slash removal, dot segment resolution, query parameter sorting, fragment removal, and percent-encoding normalization.
@@ -1002,7 +1033,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Save Tranco data as Parquet
 - [ ] Implement GeoIP functionality
 - [ ] Return default value for `get_tranco_rank`
-- [ ] Implement `ip_in_range` function - Check if an IP falls within a given CIDR block
 - [ ] Support internationalized domain names (IDNs)
 - [ ] Implement `punycode_encode` / `punycode_decode` functions - Convert internationalized domain names to/from ASCII-compatible encoding
 

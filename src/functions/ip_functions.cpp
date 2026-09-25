@@ -5,6 +5,7 @@
 #include <array>
 #include <charconv>
 #include <cstdint>
+#include <cstdio>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -426,6 +427,92 @@ bool IsPrivateIPv6(const std::string &ip) {
 	return false;
 }
 
+// ---------------------------------------------------------------------------
+// CIDR membership check
+// ---------------------------------------------------------------------------
+static void ParseIPToBytes(const std::string &ip, int version, std::array<uint8_t, 16> &bytes) {
+	bytes.fill(0);
+	if (version == 4) {
+		uint32_t addr = IPv4ToUint32(ip);
+		for (int i = 0; i < 4; i++) {
+			bytes[i] = static_cast<uint8_t>((addr >> (24 - 8 * i)) & 0xFF);
+		}
+		return;
+	}
+
+	std::string addr = ip;
+	if (addr.front() == '[' && addr.back() == ']') {
+		addr = addr.substr(1, addr.size() - 2);
+	}
+
+	// Rewrite an embedded IPv4 tail (e.g. ::ffff:1.2.3.4) as two hex groups
+	size_t last_colon = addr.rfind(':');
+	if (last_colon != std::string::npos && addr.find('.', last_colon) != std::string::npos) {
+		uint32_t v4 = IPv4ToUint32(addr.substr(last_colon + 1));
+		char tail[10];
+		snprintf(tail, sizeof(tail), "%x:%x", (v4 >> 16) & 0xFFFF, v4 & 0xFFFF);
+		addr = addr.substr(0, last_colon + 1) + tail;
+	}
+
+	auto groups = ParseIPv6Groups(addr);
+	for (int i = 0; i < 8; i++) {
+		bytes[2 * i] = static_cast<uint8_t>(groups[i] >> 8);
+		bytes[2 * i + 1] = static_cast<uint8_t>(groups[i] & 0xFF);
+	}
+}
+
+int IPInRange(const std::string &ip, const std::string &cidr) {
+	int ip_version = DetectIPVersion(ip);
+	if (ip_version == 0) {
+		return -1;
+	}
+
+	size_t slash = cidr.find('/');
+	std::string network = cidr.substr(0, slash);
+	int network_version = DetectIPVersion(network);
+	if (network_version == 0) {
+		return -1;
+	}
+
+	int max_prefix = network_version == 4 ? 32 : 128;
+	int prefix = max_prefix;
+	if (slash != std::string::npos) {
+		const char *begin = cidr.data() + slash + 1;
+		const char *end = cidr.data() + cidr.size();
+		if (begin == end || end - begin > 3 || (end - begin > 1 && *begin == '0')) {
+			return -1;
+		}
+		auto res = std::from_chars(begin, end, prefix);
+		if (res.ec != std::errc {} || res.ptr != end || prefix < 0 || prefix > max_prefix) {
+			return -1;
+		}
+	}
+
+	if (ip_version != network_version) {
+		return 0;
+	}
+
+	std::array<uint8_t, 16> ip_bytes;
+	std::array<uint8_t, 16> net_bytes;
+	ParseIPToBytes(ip, ip_version, ip_bytes);
+	ParseIPToBytes(network, network_version, net_bytes);
+
+	int full_bytes = prefix / 8;
+	for (int i = 0; i < full_bytes; i++) {
+		if (ip_bytes[i] != net_bytes[i]) {
+			return 0;
+		}
+	}
+	int remaining_bits = prefix % 8;
+	if (remaining_bits > 0) {
+		auto mask = static_cast<uint8_t>(0xFF << (8 - remaining_bits));
+		if ((ip_bytes[full_bytes] & mask) != (net_bytes[full_bytes] & mask)) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
 } // namespace netquack
 
 // ===========================================================================
@@ -542,6 +629,19 @@ void IPVersionFunction(DataChunk &args, ExpressionState &, Vector &result) {
 			result_data[i] = static_cast<int8_t>(version);
 		}
 	}
+}
+
+void IPInRangeFunction(DataChunk &args, ExpressionState &, Vector &result) {
+	BinaryExecutor::ExecuteWithNulls<string_t, string_t, bool>(
+	    args.data[0], args.data[1], result, args.size(),
+	    [&](string_t ip, string_t cidr, ValidityMask &mask, idx_t idx) {
+		    int in_range = netquack::IPInRange(ip.GetString(), cidr.GetString());
+		    if (in_range < 0) {
+			    mask.SetInvalid(idx);
+			    return false;
+		    }
+		    return in_range == 1;
+	    });
 }
 
 } // namespace duckdb

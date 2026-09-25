@@ -112,6 +112,12 @@ SELECT parse_uri(NULL);
 ----
 NULL
 
+# Test NULL handling for ip_in_range
+query I
+SELECT ip_in_range(NULL, NULL);
+----
+NULL
+
 # Test NULL values in a table
 statement ok
 CREATE TABLE test_nulls (url VARCHAR);
