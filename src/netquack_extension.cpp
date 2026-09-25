@@ -27,6 +27,7 @@
 #include "functions/extract_tld.hpp"
 #include "functions/get_tranco.hpp"
 #include "functions/get_version.hpp"
+#include "functions/indicator_functions.hpp"
 #include "functions/ip_functions.hpp"
 #include "functions/ipcalc.hpp"
 #include "functions/normalize_url.hpp"
@@ -260,7 +261,8 @@ static void LoadInternal(ExtensionLoader &loader) {
 
 	Register(loader,
 	         ScalarFunction("is_public_suffix", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsPublicSuffixFunction),
-	         {"domain"}, "Returns true if the domain is exactly a public suffix in the Public Suffix List (e.g. co.uk).",
+	         {"domain"},
+	         "Returns true if the domain is exactly a public suffix in the Public Suffix List (e.g. co.uk).",
 	         {"SELECT is_public_suffix('co.uk');"}, {"domain"});
 
 	Register(loader, ScalarFunction("is_known_tld", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsKnownTLDFunction),
@@ -307,6 +309,25 @@ static void LoadInternal(ExtensionLoader &loader) {
 	Register(loader, ScalarFunction("surt_to_url", {LogicalType::VARCHAR}, LogicalType::VARCHAR, SurtToUrlFunction),
 	         {"surt"}, "Converts a SURT key back into a URL, assuming http when the SURT carries no scheme.",
 	         {"SELECT surt_to_url('com,example)/path?a=1&b=2');"}, {"url"});
+
+	Register(loader,
+	         ScalarFunction("extract_urls", {LogicalType::VARCHAR}, LogicalType::LIST(LogicalType::VARCHAR),
+	                        ExtractURLsFunction),
+	         {"text"}, "Extracts every scheme://... URL found in free text, in order of appearance.",
+	         {"SELECT extract_urls('Visit https://example.com/login or ftp://files.example.org now');"}, {"url"});
+
+	Register(loader,
+	         ScalarFunction("extract_domains", {LogicalType::VARCHAR}, LogicalType::LIST(LogicalType::VARCHAR),
+	                        ExtractDomainsFunction),
+	         {"text"},
+	         "Extracts every lowercased domain name with a known TLD found in free text, in order of appearance.",
+	         {"SELECT extract_domains('Mail from alerts@Example.com about login.bad-site.net');"}, {"domain"});
+
+	Register(loader,
+	         ScalarFunction("extract_ips", {LogicalType::VARCHAR}, LogicalType::LIST(LogicalType::VARCHAR),
+	                        ExtractIPsFunction),
+	         {"text"}, "Extracts every valid IPv4 and IPv6 address found in free text, in order of appearance.",
+	         {"SELECT extract_ips('Blocked 203.0.113.5:443 and 2001:db8::1 at the edge');"}, {"ip"});
 
 	Register(loader,
 	         TableFunction("netquack_version", {}, netquack::VersionFunc::Scan, netquack::VersionFunc::Bind,

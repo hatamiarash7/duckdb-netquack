@@ -28,6 +28,12 @@ SELECT extract_sld(NULL);
 ----
 NULL
 
+# Test NULL handling for extract_urls, extract_domains, extract_ips
+query III
+SELECT extract_urls(NULL), extract_domains(NULL), extract_ips(NULL);
+----
+NULL	NULL	NULL
+
 # Test NULL handling for extract_host
 query I
 SELECT extract_host(NULL);

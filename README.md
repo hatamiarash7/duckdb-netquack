@@ -54,6 +54,7 @@ Table of Contents
     - [URL Encode / Decode](#url-encode--decode)
     - [Defang / Refang](#defang--refang)
     - [URL to SURT / SURT to URL](#url-to-surt--surt-to-url)
+    - [Extract Indicators From Text](#extract-indicators-from-text)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -1238,6 +1239,55 @@ D SELECT surt_to_url('com,example)/path?a=1&b=2') AS url;
 └─────────────────────────────────┘
 ```
 
+### Extract Indicators From Text
+
+The `extract_urls`, `extract_domains`, and `extract_ips` functions pull indicators out of free text such as logs, emails, or tickets. Each returns a `VARCHAR[]` list in order of appearance (duplicates included), an empty list when nothing is found, and `NULL` for `NULL` input.
+
+- `extract_urls` finds `scheme://...` URLs and drops trailing punctuation and unbalanced closing brackets.
+- `extract_domains` finds lowercased domain names whose TLD is in the Public Suffix List. It skips email local parts and tokens glued to `_` or non-ASCII characters.
+- `extract_ips` finds valid IPv4 and IPv6 addresses, including bracketed, port-suffixed, and CIDR-suffixed forms.
+
+```sql
+D SELECT extract_urls('Visit https://example.com/login, or ftp://files.example.org.') AS urls;
+┌──────────────────────────────────────────────────────────┐
+│                           urls                           │
+│                        varchar[]                         │
+├──────────────────────────────────────────────────────────┤
+│ ['https://example.com/login', 'ftp://files.example.org'] │
+└──────────────────────────────────────────────────────────┘
+
+D SELECT extract_domains('Mail from alerts@Example.COM about login.bad-site.net') AS domains;
+┌───────────────────────────────────┐
+│              domains              │
+│             varchar[]             │
+├───────────────────────────────────┤
+│ [example.com, login.bad-site.net] │
+└───────────────────────────────────┘
+
+D SELECT extract_ips('Blocked 203.0.113.5:443 and [2001:db8::1]:8080') AS ips;
+┌──────────────────────────────┐
+│             ips              │
+│          varchar[]           │
+├──────────────────────────────┤
+│ [203.0.113.5, '2001:db8::1'] │
+└──────────────────────────────┘
+```
+
+Use `unnest` to get one row per indicator, `list_distinct` to deduplicate, and `refang` first to catch defanged indicators:
+
+```sql
+D SELECT ip, count(*) AS hits
+  FROM (SELECT unnest(extract_ips(line)) AS ip FROM logs)
+  GROUP BY ip ORDER BY hits DESC;
+┌──────────────┬───────┐
+│      ip      │ hits  │
+│   varchar    │ int64 │
+├──────────────┼───────┤
+│ 198.51.100.7 │     2 │
+│ 2001:db8::42 │     1 │
+└──────────────┴───────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -1289,7 +1339,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `resolve_url` function - Resolve a relative reference against a base URL (RFC 3986)
 - [ ] Implement `extract_origin` / `is_same_origin` / `is_same_site` functions
 - [ ] Implement `url_hierarchy` / `url_path_hierarchy` functions - Return the list of URL prefixes
-- [ ] Implement `extract_urls` / `extract_domains` / `extract_ips` functions - Extract indicators from free text
 - [ ] Implement `mime_type` function - Map a URL's file extension to its MIME type
 - [ ] Support IPv6 in `ip_to_int` / `int_to_ip` (`UHUGEINT`)
 - [ ] Implement CIDR functions - `cidr_contains`, `cidr_overlaps`, `cidr_range`, `range_to_cidrs`

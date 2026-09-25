@@ -1,0 +1,228 @@
+# name: test/sql/indicator_functions.test
+# description: test netquack extract_urls, extract_domains and extract_ips
+# group: [sql]
+
+require netquack
+
+# ===================================================================
+# extract_urls
+# ===================================================================
+
+query I
+SELECT extract_urls('Visit https://example.com/login or ftp://files.example.org now');
+----
+['https://example.com/login', 'ftp://files.example.org']
+
+# Trailing sentence punctuation is dropped
+query I
+SELECT extract_urls('Go to https://example.com/a?b=1. Then http://test.com/x, or http://x.io!');
+----
+['https://example.com/a?b=1', 'http://test.com/x', 'http://x.io']
+
+# Balanced brackets are kept, unbalanced closing ones are dropped
+query I
+SELECT extract_urls('(see http://en.wikipedia.org/wiki/Foo_(bar)) and [docs](https://md.dev/p)');
+----
+['http://en.wikipedia.org/wiki/Foo_(bar)', 'https://md.dev/p']
+
+# Quotes and angle brackets delimit URLs
+query I
+SELECT extract_urls('href="https://q.com/a" <http://x.io/y> ''https://s.org/z''');
+----
+['https://q.com/a', 'http://x.io/y', 'https://s.org/z']
+
+# Any scheme, including an empty authority
+query I
+SELECT extract_urls('open file:///etc/passwd via ssh+git://host/repo.git');
+----
+['file:///etc/passwd', 'ssh+git://host/repo.git']
+
+# Bare scheme without a body is ignored
+query I
+SELECT extract_urls('http:// and https://');
+----
+[]
+
+# Scheme must start at a word boundary
+query I
+SELECT extract_urls('foo_http://example.com');
+----
+[]
+
+# Duplicates are kept in order of appearance
+query I
+SELECT extract_urls('http://a.com http://b.com http://a.com');
+----
+['http://a.com', 'http://b.com', 'http://a.com']
+
+query I
+SELECT list_distinct(extract_urls('http://a.com http://a.com')) ;
+----
+['http://a.com']
+
+# Defanged URLs can be extracted after refang
+query I
+SELECT extract_urls(refang('beacon to hxxps[://]evil[.]example[.]com/c2'));
+----
+['https://evil.example.com/c2']
+
+query I
+SELECT extract_urls('no urls here');
+----
+[]
+
+query I
+SELECT extract_urls('');
+----
+[]
+
+query I
+SELECT extract_urls(NULL);
+----
+NULL
+
+# ===================================================================
+# extract_domains
+# ===================================================================
+
+query I
+SELECT extract_domains('Mail from alerts@Example.COM about login.bad-site.net.');
+----
+[example.com, login.bad-site.net]
+
+# Hosts inside URLs, multi-part public suffixes
+query I
+SELECT extract_domains('See https://www.google.co.uk/x/index.html and http://user:pw@sub.example.org:8080/');
+----
+[www.google.co.uk, sub.example.org]
+
+# Email local parts are not domains
+query I
+SELECT extract_domains('john.dev@corp.io');
+----
+[corp.io]
+
+# Unknown TLDs, IP addresses, and version strings are ignored
+query I
+SELECT extract_domains('config.json 10.0.0.1 v1.2.3 host.localdomain e.g');
+----
+[]
+
+# Tokens glued to underscores or non-ASCII characters are ignored
+query I
+SELECT extract_domains('_dmarc.foo.com müller.de');
+----
+[]
+
+# Leading and trailing dots / hyphens are trimmed
+query I
+SELECT extract_domains('...example.com... --test.org--');
+----
+[example.com, test.org]
+
+# Invalid labels are rejected
+query I
+SELECT extract_domains('bad-.example.com a..b.com');
+----
+[]
+
+query I
+SELECT extract_domains('no domains here');
+----
+[]
+
+query I
+SELECT extract_domains('');
+----
+[]
+
+query I
+SELECT extract_domains(NULL);
+----
+NULL
+
+# ===================================================================
+# extract_ips
+# ===================================================================
+
+query I
+SELECT extract_ips('Blocked 203.0.113.5:443 and 2001:db8::1 at the edge');
+----
+[203.0.113.5, '2001:db8::1']
+
+# Brackets, ports, CIDR suffixes, and trailing punctuation
+query I
+SELECT extract_ips('[2001:db8::1]:8080, src=10.0.0.1. net 192.168.0.0/16; last 2001:db8::5.');
+----
+['2001:db8::1', 10.0.0.1, 192.168.0.0, '2001:db8::5']
+
+# Invalid or embedded IPv4 candidates are ignored
+query I
+SELECT extract_ips('999.1.1.1 1.2.3.4.5 v1.2.3.4 01.2.3.4 1.2.3 1.2.3.4a 1.2.3.4.example.com');
+----
+[]
+
+# IPv6 forms: zone IDs, IPv4-mapped, loopback, after a separator colon
+query I
+SELECT extract_ips('fe80::1%eth0 ::ffff:192.0.2.1 ::1 addr:fe80::2');
+----
+['fe80::1', '::ffff:192.0.2.1', '::1', 'fe80::2']
+
+# Timestamps, MAC-like runs, and C++ scopes are not IPv6
+query I
+SELECT extract_ips('at 12:34:56 std::vector :: 1:2:3:4:5:6:7:8:9 2001:db8::g');
+----
+[]
+
+query I
+SELECT extract_ips('no ips here');
+----
+[]
+
+query I
+SELECT extract_ips('');
+----
+[]
+
+query I
+SELECT extract_ips(NULL);
+----
+NULL
+
+# ===================================================================
+# Table usage
+# ===================================================================
+
+statement ok
+CREATE OR REPLACE TABLE logs AS SELECT * FROM (VALUES
+	('GET https://shop.example.com/cart from 198.51.100.7'),
+	('Phishing link hxxp[://]login[.]evil[.]net sent from 198.51.100.7'),
+	('Deny 2001:db8::42 -> api.example.com:443'),
+	(NULL),
+	('')
+) t(line);
+
+query I
+SELECT ip FROM (SELECT unnest(extract_ips(line)) AS ip FROM logs) GROUP BY ip ORDER BY count(*) DESC, ip;
+----
+198.51.100.7
+2001:db8::42
+
+query II
+SELECT domain, count(*) FROM (SELECT unnest(extract_domains(refang(line))) AS domain FROM logs) GROUP BY domain ORDER BY domain;
+----
+api.example.com	1
+login.evil.net	1
+shop.example.com	1
+
+query I
+SELECT len(extract_urls(line)) FROM logs ORDER BY rowid;
+----
+1
+0
+0
+NULL
+0
+
+statement ok
+DROP TABLE logs;
