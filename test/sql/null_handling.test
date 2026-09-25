@@ -22,6 +22,12 @@ SELECT extract_subdomain(NULL);
 ----
 NULL
 
+# Test NULL handling for extract_sld
+query I
+SELECT extract_sld(NULL);
+----
+NULL
+
 # Test NULL handling for extract_host
 query I
 SELECT extract_host(NULL);

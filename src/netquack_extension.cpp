@@ -22,6 +22,7 @@
 #include "functions/extract_port.hpp"
 #include "functions/extract_query.hpp"
 #include "functions/extract_schema.hpp"
+#include "functions/extract_sld.hpp"
 #include "functions/extract_subdomain.hpp"
 #include "functions/extract_tld.hpp"
 #include "functions/get_tranco.hpp"
@@ -116,6 +117,10 @@ static void LoadInternal(ExtensionLoader &loader) {
 	    ScalarFunction("extract_subdomain", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractSubDomainFunction),
 	    {"url"}, "Extracts the subdomain labels that precede the registrable domain.",
 	    {"SELECT extract_subdomain('http://a.b.example.com/path');"}, {"url"});
+
+	Register(loader, ScalarFunction("extract_sld", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractSLDFunction),
+	         {"url"}, "Extracts the label just before the public suffix (second-level domain) from a URL.",
+	         {"SELECT extract_sld('https://mail.google.co.uk/inbox');"}, {"url"});
 
 	Register(loader, ScalarFunction("extract_port", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractPortFunction),
 	         {"url"}, "Extracts the port from a URL.", {"SELECT extract_port('https://example.com:8443/');"}, {"url"});

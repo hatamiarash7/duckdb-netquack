@@ -26,6 +26,7 @@ Table of Contents
     - [Extracting The File Extension](#extracting-the-file-extension)
     - [Extracting The TLD (Top-Level Domain)](#extracting-the-tld-top-level-domain)
     - [Extracting The Sub Domain](#extracting-the-sub-domain)
+    - [Extracting The SLD (Second-Level Domain)](#extracting-the-sld-second-level-domain)
     - [Extracting The Fragment](#extracting-the-fragment)
     - [Get Tranco Rank](#get-tranco-rank)
       - [Update Tranco List](#update-tranco-list)
@@ -364,6 +365,28 @@ D SELECT extract_subdomain('test.example.com.ac') AS dns_record;
 ├────────────┤
 │ test       │
 └────────────┘
+```
+
+### Extracting The SLD (Second-Level Domain)
+
+This function extracts the label just before the public suffix, e.g. `google` from `mail.google.co.uk`. It's handy for matching a brand across TLDs. An empty string is returned when there is no such label (e.g. `co.uk`, `localhost`, or an IP address).
+
+```sql
+D SELECT extract_sld('https://mail.google.co.uk/inbox') AS sld;
+┌─────────┐
+│   sld   │
+│ varchar │
+├─────────┤
+│ google  │
+└─────────┘
+
+D SELECT extract_sld('www.example.com.au') AS sld;
+┌─────────┐
+│   sld   │
+│ varchar │
+├─────────┤
+│ example │
+└─────────┘
 ```
 
 ### Extracting The Fragment
@@ -1272,7 +1295,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement CIDR functions - `cidr_contains`, `cidr_overlaps`, `cidr_range`, `range_to_cidrs`
 - [ ] Implement `cidr_merge` aggregate function - Collapse a set of CIDRs into the minimal covering set
 - [ ] Implement ASN lookup - `ip_to_asn` / `ip_to_as_org`
-- [ ] Implement `extract_sld` function - Return the label before the public suffix
 - [ ] Implement `domain_entropy` / `is_likely_dga` functions - Detect algorithmically generated domains
 - [ ] Implement `generate_typosquats` table function - Generate typosquatting variants of a domain
 - [ ] Implement `domain_skeleton` / `is_homograph` functions - Detect Unicode confusable domains

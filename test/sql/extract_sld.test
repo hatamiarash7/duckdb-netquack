@@ -1,0 +1,115 @@
+# name: test/sql/extract_sld.test
+# description: test netquack extension extract_sld function
+# group: [sql]
+
+require netquack
+
+# ===========================================
+# Basic usage
+# ===========================================
+
+query I
+SELECT extract_sld('mail.google.co.uk');
+----
+google
+
+query I
+SELECT extract_sld('google.com');
+----
+google
+
+query I
+SELECT extract_sld('https://www.google.de/search?q=duckdb');
+----
+google
+
+query I
+SELECT extract_sld('https://b.a.example.com.ac:443/path');
+----
+example
+
+query I
+SELECT extract_sld('http://Mail.GOOGLE.co.UK/');
+----
+google
+
+query I
+SELECT extract_sld('example.com.');
+----
+example
+
+query I
+SELECT extract_sld('ftp://user:pass@files.example.org:21/pub');
+----
+example
+
+query I
+SELECT extract_sld('mailto:someone@mail.example.co.uk');
+----
+example
+
+# ===========================================
+# No second-level label
+# ===========================================
+
+query I
+SELECT extract_sld('com');
+----
+(empty)
+
+query I
+SELECT extract_sld('co.uk');
+----
+(empty)
+
+query I
+SELECT extract_sld('localhost');
+----
+(empty)
+
+query I
+SELECT extract_sld('http://localhost:8080/');
+----
+(empty)
+
+query I
+SELECT extract_sld('192.168.1.1');
+----
+(empty)
+
+query I
+SELECT extract_sld('http://[::1]/');
+----
+(empty)
+
+query I
+SELECT extract_sld('');
+----
+(empty)
+
+query I
+SELECT extract_sld(NULL);
+----
+NULL
+
+# ===========================================
+# Table usage: brand matching across TLDs
+# ===========================================
+
+statement ok
+CREATE OR REPLACE TABLE sld_urls AS SELECT * FROM (VALUES
+	('https://www.google.com'),
+	('https://mail.google.co.uk'),
+	('https://google.de/maps'),
+	('https://www.example.com.au'),
+	('https://example.org')
+) t(url);
+
+query II
+SELECT extract_sld(url) AS brand, count(*) FROM sld_urls GROUP BY brand ORDER BY brand;
+----
+example	2
+google	3
+
+statement ok
+DROP TABLE sld_urls;

@@ -14,6 +14,7 @@
 * [Extract Domain](functions/extract-domain.md)
 * [Extract Extension](functions/extract-extension.md)
 * [Extract Subdomain](functions/extract-subdomain.md)
+* [Extract SLD](functions/extract-sld.md)
 * [Extract Path](functions/extract-path.md)
 * [Extract Port](functions/extract-port.md)
 * [Extract Host](functions/extract-host.md)
