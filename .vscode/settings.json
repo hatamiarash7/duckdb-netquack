@@ -14,6 +14,8 @@
   ],
   "cSpell.words": [
     "autoplay",
+    "defang",
+    "defanged",
     "duckdb",
     "ELEC",
     "exloop",
@@ -26,6 +28,8 @@
     "nullptr",
     "pasteable",
     "publicsuffix",
+    "refang",
+    "refanged",
     "sqllogictest",
     "TINYINT",
     "UBIGINT",

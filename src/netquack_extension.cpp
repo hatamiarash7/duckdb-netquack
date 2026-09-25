@@ -10,6 +10,7 @@
 #include "duckdb/parser/parsed_data/create_scalar_function_info.hpp"
 #include "duckdb/parser/parsed_data/create_table_function_info.hpp"
 #include "functions/base64_functions.hpp"
+#include "functions/defang_functions.hpp"
 #include "functions/extract_domain.hpp"
 #include "functions/domain_depth.hpp"
 #include "functions/extract_extension.hpp"
@@ -278,6 +279,14 @@ static void LoadInternal(ExtensionLoader &loader) {
 	Register(loader, ScalarFunction("url_decode", {LogicalType::VARCHAR}, LogicalType::VARCHAR, UrlDecodeFunction),
 	         {"encoded"}, "Decodes a percent-encoded string. Also treats '+' as a space.",
 	         {"SELECT url_decode('hello%20world');"}, {"encoding"});
+
+	Register(loader, ScalarFunction("defang", {LogicalType::VARCHAR}, LogicalType::VARCHAR, DefangFunction), {"url"},
+	         "Defangs a URL, email, or IP so it is not clickable (hxxps://example[.]com).",
+	         {"SELECT defang('https://example.com/path');"}, {"url"});
+
+	Register(loader, ScalarFunction("refang", {LogicalType::VARCHAR}, LogicalType::VARCHAR, RefangFunction), {"url"},
+	         "Restores a defanged URL or IP (e.g. hxxps://example[.]com) to its original form.",
+	         {"SELECT refang('hxxps://example[.]com/path');"}, {"url"});
 
 	Register(loader,
 	         TableFunction("netquack_version", {}, netquack::VersionFunc::Scan, netquack::VersionFunc::Bind,

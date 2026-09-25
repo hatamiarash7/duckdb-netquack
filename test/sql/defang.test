@@ -1,0 +1,272 @@
+# name: test/sql/defang.test
+# description: test netquack defang and refang functions
+# group: [sql]
+
+require netquack
+
+# ============================================================
+# defang: basic usage
+# ============================================================
+
+query I
+SELECT defang('https://example.com');
+----
+hxxps://example[.]com
+
+query I
+SELECT defang('http://example.com/path/file.exe?a=1#top');
+----
+hxxp://example[.]com/path/file[.]exe?a=1#top
+
+query I
+SELECT defang('ftp://files.example.org/pub');
+----
+fxp://files[.]example[.]org/pub
+
+# Case of the scheme is preserved
+query I
+SELECT defang('HTTPS://Example.COM');
+----
+HXXPS://Example[.]COM
+
+# IPv4 address
+query I
+SELECT defang('192.168.1.1');
+----
+192[.]168[.]1[.]1
+
+# IPv4 with scheme and port
+query I
+SELECT defang('http://10.0.0.1:8080/admin');
+----
+hxxp://10[.]0[.]0[.]1:8080/admin
+
+# Bare domain (no scheme)
+query I
+SELECT defang('malware.example.net');
+----
+malware[.]example[.]net
+
+# Email address
+query I
+SELECT defang('user@example.com');
+----
+user[@]example[.]com
+
+# IPv6 address
+query I
+SELECT defang('2001:db8::1');
+----
+2001[:]db8[:][:]1
+
+# IPv6 literal in a URL keeps scheme and port colons
+query I
+SELECT defang('http://[2001:db8::1]:8080/');
+----
+hxxp://[2001[:]db8[:][:]1]:8080/
+
+# IPv4-mapped IPv6
+query I
+SELECT defang('::ffff:192.168.1.1');
+----
+[:][:]ffff[:]192[.]168[.]1[.]1
+
+# ============================================================
+# defang: edge cases
+# ============================================================
+
+# Colons outside IPv6 addresses are left alone
+query I
+SELECT defang('12:30:45 example.com:443');
+----
+12:30:45 example[.]com:443
+
+# Idempotent for IPv6 and email
+query I
+SELECT defang(defang('user@[2001:db8::1]'));
+----
+user[@][2001[:]db8[:][:]1]
+
+# Idempotent
+query I
+SELECT defang(defang('https://example.com'));
+----
+hxxps://example[.]com
+
+# "http" not followed by :// is left alone
+query I
+SELECT defang('http example');
+----
+http example
+
+# Scheme embedded in a word is left alone
+query I
+SELECT defang('xhttp://a');
+----
+xhttp://a
+
+# No dots and no scheme
+query I
+SELECT defang('localhost');
+----
+localhost
+
+query I
+SELECT defang('');
+----
+(empty)
+
+query I
+SELECT defang(NULL);
+----
+NULL
+
+# ============================================================
+# refang: basic usage
+# ============================================================
+
+query I
+SELECT refang('hxxps://example[.]com');
+----
+https://example.com
+
+query I
+SELECT refang('hxxp://example[.]com/path/file[.]exe?a=1#top');
+----
+http://example.com/path/file.exe?a=1#top
+
+query I
+SELECT refang('fxp://files[.]example[.]org/pub');
+----
+ftp://files.example.org/pub
+
+query I
+SELECT refang('HXXPS://Example[.]COM');
+----
+HTTPS://Example.COM
+
+query I
+SELECT refang('hXXps://example[.]com');
+----
+hTTps://example.com
+
+query I
+SELECT refang('192[.]168[.]1[.]1');
+----
+192.168.1.1
+
+# ============================================================
+# refang: bracket variants
+# ============================================================
+
+query I
+SELECT refang('example(.)com');
+----
+example.com
+
+query I
+SELECT refang('example{.}com');
+----
+example.com
+
+query I
+SELECT refang('example[dot]com');
+----
+example.com
+
+query I
+SELECT refang('example(DOT)com');
+----
+example.com
+
+query I
+SELECT refang('hxxps[://]example[.]com');
+----
+https://example.com
+
+query I
+SELECT refang('hxxps[:]//example[.]com');
+----
+https://example.com
+
+query I
+SELECT refang('user[@]example[.]com');
+----
+user@example.com
+
+query I
+SELECT refang('user[at]example[.]com');
+----
+user@example.com
+
+# ============================================================
+# refang: edge cases
+# ============================================================
+
+# Mismatched brackets are left alone
+query I
+SELECT refang('example[.)com');
+----
+example[.)com
+
+# IPv6 literal brackets are untouched
+query I
+SELECT refang('http://[2001:db8::1]:8080/');
+----
+http://[2001:db8::1]:8080/
+
+# Already refanged input is unchanged
+query I
+SELECT refang('https://example.com');
+----
+https://example.com
+
+query I
+SELECT refang('');
+----
+(empty)
+
+query I
+SELECT refang(NULL);
+----
+NULL
+
+# ============================================================
+# Round-trip and table usage
+# ============================================================
+
+query I
+SELECT refang(defang('https://sub.example.co.uk:443/a.b/c?x=1.2#f.g'));
+----
+https://sub.example.co.uk:443/a.b/c?x=1.2#f.g
+
+query I
+SELECT refang(defang('http://user@[2001:db8::1]:8080/'));
+----
+http://user@[2001:db8::1]:8080/
+
+statement ok
+CREATE OR REPLACE TABLE iocs AS SELECT * FROM (VALUES
+	('https://evil.example.com/payload.bin'),
+	('http://1.2.3.4/'),
+	('bad.example.org'),
+	(NULL)
+) t(ioc);
+
+query II
+SELECT defang(ioc), refang(defang(ioc)) = ioc FROM iocs ORDER BY ioc;
+----
+bad[.]example[.]org	true
+hxxp://1[.]2[.]3[.]4/	true
+hxxps://evil[.]example[.]com/payload[.]bin	true
+NULL	NULL
+
+query II
+SELECT extract_domain(refang(defang(ioc))) AS domain, count(*) FROM iocs WHERE ioc IS NOT NULL GROUP BY domain ORDER BY domain;
+----
+(empty)	1
+example.com	1
+example.org	1
+
+statement ok
+DROP TABLE iocs;

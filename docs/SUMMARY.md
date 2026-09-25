@@ -30,6 +30,7 @@
 * [Extract Path Segments](functions/extract-path-segments.md)
 * [Parse URI](functions/parse-uri.md)
 * [URL Encode / Decode](functions/url-encode-functions.md)
+* [Defang / Refang](functions/defang-functions.md)
 * [Tranco](functions/tranco/README.md)
   * [Get Tranco Rank](functions/tranco/get-tranco-rank.md)
   * [Download / Update Tranco](functions/tranco/download-update-tranco.md)

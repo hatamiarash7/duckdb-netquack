@@ -34,7 +34,6 @@ layout:
 - [ ] Implement `url_hierarchy` / `url_path_hierarchy` functions - Return the list of URL prefixes
 - [ ] Implement `url_to_surt` / `reverse_domain` functions - Web-archive (SURT) sort keys
 - [ ] Implement `extract_urls` / `extract_domains` / `extract_ips` functions - Extract indicators from free text
-- [ ] Implement `defang` / `refang` functions - Convert URLs/IPs to and from their defanged form (`hxxps://example[.]com`)
 - [ ] Implement `mime_type` function - Map a URL's file extension to its MIME type
 - [ ] Support IPv6 in `ip_to_int` / `int_to_ip` (`UHUGEINT`)
 - [ ] Implement CIDR functions - `cidr_contains`, `cidr_overlaps`, `cidr_range`, `range_to_cidrs`

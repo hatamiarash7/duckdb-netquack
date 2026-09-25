@@ -50,6 +50,7 @@ Table of Contents
     - [Extract Path Segments](#extract-path-segments)
     - [Parse URI](#parse-uri)
     - [URL Encode / Decode](#url-encode--decode)
+    - [Defang / Refang](#defang--refang)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -1128,6 +1129,46 @@ D SELECT url_decode('hello+world') AS decoded;
 └─────────────┘
 ```
 
+### Defang / Refang
+
+The `defang` function makes a URL, domain, or IP safe to share by replacing `http`/`https`/`ftp` schemes with `hxxp`/`hxxps`/`fxp`, every `.` with `[.]`, every `@` with `[@]`, and colons inside IPv6 addresses with `[:]`. It is idempotent.
+
+The `refang` function reverses this and also accepts common variants such as `(.)`, `{.}`, `[dot]`, `[:]`, `[://]`, `[@]`, `[at]`, and `hXXps://`.
+
+```sql
+D SELECT defang('https://example.com/path') AS defanged;
+┌────────────────────────────┐
+│          defanged          │
+│          varchar           │
+├────────────────────────────┤
+│ hxxps://example[.]com/path │
+└────────────────────────────┘
+
+D SELECT defang('192.168.1.1') AS defanged;
+┌───────────────────┐
+│     defanged      │
+│      varchar      │
+├───────────────────┤
+│ 192[.]168[.]1[.]1 │
+└───────────────────┘
+
+D SELECT defang('2001:db8::1') AS defanged;
+┌───────────────────┐
+│     defanged      │
+│      varchar      │
+├───────────────────┤
+│ 2001[:]db8[:][:]1 │
+└───────────────────┘
+
+D SELECT refang('hxxps[://]example[dot]com/path') AS refanged;
+┌──────────────────────────┐
+│         refanged         │
+│         varchar          │
+├──────────────────────────┤
+│ https://example.com/path │
+└──────────────────────────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -1181,7 +1222,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `url_hierarchy` / `url_path_hierarchy` functions - Return the list of URL prefixes
 - [ ] Implement `url_to_surt` / `reverse_domain` functions - Web-archive (SURT) sort keys
 - [ ] Implement `extract_urls` / `extract_domains` / `extract_ips` functions - Extract indicators from free text
-- [ ] Implement `defang` / `refang` functions - Convert URLs/IPs to and from their defanged form (`hxxps://example[.]com`)
 - [ ] Implement `mime_type` function - Map a URL's file extension to its MIME type
 - [ ] Support IPv6 in `ip_to_int` / `int_to_ip` (`UHUGEINT`)
 - [ ] Implement CIDR functions - `cidr_contains`, `cidr_overlaps`, `cidr_range`, `range_to_cidrs`

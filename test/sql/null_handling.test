@@ -118,6 +118,18 @@ SELECT url_decode(NULL);
 ----
 NULL
 
+# Test NULL handling for defang
+query I
+SELECT defang(NULL);
+----
+NULL
+
+# Test NULL handling for refang
+query I
+SELECT refang(NULL);
+----
+NULL
+
 # Test NULL handling for parse_uri
 query I
 SELECT parse_uri(NULL);
