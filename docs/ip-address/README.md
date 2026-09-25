@@ -22,3 +22,4 @@ This extension provides various functions for manipulating and analyzing IP addr
 * [**IP Version**](ip-version.md) — Detect whether an address is IPv4 or IPv6
 * [**IP to Integer / Integer to IP**](ip-to-int.md) — Convert between dotted-quad notation and integer representation
 * [**IP in Range**](ip-in-range.md) — Check if an IP falls within a given CIDR block
+* [**IP to PTR**](ip-to-ptr.md) — Build the reverse DNS (`in-addr.arpa` / `ip6.arpa`) name for an IP

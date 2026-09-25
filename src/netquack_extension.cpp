@@ -174,6 +174,10 @@ static void LoadInternal(ExtensionLoader &loader) {
 	         {"ip", "cidr"}, "Returns true if the IP address falls within the given IPv4 or IPv6 CIDR block.",
 	         {"SELECT ip_in_range('192.168.1.100', '192.168.1.0/24');"}, {"ip"});
 
+	Register(loader, ScalarFunction("ip_to_ptr", {LogicalType::VARCHAR}, LogicalType::VARCHAR, IPToPTRFunction), {"ip"},
+	         "Builds the reverse DNS (in-addr.arpa / ip6.arpa) name for an IPv4 or IPv6 address.",
+	         {"SELECT ip_to_ptr('192.168.1.1');"}, {"ip"});
+
 	Register(loader,
 	         ScalarFunction("extract_fragment", {LogicalType::VARCHAR}, LogicalType::VARCHAR, ExtractFragmentFunction),
 	         {"url"}, "Extracts the fragment (the part after #) from a URL.",

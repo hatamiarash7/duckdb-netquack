@@ -41,7 +41,6 @@ layout:
 - [ ] Implement `cidr_merge` aggregate function - Collapse a set of CIDRs into the minimal covering set
 - [ ] Implement `ip_type` / `is_bogon` functions - Classify IPs as public, private, loopback, link-local, multicast, CGNAT, documentation or reserved
 - [ ] Implement `ip_anonymize` function - Truncate IPv4/IPv6 addresses for privacy
-- [ ] Implement `ip_to_ptr` function - Build the reverse DNS (`in-addr.arpa` / `ip6.arpa`) name
 - [ ] Implement `ipv6_compress` / `ipv6_expand` / `is_ipv4_mapped` functions
 - [ ] Implement ASN lookup - `ip_to_asn` / `ip_to_as_org`
 - [ ] Implement `extract_sld` function - Return the label before the public suffix
@@ -56,7 +55,6 @@ layout:
 - [ ] Implement `read_access_log` table function - Parse Apache/Nginx access logs
 - [ ] Implement `port_service` / `default_port` functions - Map ports to IANA service names and schemes to default ports
 - [ ] Implement MAC address functions - `is_valid_mac`, `normalize_mac`, `mac_vendor`
-- [ ] Implement `parse_user_agent` function - Return browser, OS, device and bot flag
 - [ ] Support interop with DuckDB's `INET` type
 - [ ] Add `LIST` overloads (e.g. `ip_in_range(ip, ['10.0.0.0/8', ...])`)
 - [ ] Add a benchmarks page to the documentation

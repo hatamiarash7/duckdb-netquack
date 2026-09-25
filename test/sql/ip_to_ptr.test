@@ -1,0 +1,156 @@
+# name: test/sql/ip_to_ptr.test
+# description: test netquack ip_to_ptr function
+# group: [sql]
+
+require netquack
+
+# ===========================================================================
+# IPv4
+# ===========================================================================
+
+query I
+SELECT ip_to_ptr('192.168.1.1');
+----
+1.1.168.192.in-addr.arpa
+
+query I
+SELECT ip_to_ptr('8.8.4.4');
+----
+4.4.8.8.in-addr.arpa
+
+query I
+SELECT ip_to_ptr('0.0.0.0');
+----
+0.0.0.0.in-addr.arpa
+
+query I
+SELECT ip_to_ptr('255.255.255.255');
+----
+255.255.255.255.in-addr.arpa
+
+query I
+SELECT ip_to_ptr('10.0.0.254');
+----
+254.0.0.10.in-addr.arpa
+
+# ===========================================================================
+# IPv6
+# ===========================================================================
+
+query I
+SELECT ip_to_ptr('2001:db8::1');
+----
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa
+
+query I
+SELECT ip_to_ptr('::1');
+----
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa
+
+query I
+SELECT ip_to_ptr('::');
+----
+0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa
+
+# Fully expanded form
+query I
+SELECT ip_to_ptr('2001:0db8:85a3:0000:0000:8a2e:0370:7334');
+----
+4.3.3.7.0.7.3.0.e.2.a.8.0.0.0.0.0.0.0.0.3.a.5.8.8.b.d.0.1.0.0.2.ip6.arpa
+
+# Uppercase hex is lowercased
+query I
+SELECT ip_to_ptr('2001:DB8::ABCD');
+----
+d.c.b.a.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa
+
+# Trailing ::
+query I
+SELECT ip_to_ptr('fe80::');
+----
+0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.f.ip6.arpa
+
+# Bracketed address
+query I
+SELECT ip_to_ptr('[2001:db8::1]');
+----
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa
+
+# IPv4-mapped IPv6 uses the ip6.arpa tree
+query I
+SELECT ip_to_ptr('::ffff:192.168.1.1');
+----
+1.0.1.0.8.a.0.c.f.f.f.f.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa
+
+# ===========================================================================
+# Invalid input returns NULL
+# ===========================================================================
+
+query I
+SELECT ip_to_ptr('');
+----
+NULL
+
+query I
+SELECT ip_to_ptr('not-an-ip');
+----
+NULL
+
+query I
+SELECT ip_to_ptr('256.1.1.1');
+----
+NULL
+
+query I
+SELECT ip_to_ptr('192.168.1');
+----
+NULL
+
+query I
+SELECT ip_to_ptr('192.168.1.0/24');
+----
+NULL
+
+query I
+SELECT ip_to_ptr('2001:db8::1::2');
+----
+NULL
+
+query I
+SELECT ip_to_ptr('gggg::1');
+----
+NULL
+
+query I
+SELECT ip_to_ptr(NULL);
+----
+NULL
+
+# ===========================================================================
+# Table usage
+# ===========================================================================
+
+statement ok
+CREATE OR REPLACE TABLE ptr_test AS SELECT * FROM (VALUES
+	('1.2.3.4'),
+	('2001:db8::1'),
+	('invalid'),
+	(NULL)
+) t(ip);
+
+query II
+SELECT ip, ip_to_ptr(ip) FROM ptr_test ORDER BY ip;
+----
+1.2.3.4	4.3.2.1.in-addr.arpa
+2001:db8::1	1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa
+invalid	NULL
+NULL	NULL
+
+query II
+SELECT ip_to_ptr(ip) LIKE '%.in-addr.arpa' AS is_v4, count(*) FROM ptr_test WHERE ip_to_ptr(ip) IS NOT NULL GROUP BY is_v4 ORDER BY is_v4;
+----
+false	1
+true	1
+
+statement ok
+DROP TABLE ptr_test;

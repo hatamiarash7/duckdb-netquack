@@ -513,6 +513,40 @@ int IPInRange(const std::string &ip, const std::string &cidr) {
 	return 1;
 }
 
+// ---------------------------------------------------------------------------
+// Reverse DNS (PTR) name
+// ---------------------------------------------------------------------------
+std::string IPToPTR(const std::string &ip) {
+	int version = DetectIPVersion(ip);
+	if (version == 0) {
+		return "";
+	}
+
+	std::array<uint8_t, 16> bytes;
+	ParseIPToBytes(ip, version, bytes);
+
+	std::string ptr;
+	if (version == 4) {
+		for (int i = 3; i >= 0; i--) {
+			ptr += std::to_string(bytes[i]);
+			ptr += '.';
+		}
+		ptr += "in-addr.arpa";
+		return ptr;
+	}
+
+	static constexpr char hex_digits[] = "0123456789abcdef";
+	ptr.reserve(72);
+	for (int i = 15; i >= 0; i--) {
+		ptr += hex_digits[bytes[i] & 0x0F];
+		ptr += '.';
+		ptr += hex_digits[bytes[i] >> 4];
+		ptr += '.';
+	}
+	ptr += "ip6.arpa";
+	return ptr;
+}
+
 } // namespace netquack
 
 // ===========================================================================
@@ -642,6 +676,18 @@ void IPInRangeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 		    }
 		    return in_range == 1;
 	    });
+}
+
+void IPToPTRFunction(DataChunk &args, ExpressionState &, Vector &result) {
+	UnaryExecutor::ExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
+	                                                    [&](string_t ip, ValidityMask &mask, idx_t idx) {
+		                                                    auto ptr = netquack::IPToPTR(ip.GetString());
+		                                                    if (ptr.empty()) {
+			                                                    mask.SetInvalid(idx);
+			                                                    return string_t();
+		                                                    }
+		                                                    return StringVector::AddString(result, ptr);
+	                                                    });
 }
 
 } // namespace duckdb

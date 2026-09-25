@@ -118,6 +118,12 @@ SELECT ip_in_range(NULL, NULL);
 ----
 NULL
 
+# Test NULL handling for ip_to_ptr
+query I
+SELECT ip_to_ptr(NULL);
+----
+NULL
+
 # Test NULL values in a table
 statement ok
 CREATE TABLE test_nulls (url VARCHAR);

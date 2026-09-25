@@ -37,6 +37,7 @@ Table of Contents
       - [IP Version](#ip-version)
       - [IP to Integer / Integer to IP](#ip-to-integer--integer-to-ip)
       - [IP in Range](#ip-in-range)
+      - [IP to PTR](#ip-to-ptr)
     - [Normalize URL](#normalize-url)
     - [Domain Depth](#domain-depth)
     - [Base64 Encode / Decode](#base64-encode--decode)
@@ -692,6 +693,28 @@ D SELECT ip_in_range('2001:db8::1', '2001:db8::/32');
 └─────────────────────────────────────────────┘
 ```
 
+#### IP to PTR
+
+The `ip_to_ptr` function builds the reverse DNS name for an IP address: `in-addr.arpa` for IPv4 and nibble-reversed `ip6.arpa` for IPv6. The name has no trailing dot. Returns `NULL` for invalid input.
+
+```sql
+D SELECT ip_to_ptr('192.168.1.1');
+┌──────────────────────────┐
+│ ip_to_ptr('192.168.1.1') │
+│         varchar          │
+├──────────────────────────┤
+│ 1.1.168.192.in-addr.arpa │
+└──────────────────────────┘
+
+D SELECT ip_to_ptr('2001:db8::1');
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         ip_to_ptr('2001:db8::1')                         │
+│                                 varchar                                  │
+├──────────────────────────────────────────────────────────────────────────┤
+│ 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
 ### Normalize URL
 
 The `normalize_url` function canonicalizes a URL by applying RFC 3986 normalizations: scheme/host lowercasing, default port removal (80/443/21), trailing slash removal, dot segment resolution, query parameter sorting, fragment removal, and percent-encoding normalization.
@@ -1049,7 +1072,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `cidr_merge` aggregate function - Collapse a set of CIDRs into the minimal covering set
 - [ ] Implement `ip_type` / `is_bogon` functions - Classify IPs as public, private, loopback, link-local, multicast, CGNAT, documentation or reserved
 - [ ] Implement `ip_anonymize` function - Truncate IPv4/IPv6 addresses for privacy
-- [ ] Implement `ip_to_ptr` function - Build the reverse DNS (`in-addr.arpa` / `ip6.arpa`) name
 - [ ] Implement `ipv6_compress` / `ipv6_expand` / `is_ipv4_mapped` functions
 - [ ] Implement ASN lookup - `ip_to_asn` / `ip_to_as_org`
 - [ ] Implement `extract_sld` function - Return the label before the public suffix
@@ -1064,7 +1086,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `read_access_log` table function - Parse Apache/Nginx access logs
 - [ ] Implement `port_service` / `default_port` functions - Map ports to IANA service names and schemes to default ports
 - [ ] Implement MAC address functions - `is_valid_mac`, `normalize_mac`, `mac_vendor`
-- [ ] Implement `parse_user_agent` function - Return browser, OS, device and bot flag
 - [ ] Support interop with DuckDB's `INET` type
 - [ ] Add `LIST` overloads (e.g. `ip_in_range(ip, ['10.0.0.0/8', ...])`)
 - [ ] Add a benchmarks page to the documentation

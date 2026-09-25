@@ -23,6 +23,9 @@ void IPVersionFunction(DataChunk &args, ExpressionState &state, Vector &result);
 // Scalar function: ip_in_range(VARCHAR, VARCHAR) -> BOOLEAN
 void IPInRangeFunction(DataChunk &args, ExpressionState &state, Vector &result);
 
+// Scalar function: ip_to_ptr(VARCHAR) -> VARCHAR
+void IPToPTRFunction(DataChunk &args, ExpressionState &state, Vector &result);
+
 namespace netquack {
 // Check if a string is a valid IPv4 address
 bool IsValidIPv4(const std::string &ip);
@@ -52,5 +55,8 @@ int DetectIPVersion(const std::string &ip);
 
 // Check if an IP falls within a CIDR block: returns 1 (in range), 0 (not in range), or -1 (invalid input)
 int IPInRange(const std::string &ip, const std::string &cidr);
+
+// Build the reverse DNS name (in-addr.arpa / ip6.arpa) for an IP; returns empty string for invalid input
+std::string IPToPTR(const std::string &ip);
 } // namespace netquack
 } // namespace duckdb

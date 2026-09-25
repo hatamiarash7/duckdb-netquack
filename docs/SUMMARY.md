@@ -42,6 +42,7 @@
   * [IP Version](ip-address/ip-version.md)
   * [IP to Integer / Integer to IP](ip-address/ip-to-int.md)
   * [IP in Range](ip-address/ip-in-range.md)
+  * [IP to PTR](ip-address/ip-to-ptr.md)
 
 ## Collaboration
 
