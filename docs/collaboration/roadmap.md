@@ -41,7 +41,6 @@ layout:
 - [ ] Implement `cidr_merge` aggregate function - Collapse a set of CIDRs into the minimal covering set
 - [ ] Implement ASN lookup - `ip_to_asn` / `ip_to_as_org`
 - [ ] Implement `extract_sld` function - Return the label before the public suffix
-- [ ] Implement `is_public_suffix` / `is_known_tld` functions
 - [ ] Implement `domain_entropy` / `is_likely_dga` functions - Detect algorithmically generated domains
 - [ ] Implement `generate_typosquats` table function - Generate typosquatting variants of a domain
 - [ ] Implement `domain_skeleton` / `is_homograph` functions - Detect Unicode confusable domains

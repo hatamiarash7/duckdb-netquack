@@ -29,11 +29,9 @@ echo '%language=C++
 %%' >src/utils/tld_lookup.gperf
 
 # Extract all records from the public suffix list (both single and multi-part)
-# Remove comments, empty lines, and wildcards
+# Wildcard (*.ck) and exception (!www.ck) rules are kept verbatim; isValidTLD() ignores them
 grep -v '^\s*//' public_suffix_list.dat | # comments
 	grep -v '^\s*$' |                        # empty lines
-	grep -v '^\s*!' |                        # exceptions
-	grep -v '^\s*\*' |                       # wildcards
 	sed 's/^[[:space:]]*//' |                # trim left
 	tr '[:upper:]' '[:lower:]' |             # normalize
 	LC_ALL=C sort -u >>src/utils/tld_lookup.gperf

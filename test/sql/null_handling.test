@@ -94,6 +94,18 @@ SELECT is_valid_domain(NULL);
 ----
 NULL
 
+# Test NULL handling for is_public_suffix
+query I
+SELECT is_public_suffix(NULL);
+----
+NULL
+
+# Test NULL handling for is_known_tld
+query I
+SELECT is_known_tld(NULL);
+----
+NULL
+
 # Test NULL handling for url_encode
 query I
 SELECT url_encode(NULL);

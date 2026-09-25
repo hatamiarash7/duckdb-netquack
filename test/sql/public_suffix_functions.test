@@ -1,0 +1,241 @@
+# name: test/sql/public_suffix_functions.test
+# description: test netquack is_public_suffix and is_known_tld
+# group: [sql]
+
+require netquack
+
+# === is_public_suffix: ICANN suffixes ===
+
+query I
+SELECT is_public_suffix('com');
+----
+true
+
+query I
+SELECT is_public_suffix('co.uk');
+----
+true
+
+query I
+SELECT is_public_suffix('com.au');
+----
+true
+
+# === is_public_suffix: private suffixes ===
+
+query I
+SELECT is_public_suffix('github.io');
+----
+true
+
+query I
+SELECT is_public_suffix('blogspot.com');
+----
+true
+
+# === is_public_suffix: registrable domains and hosts are not suffixes ===
+
+query I
+SELECT is_public_suffix('example.com');
+----
+false
+
+query I
+SELECT is_public_suffix('example.co.uk');
+----
+false
+
+query I
+SELECT is_public_suffix('www.example.com');
+----
+false
+
+# === is_public_suffix: wildcard rules (*.ck, *.kawasaki.jp) ===
+
+query I
+SELECT is_public_suffix('foo.ck');
+----
+true
+
+query I
+SELECT is_public_suffix('ck');
+----
+true
+
+query I
+SELECT is_public_suffix('foo.kawasaki.jp');
+----
+true
+
+query I
+SELECT is_public_suffix('bar.foo.ck');
+----
+false
+
+# === is_public_suffix: exception rules (!www.ck, !city.kawasaki.jp) ===
+
+query I
+SELECT is_public_suffix('www.ck');
+----
+false
+
+query I
+SELECT is_public_suffix('city.kawasaki.jp');
+----
+false
+
+# === is_public_suffix: normalization ===
+
+query I
+SELECT is_public_suffix('CO.UK');
+----
+true
+
+query I
+SELECT is_public_suffix('co.uk.');
+----
+true
+
+query I
+SELECT is_public_suffix('.co.uk');
+----
+true
+
+# === is_public_suffix: invalid input ===
+
+query I
+SELECT is_public_suffix('');
+----
+false
+
+query I
+SELECT is_public_suffix('.');
+----
+false
+
+query I
+SELECT is_public_suffix('notarealtld');
+----
+false
+
+query I
+SELECT is_public_suffix('*.ck');
+----
+false
+
+query I
+SELECT is_public_suffix('!www.ck');
+----
+false
+
+query I
+SELECT is_public_suffix('https://co.uk');
+----
+false
+
+# === is_known_tld: known TLDs ===
+
+query I
+SELECT is_known_tld('com');
+----
+true
+
+query I
+SELECT is_known_tld('uk');
+----
+true
+
+query I
+SELECT is_known_tld('io');
+----
+true
+
+query I
+SELECT is_known_tld('рф');
+----
+true
+
+# The list stores IDN TLDs in Unicode, not Punycode
+query I
+SELECT is_known_tld('xn--p1ai');
+----
+false
+
+# Only listed via wildcard rule *.ck
+query I
+SELECT is_known_tld('ck');
+----
+true
+
+# === is_known_tld: normalization ===
+
+query I
+SELECT is_known_tld('COM');
+----
+true
+
+query I
+SELECT is_known_tld('.com');
+----
+true
+
+# === is_known_tld: not a TLD ===
+
+query I
+SELECT is_known_tld('co.uk');
+----
+false
+
+query I
+SELECT is_known_tld('example.com');
+----
+false
+
+query I
+SELECT is_known_tld('notarealtld');
+----
+false
+
+query I
+SELECT is_known_tld('');
+----
+false
+
+query I
+SELECT is_known_tld('*');
+----
+false
+
+# === Existing TLD extraction ignores wildcard/exception rules ===
+
+query I
+SELECT extract_tld('a.*.ck');
+----
+ck
+
+# === Table usage ===
+
+statement ok
+CREATE OR REPLACE TABLE suffix_data AS
+SELECT * FROM (VALUES ('com'), ('co.uk'), ('github.io'), ('example.com'), ('www.ck'), ('foo.ck'), (NULL)) t(name);
+
+query III
+SELECT name, is_public_suffix(name), is_known_tld(name) FROM suffix_data ORDER BY name;
+----
+co.uk	true	false
+com	true	true
+example.com	false	false
+foo.ck	true	false
+github.io	true	false
+www.ck	false	false
+NULL	NULL	NULL
+
+query II
+SELECT is_public_suffix(name) AS suffix, count(*) FROM suffix_data GROUP BY suffix ORDER BY suffix;
+----
+false	2
+true	4
+NULL	1
+
+statement ok
+DROP TABLE suffix_data;

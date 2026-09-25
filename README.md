@@ -46,6 +46,7 @@ Table of Contents
     - [Base64 Encode / Decode](#base64-encode--decode)
     - [Validate URL](#validate-url)
     - [Validate Domain](#validate-domain)
+    - [Public Suffix / Known TLD](#public-suffix--known-tld)
     - [Extract Path Segments](#extract-path-segments)
     - [Parse URI](#parse-uri)
     - [URL Encode / Decode](#url-encode--decode)
@@ -956,6 +957,40 @@ D SELECT is_valid_domain('localhost') AS valid;
 └─────────┘
 ```
 
+### Public Suffix / Known TLD
+
+The `is_public_suffix` function returns `true` if the input is exactly a public suffix from the [Public Suffix List](https://publicsuffix.org/) — ICANN suffixes like `com` or `co.uk`, private suffixes like `github.io`, and wildcard / exception rules (`*.ck`, `!www.ck`). Registrable domains such as `example.co.uk` return `false`.
+
+The `is_known_tld` function returns `true` if the input is a single label that is a top-level domain in the list (e.g. `com`, `uk`, `ck`).
+
+Both functions are case-insensitive, accept a leading or trailing dot (`.com`, `co.uk.`), return a `BOOLEAN`, and return `NULL` for `NULL` input.
+
+```sql
+D SELECT is_public_suffix('co.uk') AS suffix, is_public_suffix('example.co.uk') AS registrable;
+┌─────────┬─────────────┐
+│ suffix  │ registrable │
+│ boolean │   boolean   │
+├─────────┼─────────────┤
+│ true    │ false       │
+└─────────┴─────────────┘
+
+D SELECT is_public_suffix('github.io') AS private_suffix;
+┌────────────────┐
+│ private_suffix │
+│    boolean     │
+├────────────────┤
+│ true           │
+└────────────────┘
+
+D SELECT is_known_tld('com') AS tld, is_known_tld('co.uk') AS multi_label, is_known_tld('notarealtld') AS unknown;
+┌─────────┬─────────────┬─────────┐
+│   tld   │ multi_label │ unknown │
+│ boolean │   boolean   │ boolean │
+├─────────┼─────────────┼─────────┤
+│ true    │ false       │ false   │
+└─────────┴─────────────┴─────────┘
+```
+
 ### Extract Path Segments
 
 The `extract_path_segments` table function splits a URL path into individual segment rows. Each row contains a 1-based `segment_index` and the `segment` string. Returns 0 rows for `NULL`, empty, or root-only paths.
@@ -1153,7 +1188,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `cidr_merge` aggregate function - Collapse a set of CIDRs into the minimal covering set
 - [ ] Implement ASN lookup - `ip_to_asn` / `ip_to_as_org`
 - [ ] Implement `extract_sld` function - Return the label before the public suffix
-- [ ] Implement `is_public_suffix` / `is_known_tld` functions
 - [ ] Implement `domain_entropy` / `is_likely_dga` functions - Detect algorithmically generated domains
 - [ ] Implement `generate_typosquats` table function - Generate typosquatting variants of a domain
 - [ ] Implement `domain_skeleton` / `is_homograph` functions - Detect Unicode confusable domains

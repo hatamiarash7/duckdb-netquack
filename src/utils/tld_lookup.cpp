@@ -5,8 +5,41 @@
 #include "tld_lookup_generated.hpp"
 
 namespace duckdb::netquack {
+static bool hasRule(const std::string &rule) {
+	return TLDLookupHash::isValidTLD(rule.c_str(), static_cast<unsigned int>(rule.length())) != nullptr;
+}
+
 bool isValidTLD(const char *str, size_t len) {
+	// Wildcard and exception rules are stored verbatim and must not match plain hostnames
+	if (len == 0 || str[0] == '*' || str[0] == '!') {
+		return false;
+	}
 	return TLDLookupHash::isValidTLD(str, static_cast<unsigned int>(len)) != nullptr;
+}
+
+bool isPublicSuffix(const std::string &name) {
+	if (name.empty() || name.find_first_of("*!") != std::string::npos) {
+		return false;
+	}
+	if (hasRule("!" + name)) {
+		return false;
+	}
+	if (hasRule(name)) {
+		return true;
+	}
+	size_t dot = name.find('.');
+	if (dot == std::string::npos) {
+		// A TLD listed only via a wildcard rule (*.ck) is still a suffix
+		return isKnownTLD(name);
+	}
+	return dot > 0 && hasRule("*" + name.substr(dot));
+}
+
+bool isKnownTLD(const std::string &label) {
+	if (label.empty() || label.find_first_of(".*!") != std::string::npos) {
+		return false;
+	}
+	return hasRule(label) || hasRule("*." + label);
 }
 
 bool isValidTLD(const std::string &suffix) {

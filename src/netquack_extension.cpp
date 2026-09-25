@@ -29,6 +29,7 @@
 #include "functions/ipcalc.hpp"
 #include "functions/normalize_url.hpp"
 #include "functions/parse_uri.hpp"
+#include "functions/public_suffix_functions.hpp"
 #include "functions/validation_functions.hpp"
 
 namespace duckdb {
@@ -243,6 +244,15 @@ static void LoadInternal(ExtensionLoader &loader) {
 	         ScalarFunction("is_valid_domain", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsValidDomainFunction),
 	         {"domain"}, "Returns true if the input is a valid domain name per RFC 1035/1123.",
 	         {"SELECT is_valid_domain('example.com');"}, {"domain"});
+
+	Register(loader,
+	         ScalarFunction("is_public_suffix", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsPublicSuffixFunction),
+	         {"domain"}, "Returns true if the domain is exactly a public suffix in the Public Suffix List (e.g. co.uk).",
+	         {"SELECT is_public_suffix('co.uk');"}, {"domain"});
+
+	Register(loader, ScalarFunction("is_known_tld", {LogicalType::VARCHAR}, LogicalType::BOOLEAN, IsKnownTLDFunction),
+	         {"tld"}, "Returns true if the label is a top-level domain listed in the Public Suffix List.",
+	         {"SELECT is_known_tld('com');"}, {"domain"});
 
 	auto extract_path_segments_function =
 	    TableFunction("extract_path_segments", {LogicalType::VARCHAR}, nullptr, netquack::ExtractPathSegmentsFunc::Bind,

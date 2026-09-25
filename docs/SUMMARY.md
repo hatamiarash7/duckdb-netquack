@@ -26,6 +26,7 @@
 * [Base64 Encode / Decode](functions/base64-functions.md)
 * [Validate URL](functions/is-valid-url.md)
 * [Validate Domain](functions/is-valid-domain.md)
+* [Public Suffix / Known TLD](functions/public-suffix-functions.md)
 * [Extract Path Segments](functions/extract-path-segments.md)
 * [Parse URI](functions/parse-uri.md)
 * [URL Encode / Decode](functions/url-encode-functions.md)
