@@ -31,6 +31,7 @@
 * [Parse URI](functions/parse-uri.md)
 * [URL Encode / Decode](functions/url-encode-functions.md)
 * [Defang / Refang](functions/defang-functions.md)
+* [URL to SURT / SURT to URL](functions/surt-functions.md)
 * [Tranco](functions/tranco/README.md)
   * [Get Tranco Rank](functions/tranco/get-tranco-rank.md)
   * [Download / Update Tranco](functions/tranco/download-update-tranco.md)

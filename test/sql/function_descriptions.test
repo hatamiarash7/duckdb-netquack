@@ -14,7 +14,7 @@ WHERE function_name IN (
 	'update_tranco', 'get_tranco_rank', 'get_tranco_rank_category', 'tranco_list', 'ipcalc', 'is_valid_ip', 'is_private_ip',
 	'ip_to_int', 'int_to_ip', 'ip_version', 'ip_in_range', 'ip_to_ptr', 'ipv6_compress', 'ipv6_expand', 'is_ipv4_mapped', 'ip_type', 'is_bogon', 'ip_anonymize', 'extract_fragment', 'domain_depth', 'normalize_url',
 	'base64_encode', 'base64_decode', 'is_valid_url', 'is_valid_domain', 'is_public_suffix', 'is_known_tld', 'extract_path_segments',
-	'url_encode', 'url_decode', 'defang', 'refang', 'parse_uri', 'netquack_version'
+	'url_encode', 'url_decode', 'defang', 'refang', 'url_to_surt', 'surt_to_url', 'parse_uri', 'netquack_version'
 )
   AND (description IS NULL OR len(examples) = 0 OR len(categories) = 0);
 ----

@@ -1,0 +1,244 @@
+# name: test/sql/surt_functions.test
+# description: test netquack url_to_surt and surt_to_url functions
+# group: [sql]
+
+require netquack
+
+# ===================================================================
+# url_to_surt: basic usage
+# ===================================================================
+
+query I
+SELECT url_to_surt('http://www.archive.org/goo/');
+----
+org,archive)/goo
+
+query I
+SELECT url_to_surt('https://example.com');
+----
+com,example)/
+
+query I
+SELECT url_to_surt('https://sub.example.co.uk/a/b');
+----
+uk,co,example,sub)/a/b
+
+# Scheme-less and protocol-relative input
+query I
+SELECT url_to_surt('example.com/page');
+----
+com,example)/page
+
+query I
+SELECT url_to_surt('//cdn.example.com/lib.js');
+----
+com,example,cdn)/lib.js
+
+# ===================================================================
+# url_to_surt: canonicalization
+# ===================================================================
+
+# Host and path are lowercased, query parameters are sorted, fragment is dropped
+query I
+SELECT url_to_surt('https://www.Example.COM/Path/?b=2&a=1#frag');
+----
+com,example)/path?a=1&b=2
+
+# www and www<digits> prefixes are stripped
+query I
+SELECT url_to_surt('http://www2.example.com/');
+----
+com,example)/
+
+# www is kept when it would leave a single label
+query I
+SELECT url_to_surt('http://www.com/');
+----
+com,www)/
+
+# Userinfo and trailing host dot are dropped
+query I
+SELECT url_to_surt('http://user:pass@example.com./a');
+----
+com,example)/a
+
+# Empty query is dropped
+query I
+SELECT url_to_surt('http://example.com/a?');
+----
+com,example)/a
+
+# Empty query parameters are dropped
+query I
+SELECT url_to_surt('http://example.com/a?b&&a');
+----
+com,example)/a?a&b
+
+# ===================================================================
+# url_to_surt: ports
+# ===================================================================
+
+query I
+SELECT url_to_surt('http://example.com:80/');
+----
+com,example)/
+
+query I
+SELECT url_to_surt('https://example.com:443/');
+----
+com,example)/
+
+query I
+SELECT url_to_surt('http://example.com:8080/');
+----
+com,example:8080)/
+
+query I
+SELECT url_to_surt('https://example.com:80/');
+----
+com,example:80)/
+
+# ===================================================================
+# url_to_surt: IP hosts are not reversed
+# ===================================================================
+
+query I
+SELECT url_to_surt('http://192.168.1.1/x');
+----
+192.168.1.1)/x
+
+query I
+SELECT url_to_surt('http://[2001:db8::1]:8443/');
+----
+[2001:db8::1]:8443)/
+
+# ===================================================================
+# url_to_surt: edge cases
+# ===================================================================
+
+query I
+SELECT url_to_surt(NULL);
+----
+NULL
+
+query I
+SELECT url_to_surt('');
+----
+(empty)
+
+# Input without a host is returned unchanged
+query I
+SELECT url_to_surt('/relative/path');
+----
+/relative/path
+
+# ===================================================================
+# surt_to_url: basic usage
+# ===================================================================
+
+query I
+SELECT surt_to_url('com,example)/path?a=1&b=2');
+----
+http://example.com/path?a=1&b=2
+
+query I
+SELECT surt_to_url('uk,co,example,sub)/a/b');
+----
+http://sub.example.co.uk/a/b
+
+query I
+SELECT surt_to_url('com,example)/');
+----
+http://example.com/
+
+# Missing path becomes /
+query I
+SELECT surt_to_url('com,example)');
+----
+http://example.com/
+
+# Ports are kept
+query I
+SELECT surt_to_url('com,example:8080)/');
+----
+http://example.com:8080/
+
+# IP hosts are not reversed
+query I
+SELECT surt_to_url('192.168.1.1)/x');
+----
+http://192.168.1.1/x
+
+query I
+SELECT surt_to_url('[2001:db8::1]:8443)/');
+----
+http://[2001:db8::1]:8443/
+
+# ===================================================================
+# surt_to_url: Heritrix form with scheme
+# ===================================================================
+
+query I
+SELECT surt_to_url('https://(com,example,)/path');
+----
+https://example.com/path
+
+query I
+SELECT surt_to_url('HTTP://(org,archive,www,:8080)/');
+----
+http://www.archive.org:8080/
+
+# ===================================================================
+# surt_to_url: edge cases
+# ===================================================================
+
+query I
+SELECT surt_to_url(NULL);
+----
+NULL
+
+query I
+SELECT surt_to_url('');
+----
+(empty)
+
+# Input that is not a SURT is returned unchanged
+query I
+SELECT surt_to_url('not a surt');
+----
+not a surt
+
+query I
+SELECT surt_to_url(')/path');
+----
+)/path
+
+# ===================================================================
+# Round trip
+# ===================================================================
+
+statement ok
+CREATE OR REPLACE TABLE surt_urls AS SELECT * FROM (VALUES
+	('http://www.example.com/b'),
+	('http://blog.example.com/'),
+	('http://example.org:8080/x?b=2&a=1'),
+	('http://www.example.com/a')
+) t(url);
+
+query III
+SELECT url_to_surt(url) AS surt, surt_to_url(url_to_surt(url)), url_to_surt(surt_to_url(url_to_surt(url))) = url_to_surt(url)
+FROM surt_urls ORDER BY surt;
+----
+com,example)/a	http://example.com/a	true
+com,example)/b	http://example.com/b	true
+com,example,blog)/	http://blog.example.com/	true
+org,example:8080)/x?a=1&b=2	http://example.org:8080/x?a=1&b=2	true
+
+query II
+SELECT split_part(url_to_surt(url), ',', 1) AS tld, count(*) FROM surt_urls GROUP BY tld ORDER BY tld;
+----
+com	3
+org	1
+
+statement ok
+DROP TABLE surt_urls;

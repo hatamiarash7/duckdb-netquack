@@ -52,6 +52,7 @@ Table of Contents
     - [Parse URI](#parse-uri)
     - [URL Encode / Decode](#url-encode--decode)
     - [Defang / Refang](#defang--refang)
+    - [URL to SURT / SURT to URL](#url-to-surt--surt-to-url)
     - [Get Extension Version](#get-extension-version)
   - [Build Requirements](#build-requirements)
   - [Debugging](#debugging)
@@ -1190,6 +1191,30 @@ D SELECT refang('hxxps[://]malware[.]example[.]com/beacon') AS refanged;
 └────────────────────────────────────┘
 ```
 
+### URL to SURT / SURT to URL
+
+The `url_to_surt` function converts a URL into a SURT (Sort-friendly URI Reordering Transform) key, the canonical form used by web archives in CDX indexes. It drops the scheme, userinfo, fragment, `www.` prefix, and default ports, reverses the host labels with commas, lowercases the path, and sorts query parameters.
+
+The `surt_to_url` function converts a SURT key back into a URL. Since SURT keys don't store the scheme, `http://` is used unless the SURT is in the Heritrix form with a scheme (`https://(com,example,)/`).
+
+```sql
+D SELECT url_to_surt('https://www.Example.com/Path/?b=2&a=1#frag') AS surt;
+┌───────────────────────────┐
+│           surt            │
+│          varchar          │
+├───────────────────────────┤
+│ com,example)/path?a=1&b=2 │
+└───────────────────────────┘
+
+D SELECT surt_to_url('com,example)/path?a=1&b=2') AS url;
+┌─────────────────────────────────┐
+│               url               │
+│             varchar             │
+├─────────────────────────────────┤
+│ http://example.com/path?a=1&b=2 │
+└─────────────────────────────────┘
+```
+
 ### Get Extension Version
 
 You can use the `netquack_version` function to get the extension version.
@@ -1241,7 +1266,6 @@ Also, there will be stdout errors for background tasks like CURL.
 - [ ] Implement `resolve_url` function - Resolve a relative reference against a base URL (RFC 3986)
 - [ ] Implement `extract_origin` / `is_same_origin` / `is_same_site` functions
 - [ ] Implement `url_hierarchy` / `url_path_hierarchy` functions - Return the list of URL prefixes
-- [ ] Implement `url_to_surt` / `reverse_domain` functions - Web-archive (SURT) sort keys
 - [ ] Implement `extract_urls` / `extract_domains` / `extract_ips` functions - Extract indicators from free text
 - [ ] Implement `mime_type` function - Map a URL's file extension to its MIME type
 - [ ] Support IPv6 in `ip_to_int` / `int_to_ip` (`UHUGEINT`)

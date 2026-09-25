@@ -130,6 +130,18 @@ SELECT refang(NULL);
 ----
 NULL
 
+# Test NULL handling for url_to_surt
+query I
+SELECT url_to_surt(NULL);
+----
+NULL
+
+# Test NULL handling for surt_to_url
+query I
+SELECT surt_to_url(NULL);
+----
+NULL
+
 # Test NULL handling for parse_uri
 query I
 SELECT parse_uri(NULL);

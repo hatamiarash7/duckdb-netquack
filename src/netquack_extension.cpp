@@ -31,6 +31,7 @@
 #include "functions/normalize_url.hpp"
 #include "functions/parse_uri.hpp"
 #include "functions/public_suffix_functions.hpp"
+#include "functions/surt_functions.hpp"
 #include "functions/validation_functions.hpp"
 
 namespace duckdb {
@@ -293,6 +294,14 @@ static void LoadInternal(ExtensionLoader &loader) {
 	Register(loader, ScalarFunction("refang", {LogicalType::VARCHAR}, LogicalType::VARCHAR, RefangFunction), {"url"},
 	         "Restores a defanged URL, email, or IP (e.g. hxxps[://]example[.]com) to its original form.",
 	         {"SELECT refang('hxxps[://]example[.]com[:]443/path');"}, {"url"});
+
+	Register(loader, ScalarFunction("url_to_surt", {LogicalType::VARCHAR}, LogicalType::VARCHAR, UrlToSurtFunction),
+	         {"url"}, "Converts a URL to a Sort-friendly URI Reordering Transform (SURT) key as used by web archives.",
+	         {"SELECT url_to_surt('https://www.example.com/Path/?b=2&a=1');"}, {"url"});
+
+	Register(loader, ScalarFunction("surt_to_url", {LogicalType::VARCHAR}, LogicalType::VARCHAR, SurtToUrlFunction),
+	         {"surt"}, "Converts a SURT key back into a URL, assuming http when the SURT carries no scheme.",
+	         {"SELECT surt_to_url('com,example)/path?a=1&b=2');"}, {"url"});
 
 	Register(loader,
 	         TableFunction("netquack_version", {}, netquack::VersionFunc::Scan, netquack::VersionFunc::Bind,

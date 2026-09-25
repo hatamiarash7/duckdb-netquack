@@ -32,7 +32,6 @@ layout:
 - [ ] Implement `resolve_url` function - Resolve a relative reference against a base URL (RFC 3986)
 - [ ] Implement `extract_origin` / `is_same_origin` / `is_same_site` functions
 - [ ] Implement `url_hierarchy` / `url_path_hierarchy` functions - Return the list of URL prefixes
-- [ ] Implement `url_to_surt` / `reverse_domain` functions - Web-archive (SURT) sort keys
 - [ ] Implement `extract_urls` / `extract_domains` / `extract_ips` functions - Extract indicators from free text
 - [ ] Implement `mime_type` function - Map a URL's file extension to its MIME type
 - [ ] Support IPv6 in `ip_to_int` / `int_to_ip` (`UHUGEINT`)
