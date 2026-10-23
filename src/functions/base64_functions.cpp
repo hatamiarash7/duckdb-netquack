@@ -26,8 +26,8 @@ static constexpr auto BASE64_DECODE_TABLE = BuildBase64DecodeTable();
 
 void Base64EncodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	const auto &input_vector = args.data[0];
-	auto result_data = FlatVector::GetData<string_t>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto result_data = netquack_compat::MutableData<string_t>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);
@@ -49,8 +49,8 @@ void Base64EncodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 
 void Base64DecodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	const auto &input_vector = args.data[0];
-	auto result_data = FlatVector::GetData<string_t>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto result_data = netquack_compat::MutableData<string_t>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);

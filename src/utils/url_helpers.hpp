@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "../include/duckdb_compat.hpp"
+
 #include <cstring>
 #include <string_view>
 

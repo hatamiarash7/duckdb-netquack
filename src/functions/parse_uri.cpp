@@ -9,21 +9,21 @@ namespace duckdb {
 void ParseURIFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	const auto &input_vector = args.data[0];
 	auto &child_entries = StructVector::GetEntries(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
-	auto scheme_data = FlatVector::GetData<string_t>(*child_entries[0]);
-	auto host_data = FlatVector::GetData<string_t>(*child_entries[1]);
-	auto port_data = FlatVector::GetData<string_t>(*child_entries[2]);
-	auto path_data = FlatVector::GetData<string_t>(*child_entries[3]);
-	auto query_data = FlatVector::GetData<string_t>(*child_entries[4]);
-	auto fragment_data = FlatVector::GetData<string_t>(*child_entries[5]);
+	auto scheme_data = netquack_compat::MutableData<string_t>(netquack_compat::StructChild(child_entries, 0));
+	auto host_data = netquack_compat::MutableData<string_t>(netquack_compat::StructChild(child_entries, 1));
+	auto port_data = netquack_compat::MutableData<string_t>(netquack_compat::StructChild(child_entries, 2));
+	auto path_data = netquack_compat::MutableData<string_t>(netquack_compat::StructChild(child_entries, 3));
+	auto query_data = netquack_compat::MutableData<string_t>(netquack_compat::StructChild(child_entries, 4));
+	auto fragment_data = netquack_compat::MutableData<string_t>(netquack_compat::StructChild(child_entries, 5));
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);
 		if (value.IsNull()) {
 			result_validity.SetInvalid(i);
-			for (auto &child : child_entries) {
-				FlatVector::SetNull(*child, i, true);
+			for (idx_t c = 0; c < child_entries.size(); c++) {
+				FlatVector::SetNull(netquack_compat::StructChild(child_entries, c), i, true);
 			}
 			continue;
 		}
@@ -31,19 +31,19 @@ void ParseURIFunction(DataChunk &args, ExpressionState &, Vector &result) {
 		auto input = value.ToString();
 		try {
 			auto parsed = netquack::ParseURI(input);
-			scheme_data[i] = StringVector::AddString(*child_entries[0], parsed.scheme);
-			host_data[i] = StringVector::AddString(*child_entries[1], parsed.host);
-			port_data[i] = StringVector::AddString(*child_entries[2], parsed.port);
-			path_data[i] = StringVector::AddString(*child_entries[3], parsed.path);
-			query_data[i] = StringVector::AddString(*child_entries[4], parsed.query);
-			fragment_data[i] = StringVector::AddString(*child_entries[5], parsed.fragment);
+			scheme_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 0), parsed.scheme);
+			host_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 1), parsed.host);
+			port_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 2), parsed.port);
+			path_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 3), parsed.path);
+			query_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 4), parsed.query);
+			fragment_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 5), parsed.fragment);
 		} catch (const std::exception &) {
-			scheme_data[i] = StringVector::AddString(*child_entries[0], "");
-			host_data[i] = StringVector::AddString(*child_entries[1], "");
-			port_data[i] = StringVector::AddString(*child_entries[2], "");
-			path_data[i] = StringVector::AddString(*child_entries[3], "/");
-			query_data[i] = StringVector::AddString(*child_entries[4], "");
-			fragment_data[i] = StringVector::AddString(*child_entries[5], "");
+			scheme_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 0), "");
+			host_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 1), "");
+			port_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 2), "");
+			path_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 3), "/");
+			query_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 4), "");
+			fragment_data[i] = StringVector::AddString(netquack_compat::StructChild(child_entries, 5), "");
 		}
 	}
 }

@@ -789,8 +789,8 @@ std::string IPAnonymize(const std::string &ip, int ipv4_prefix, int ipv6_prefix)
 
 void IsValidIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	const auto &input_vector = args.data[0];
-	auto result_data = FlatVector::GetData<bool>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto result_data = netquack_compat::MutableData<bool>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);
@@ -806,8 +806,8 @@ void IsValidIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 
 void IsPrivateIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	const auto &input_vector = args.data[0];
-	auto result_data = FlatVector::GetData<bool>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto result_data = netquack_compat::MutableData<bool>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);
@@ -831,8 +831,8 @@ void IsPrivateIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 
 void IPToIntFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	const auto &input_vector = args.data[0];
-	auto result_data = FlatVector::GetData<uint64_t>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto result_data = netquack_compat::MutableData<uint64_t>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);
@@ -854,8 +854,8 @@ void IPToIntFunction(DataChunk &args, ExpressionState &, Vector &result) {
 
 void IntToIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	const auto &input_vector = args.data[0];
-	auto result_data = FlatVector::GetData<string_t>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto result_data = netquack_compat::MutableData<string_t>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);
@@ -878,8 +878,8 @@ void IntToIPFunction(DataChunk &args, ExpressionState &, Vector &result) {
 
 void IPVersionFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	const auto &input_vector = args.data[0];
-	auto result_data = FlatVector::GetData<int8_t>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto result_data = netquack_compat::MutableData<int8_t>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);
@@ -900,7 +900,7 @@ void IPVersionFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IPInRangeFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	BinaryExecutor::ExecuteWithNulls<string_t, string_t, bool>(
+	netquack_compat::BinaryExecuteWithNulls<string_t, string_t, bool>(
 	    args.data[0], args.data[1], result, args.size(),
 	    [&](string_t ip, string_t cidr, ValidityMask &mask, idx_t idx) {
 		    int in_range = netquack::IPInRange(ip.GetString(), cidr.GetString());
@@ -913,7 +913,7 @@ void IPInRangeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IPToPTRFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	UnaryExecutor::ExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
+	netquack_compat::UnaryExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
 	                                                    [&](string_t ip, ValidityMask &mask, idx_t idx) {
 		                                                    auto ptr = netquack::IPToPTR(ip.GetString());
 		                                                    if (ptr.empty()) {
@@ -925,7 +925,7 @@ void IPToPTRFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IPv6CompressFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	UnaryExecutor::ExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
+	netquack_compat::UnaryExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
 	                                                    [&](string_t ip, ValidityMask &mask, idx_t idx) {
 		                                                    auto out = netquack::IPv6Compress(ip.GetString());
 		                                                    if (out.empty()) {
@@ -937,7 +937,7 @@ void IPv6CompressFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IPv6ExpandFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	UnaryExecutor::ExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
+	netquack_compat::UnaryExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
 	                                                    [&](string_t ip, ValidityMask &mask, idx_t idx) {
 		                                                    auto out = netquack::IPv6Expand(ip.GetString());
 		                                                    if (out.empty()) {
@@ -949,7 +949,7 @@ void IPv6ExpandFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IsIPv4MappedFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	UnaryExecutor::ExecuteWithNulls<string_t, bool>(args.data[0], result, args.size(),
+	netquack_compat::UnaryExecuteWithNulls<string_t, bool>(args.data[0], result, args.size(),
 	                                                [&](string_t ip, ValidityMask &mask, idx_t idx) {
 		                                                int mapped = netquack::IsIPv4Mapped(ip.GetString());
 		                                                if (mapped < 0) {
@@ -961,7 +961,7 @@ void IsIPv4MappedFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IPTypeFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	UnaryExecutor::ExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
+	netquack_compat::UnaryExecuteWithNulls<string_t, string_t>(args.data[0], result, args.size(),
 	                                                    [&](string_t ip, ValidityMask &mask, idx_t idx) {
 		                                                    auto type = netquack::IPType(ip.GetString());
 		                                                    if (type.empty()) {
@@ -973,7 +973,7 @@ void IPTypeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 }
 
 void IsBogonFunction(DataChunk &args, ExpressionState &, Vector &result) {
-	UnaryExecutor::ExecuteWithNulls<string_t, bool>(args.data[0], result, args.size(),
+	netquack_compat::UnaryExecuteWithNulls<string_t, bool>(args.data[0], result, args.size(),
 	                                                [&](string_t ip, ValidityMask &mask, idx_t idx) {
 		                                                auto type = netquack::IPType(ip.GetString());
 		                                                if (type.empty()) {
@@ -986,7 +986,7 @@ void IsBogonFunction(DataChunk &args, ExpressionState &, Vector &result) {
 
 void IPAnonymizeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 	if (args.ColumnCount() == 1) {
-		UnaryExecutor::ExecuteWithNulls<string_t, string_t>(
+		netquack_compat::UnaryExecuteWithNulls<string_t, string_t>(
 		    args.data[0], result, args.size(), [&](string_t ip, ValidityMask &mask, idx_t idx) {
 			    auto out = netquack::IPAnonymize(ip.GetString(), 24, 48);
 			    if (out.empty()) {
@@ -998,7 +998,7 @@ void IPAnonymizeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 		return;
 	}
 
-	TernaryExecutor::ExecuteWithNulls<string_t, int32_t, int32_t, string_t>(
+	netquack_compat::TernaryExecuteWithNulls<string_t, int32_t, int32_t, string_t>(
 	    args.data[0], args.data[1], args.data[2], result, args.size(),
 	    [&](string_t ip, int32_t ipv4_prefix, int32_t ipv6_prefix, ValidityMask &mask, idx_t idx) {
 		    auto out = netquack::IPAnonymize(ip.GetString(), ipv4_prefix, ipv6_prefix);

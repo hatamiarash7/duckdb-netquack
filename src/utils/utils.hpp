@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "../include/duckdb_compat.hpp"
+
 #include <curl/curl.h>
 
 #include "duckdb/common/types/data_chunk.hpp"

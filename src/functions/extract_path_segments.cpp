@@ -72,7 +72,8 @@ struct ExtractPathSegmentsLocalState : public LocalTableFunctionState {
 };
 
 unique_ptr<FunctionData> ExtractPathSegmentsFunc::Bind(ClientContext &, TableFunctionBindInput &,
-                                                       vector<LogicalType> &return_types, vector<string> &names) {
+                                                       vector<LogicalType> &return_types,
+                                                       netquack_compat::NameList &names) {
 	// Output columns: segment_index (1-based) and segment
 	return_types.emplace_back(LogicalTypeId::INTEGER);
 	names.emplace_back("segment_index");

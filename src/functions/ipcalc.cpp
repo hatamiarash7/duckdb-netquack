@@ -14,7 +14,7 @@ struct IPCalcLocalState : public LocalTableFunctionState {
 };
 
 unique_ptr<FunctionData> IPCalcFunc::Bind(ClientContext &, TableFunctionBindInput &, vector<LogicalType> &return_types,
-                                          vector<string> &names) {
+                                          netquack_compat::NameList &names) {
 	// 0. address
 	return_types.emplace_back(LogicalTypeId::VARCHAR);
 	names.emplace_back("address");
