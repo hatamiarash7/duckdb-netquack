@@ -43,7 +43,7 @@ body:
     attributes:
       label: Netquack version
       description: Output of `SELECT * FROM netquack_version();`
-      placeholder: v1.15.1
+      placeholder: v1.16.0
     validations:
       required: true
 
@@ -52,7 +52,7 @@ body:
     attributes:
       label: DuckDB version
       description: Output of `duckdb --version`
-      placeholder: v1.5.5
+      placeholder: v2.0.0
     validations:
       required: true
 
