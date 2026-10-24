@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "../include/duckdb_compat.hpp"
+
 #include <array>
 #include <cstdint>
 #include <string>

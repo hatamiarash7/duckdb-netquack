@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "../include/duckdb_compat.hpp"
+
 #include "duckdb.hpp"
 
 namespace duckdb::netquack {

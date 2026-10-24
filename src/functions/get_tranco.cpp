@@ -175,8 +175,8 @@ void GetTrancoRankFunction(DataChunk &args, ExpressionState &state, Vector &resu
 
 	// Extract the input from the arguments
 	const auto &input_vector = args.data[0];
-	auto result_data = FlatVector::GetData<string_t>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto result_data = netquack_compat::MutableData<string_t>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);
@@ -226,8 +226,8 @@ void GetTrancoRankCategoryFunction(DataChunk &args, ExpressionState &state, Vect
 
 	// Extract the input from the arguments
 	const auto &input_vector = args.data[0];
-	auto result_data = FlatVector::GetData<string_t>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto result_data = netquack_compat::MutableData<string_t>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
 		auto value = input_vector.GetValue(i);
@@ -265,13 +265,21 @@ void GetTrancoRankCategoryFunction(DataChunk &args, ExpressionState &state, Vect
 
 unique_ptr<TableRef> TrancoListFunc::BindReplace(ClientContext &context, TableFunctionBindInput &input) {
 	const string table_name = "tranco_list";
+#ifdef NETQUACK_DUCKDB_V2
+	EntryLookupInfo lookup_info(CatalogType::TABLE_ENTRY, QualifiedName(Identifier(table_name)));
+#else
 	EntryLookupInfo lookup_info(CatalogType::TABLE_ENTRY, table_name);
+#endif
 	auto table = Catalog::GetEntry(context, INVALID_CATALOG, INVALID_SCHEMA, lookup_info, OnEntryNotFound::RETURN_NULL);
 	if (!table) {
 		throw InvalidInputException("Tranco table not found. Download it first using `SELECT update_tranco(true);`");
 	}
 
+#ifdef NETQUACK_DUCKDB_V2
+	Parser parser(context);
+#else
 	Parser parser(context.GetParserOptions());
+#endif
 	parser.ParseQuery("SELECT rank, domain, category FROM tranco_list");
 	auto select = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(parser.statements[0]));
 	return make_uniq<SubqueryRef>(std::move(select));

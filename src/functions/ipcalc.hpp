@@ -2,12 +2,14 @@
 
 #pragma once
 
+#include "../include/duckdb_compat.hpp"
+
 #include "duckdb.hpp"
 
 namespace duckdb::netquack {
 struct IPCalcFunc {
 	static unique_ptr<FunctionData> Bind(ClientContext &context, TableFunctionBindInput &input,
-	                                     vector<LogicalType> &return_types, vector<string> &names);
+	                                     vector<LogicalType> &return_types, netquack_compat::NameList &names);
 	static unique_ptr<LocalTableFunctionState> InitLocal(ExecutionContext &context, TableFunctionInitInput &input,
 	                                                     GlobalTableFunctionState *global_state_p);
 	static OperatorResultType Function(ExecutionContext &context, TableFunctionInput &data_p, DataChunk &input,

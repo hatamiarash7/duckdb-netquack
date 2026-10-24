@@ -14,8 +14,8 @@ using Extractor = std::vector<std::string> (*)(const std::string_view &);
 
 static void ExtractToList(DataChunk &args, Vector &result, Extractor extract) {
 	const auto &input_vector = args.data[0];
-	auto list_data = FlatVector::GetData<list_entry_t>(result);
-	auto &result_validity = FlatVector::Validity(result);
+	auto list_data = netquack_compat::MutableData<list_entry_t>(result);
+	auto &result_validity = netquack_compat::MutableValidity(result);
 	idx_t offset = ListVector::GetListSize(result);
 
 	for (idx_t i = 0; i < args.size(); i++) {
@@ -31,7 +31,7 @@ static void ExtractToList(DataChunk &args, Vector &result, Extractor extract) {
 		// Reserve may reallocate the child buffer, so fetch its data afterwards
 		ListVector::Reserve(result, offset + matches.size());
 		auto &child = ListVector::GetEntry(result);
-		auto child_data = FlatVector::GetData<string_t>(child);
+		auto child_data = netquack_compat::MutableData<string_t>(child);
 		for (idx_t k = 0; k < matches.size(); k++) {
 			child_data[offset + k] = StringVector::AddString(child, matches[k]);
 		}
