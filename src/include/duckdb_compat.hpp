@@ -77,6 +77,26 @@ vector<LogicalType> ArgumentTypes(const FUNCTION &function) {
 #endif
 }
 
+//! Names the positional parameters of a function. DuckDB 2.0 names parameters declared by type only "col<N>" and
+//! reports those names in duckdb_functions().
+template <class FUNCTION>
+void NameParameters(FUNCTION &function, const vector<string> &names) {
+#ifdef NETQUACK_DUCKDB_V2
+	auto &signature = function.GetSignature();
+	idx_t count = signature.GetParameters().size();
+	if (names.size() != count) {
+		return;
+	}
+	for (idx_t i = 0; i < count; i++) {
+		auto type = signature.GetParameter(i).GetType();
+		signature.GetParameter(i) = FunctionParameter(Identifier(names[i]), std::move(type));
+	}
+#else
+	(void)function;
+	(void)names;
+#endif
+}
+
 // UnaryExecutor::ExecuteWithNulls and its binary and ternary versions: lambdas which get the result's validity mask
 // and the row index to set NULLs. DuckDB 2.0 removed them, there these loops do the same.
 

@@ -53,6 +53,7 @@ FunctionDescription MakeDescription(vector<LogicalType> parameter_types, vector<
 
 void Register(ExtensionLoader &loader, ScalarFunction function, vector<string> parameter_names, string description,
               vector<string> examples, vector<string> categories) {
+	netquack_compat::NameParameters(function, parameter_names);
 	auto types = netquack_compat::ArgumentTypes(function);
 	CreateScalarFunctionInfo info(std::move(function));
 	info.on_conflict = OnCreateConflict::ALTER_ON_CONFLICT;
@@ -63,6 +64,7 @@ void Register(ExtensionLoader &loader, ScalarFunction function, vector<string> p
 
 void Register(ExtensionLoader &loader, TableFunction function, vector<string> parameter_names, string description,
               vector<string> examples, vector<string> categories) {
+	netquack_compat::NameParameters(function, parameter_names);
 	auto types = netquack_compat::ArgumentTypes(function);
 	CreateTableFunctionInfo info(std::move(function));
 	info.on_conflict = OnCreateConflict::ALTER_ON_CONFLICT;
