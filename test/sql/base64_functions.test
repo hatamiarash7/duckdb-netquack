@@ -334,3 +334,63 @@ query I
 SELECT lower(base64_decode('/w=='));
 ----
 NULL
+
+# === Mixed valid, invalid UTF-8, and NULL rows ===
+
+statement ok
+CREATE OR REPLACE TABLE mixed_base64_decode (id INTEGER, encoded VARCHAR);
+
+statement ok
+INSERT INTO mixed_base64_decode VALUES
+    (1, 'SGVsbG8='),
+    (2, '/w=='),
+    (3, 'Q0FGw4k='),
+    (4, NULL),
+    (5, 'ww=='),
+    (6, ''),
+    (7, '8J+mhg==');
+
+# Invalid rows must not affect valid rows that follow them
+query III
+SELECT id, base64_decode(encoded), lower(base64_decode(encoded))
+FROM mixed_base64_decode ORDER BY id;
+----
+1	Hello	hello
+2	NULL	NULL
+3	CAFÉ	café
+4	NULL	NULL
+5	NULL	NULL
+6	(empty)	(empty)
+7	🦆	🦆
+
+# Filtering must recognize NULL produced from non-NULL input
+query I
+SELECT id FROM mixed_base64_decode WHERE base64_decode(encoded) IS NULL ORDER BY id;
+----
+2
+4
+5
+
+# Exercise validity handling across multiple execution chunks
+statement ok
+CREATE TABLE mixed_base64_decode_batches AS
+SELECT encoded FROM mixed_base64_decode CROSS JOIN range(1024);
+
+query III
+SELECT count(*), count(lower(base64_decode(encoded))),
+       count(*) FILTER (WHERE base64_decode(encoded) IS NULL)
+FROM mixed_base64_decode_batches;
+----
+7168	4096	3072
+
+# The same connection remains usable after processing invalid decoded bytes
+query I
+SELECT 42;
+----
+42
+
+statement ok
+DROP TABLE mixed_base64_decode;
+
+statement ok
+DROP TABLE mixed_base64_decode_batches;

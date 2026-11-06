@@ -449,3 +449,63 @@ query I
 SELECT lower(url_decode('a%FFb'));
 ----
 NULL
+
+# === Mixed valid, invalid UTF-8, and NULL rows ===
+
+statement ok
+CREATE OR REPLACE TABLE mixed_url_decode (id INTEGER, encoded VARCHAR);
+
+statement ok
+INSERT INTO mixed_url_decode VALUES
+    (1, 'Hello%20World'),
+    (2, 'a%FFb'),
+    (3, 'CAF%C3%89'),
+    (4, NULL),
+    (5, '%C3'),
+    (6, ''),
+    (7, '%F0%9F%A6%86');
+
+# Invalid rows must not affect valid rows that follow them
+query III
+SELECT id, url_decode(encoded), lower(url_decode(encoded))
+FROM mixed_url_decode ORDER BY id;
+----
+1	Hello World	hello world
+2	NULL	NULL
+3	CAFÉ	café
+4	NULL	NULL
+5	NULL	NULL
+6	(empty)	(empty)
+7	🦆	🦆
+
+# Filtering must recognize NULL produced from non-NULL input
+query I
+SELECT id FROM mixed_url_decode WHERE url_decode(encoded) IS NULL ORDER BY id;
+----
+2
+4
+5
+
+# Exercise validity handling across multiple execution chunks
+statement ok
+CREATE TABLE mixed_url_decode_batches AS
+SELECT encoded FROM mixed_url_decode CROSS JOIN range(1024);
+
+query III
+SELECT count(*), count(lower(url_decode(encoded))),
+       count(*) FILTER (WHERE url_decode(encoded) IS NULL)
+FROM mixed_url_decode_batches;
+----
+7168	4096	3072
+
+# The same connection remains usable after processing invalid decoded bytes
+query I
+SELECT 42;
+----
+42
+
+statement ok
+DROP TABLE mixed_url_decode;
+
+statement ok
+DROP TABLE mixed_url_decode_batches;
