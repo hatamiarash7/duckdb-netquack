@@ -322,3 +322,15 @@ query I
 SELECT base64_encode(chr(0) || chr(1) || chr(255));
 ----
 AAHDvw==
+
+# === Invalid UTF-8 after decoding returns NULL ===
+
+query I
+SELECT base64_decode('/w==');
+----
+NULL
+
+query I
+SELECT lower(base64_decode('/w=='));
+----
+NULL

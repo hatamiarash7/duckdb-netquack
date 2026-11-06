@@ -2,6 +2,8 @@
 
 #include "base64_functions.hpp"
 
+#include "utf8proc_wrapper.hpp"
+
 #include <array>
 
 namespace duckdb {
@@ -63,6 +65,12 @@ void Base64DecodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 
 		try {
 			auto decoded = netquack::Base64Decode(input);
+			// The decoded bytes may not be valid UTF-8, and an invalid VARCHAR makes the next string function
+			// (e.g. lower()) fail with an INTERNAL error which invalidates the whole database
+			if (Utf8Proc::Analyze(decoded.data(), decoded.size()) == UnicodeType::INVALID) {
+				result_validity.SetInvalid(i);
+				continue;
+			}
 			result_data[i] = StringVector::AddString(result, decoded);
 		} catch (const std::exception &e) {
 			result_data[i] = StringVector::AddString(result, "Error decoding base64: " + std::string(e.what()));

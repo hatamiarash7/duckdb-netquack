@@ -431,3 +431,21 @@ query I
 SELECT length(url_decode('%00'));
 ----
 1
+
+# === Invalid UTF-8 after decoding returns NULL ===
+
+query I
+SELECT url_decode('a%FFb');
+----
+NULL
+
+query I
+SELECT url_decode('%C3');
+----
+NULL
+
+# The database must stay usable after string functions on the result
+query I
+SELECT lower(url_decode('a%FFb'));
+----
+NULL

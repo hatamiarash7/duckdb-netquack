@@ -2,6 +2,8 @@
 
 #include "url_encode_functions.hpp"
 
+#include "utf8proc_wrapper.hpp"
+
 #include <array>
 
 namespace duckdb {
@@ -83,6 +85,12 @@ void UrlDecodeFunction(DataChunk &args, ExpressionState &, Vector &result) {
 
 		auto input = value.ToString();
 		auto decoded = netquack::UrlDecode(input);
+		// Decoded bytes like %FF aren't valid UTF-8, and an invalid VARCHAR makes the next string function
+		// (e.g. lower()) fail with an INTERNAL error which invalidates the whole database
+		if (Utf8Proc::Analyze(decoded.data(), decoded.size()) == UnicodeType::INVALID) {
+			result_validity.SetInvalid(i);
+			continue;
+		}
 		result_data[i] = StringVector::AddString(result, decoded);
 	}
 }

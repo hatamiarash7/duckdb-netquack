@@ -14,7 +14,7 @@ layout:
 
 # Base64 Encode / Decode
 
-The `base64_encode` function encodes a string into Base64 format. The `base64_decode` function decodes a Base64-encoded string back to its original form.
+The `base64_encode` function encodes a string into Base64 format. The `base64_decode` function decodes a Base64-encoded string back to its original form. Returns `NULL` when the decoded bytes are not valid UTF-8.
 
 ## base64\_encode
 

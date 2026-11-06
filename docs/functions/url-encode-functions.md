@@ -16,7 +16,7 @@ layout:
 
 The `url_encode` function percent-encodes a string per RFC 3986. Only unreserved characters (`A-Z`, `a-z`, `0-9`, `-`, `_`, `.`, `~`) are left as-is — everything else is encoded as `%XX` with uppercase hex digits.
 
-The `url_decode` function decodes percent-encoded strings back to their original form. It also decodes `+` as a space (for `application/x-www-form-urlencoded` compatibility). Invalid percent sequences (e.g., `%ZZ`, trailing `%`) are passed through literally.
+The `url_decode` function decodes percent-encoded strings back to their original form. It also decodes `+` as a space (for `application/x-www-form-urlencoded` compatibility). Invalid percent sequences (e.g., `%ZZ`, trailing `%`) are passed through literally. Returns `NULL` when the decoded bytes are not valid UTF-8 (e.g., `%FF`).
 
 ## Encode
 
