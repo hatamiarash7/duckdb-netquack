@@ -14,6 +14,7 @@ Table of Contents
 
 - [DuckDB Netquack Extension](#duckdb-netquack-extension)
   - [Installation 🚀](#installation-)
+  - [Changelog](CHANGELOG.md)
   - [Usage Examples 📚](#usage-examples-)
     - [Extracting The Main Domain](#extracting-the-main-domain)
     - [Extracting The Path](#extracting-the-path)
@@ -85,7 +86,7 @@ Also, you can check for any available updates for the extension using this comma
 UPDATE EXTENSIONS (netquack);
 ```
 
-The compatibility between Netquack and DuckDB varies across versions.
+The table below lists compatible Netquack and DuckDB versions. Before upgrading, check the [changelog](CHANGELOG.md) for fixes and changes that may affect your queries.
 
 | Version of Netquack | Version of DuckDB |
 | ------------------- | ----------------- |

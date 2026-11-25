@@ -25,7 +25,7 @@ layout:
 
 First, you need to install DuckDB, it is pretty easy, you can check [this page](https://duckdb.org/docs/installation/?version=stable\&environment=cli\&platform=linux\&download_method=direct\&architecture=x86_64). DuckDB is an in-process database system that offers [client APIs](https://duckdb.org/docs/api/overview) for several languages.
 
-The compatibility between Netquack and DuckDB varies across versions.
+The table below lists compatible Netquack and DuckDB versions. Before upgrading, check the [changelog](https://github.com/hatamiarash7/duckdb-netquack/blob/main/CHANGELOG.md) for fixes and changes that may affect your queries.
 
 | Version of Netquack | Version of DuckDB |
 | ------------------- | ----------------- |

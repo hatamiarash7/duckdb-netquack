@@ -2,6 +2,7 @@
 
 * [Introduce](README.md)
 * [Why Netquack](why-netquack.md)
+* [Changelog](https://github.com/hatamiarash7/duckdb-netquack/blob/main/CHANGELOG.md)
 
 ## Getting Started
 
